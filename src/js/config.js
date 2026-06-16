@@ -83,4 +83,8 @@ window._db = window._createSupabaseClient(window._SUPABASE_URL, window._SUPABASE
   auth: { autoRefreshToken:true, persistSession:true, detectSessionInUrl:true, storageKey:'caloria-verde-auth' }
 });
 window.supabase = window._db;
+window.updateLogos = updateLogos;
+window.LOGO_LIGHT_B64 = LOGO_LIGHT_B64;
+window.LOGO_DARK_B64 = LOGO_DARK_B64;
+
 
