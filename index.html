@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CalorIA">
+<meta name="theme-color" content="#2a5c30">
+<title>CalorIA — Nutrição Inteligente</title>
+<link rel="icon" type="image/png" id="dynamic-favicon" href="">
+<link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
+<link rel="manifest" id="dynamic-manifest" href="">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:56px;width:auto;display:block;"><span>Calor<span class="logo-accent">IA</span></span></div>
+    <p class="auth-tagline">Nutrição inteligente para uma vida mais saudável <i class="fa-solid fa-leaf ic-leaf"></i></p>
+    <div id="authError"></div>
+    <div id="authLoading">Entrando...</div>
+
+    <!-- Step 1: Login/Register -->
+    <div id="authStep1">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Entrar</button>
+        <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">Cadastrar</button>
+      </div>
+
+      <div id="formLogin">
+        <div class="form-field">
+          <label class="form-label">E-mail</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Senha</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Entrar</button>
+        <div style="text-align:center;margin-top:0.75rem;">
+          <button type="button" onclick="openForgotPassword()" style="background:none;border:none;color:var(--green-mid);font-size:0.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;">Esqueci minha senha</button>
+        </div>
+        <p class="auth-note" style="font-size:0.72rem;margin-top:0.4rem;">🔒 Dados protegidos pela <strong>LGPD</strong> (Lei 13.709/2018)</p>
+      </div>
+
+      <div id="formRegister" style="display:none;">
+        <!-- Avatar selection -->
+        <div class="form-field" style="text-align:center;margin-bottom:1.2rem;">
+          <label class="form-label" style="display:block;margin-bottom:0.7rem;">Foto de perfil <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
+          <!-- Preview circle -->
+          <div id="regAvatarPreview" onclick="document.getElementById('regAvatarFile').click()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:white;font-family:'Syne',sans-serif;margin:0 auto 0.9rem;overflow:hidden;cursor:pointer;border:3px solid var(--green-light);position:relative;">
+            <span id="regAvatarInitial">?</span>
+          </div>
+          <input type="file" id="regAvatarFile" accept="image/*" style="display:none;" onchange="handleRegAvatarUpload(event)">
+          <!-- Three option buttons -->
+          <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+            <button type="button" class="reg-avatar-opt-btn" id="regOptPhoto" onclick="document.getElementById('regAvatarFile').click()"><i class="fa-solid fa-camera ic-camera"></i> Upload foto</button>
+            <button type="button" class="reg-avatar-opt-btn" id="regOptAvatars" onclick="toggleRegAvatarPicker()"><i class="fa-solid fa-palette ic-star"></i> Escolher avatar</button>
+            <button type="button" class="reg-avatar-opt-btn" id="regOptInitial" onclick="clearRegAvatar()"><i class="fa-solid fa-sparkles"></i> Só inicial</button>
+          </div>
+          <!-- Avatar picker grid -->
+          <div id="regAvatarPicker" style="display:none;margin-top:0.8rem;background:var(--bg-main);border:1px solid var(--border);border-radius:12px;padding:0.8rem;">
+            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.6rem;">Escolha um avatar:</p>
+            <div id="regAvatarGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Nome completo</label>
+          <input type="text" id="regName" class="form-input" placeholder="Seu nome" oninput="updateRegInitial()">
+        </div>
+        <div class="form-field">
+          <label class="form-label">E-mail</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="seu@email.com">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Senha</label>
+          <input type="password" id="regPassword" class="form-input" placeholder="Mínimo 6 caracteres">
+        </div>
+        <button class="btn-primary" onclick="doRegister()">Criar conta gratuita</button>
+        <p class="auth-note">Todos começam no plano Gratuito. Faça upgrade a qualquer momento.</p>
+        <div id="emailConfirmBanner" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:0.9rem 1rem;margin-top:1rem;font-size:0.84rem;color:#1a4a1f;text-align:center;line-height:1.6;">
+          <i class="fa-solid fa-envelope-circle-check" style="color:#2d7a35;font-size:1.2rem;"></i><br>
+          <strong>Verifique seu e-mail!</strong><br>
+          Enviamos um link de confirmação para o seu endereço de e-mail. Clique no link para ativar sua conta e poder entrar.
+          <br><button onclick="resendConfirmEmail()" style="background:none;border:none;color:var(--green-mid);font-size:0.8rem;cursor:pointer;text-decoration:underline;margin-top:0.3rem;">Reenviar e-mail de confirmação</button>
+        </div>
+        <p class="auth-note" style="margin-top:0.75rem;font-size:0.72rem;">🔒 Seus dados são protegidos pela <strong>LGPD</strong> (Lei 13.709/2018). Não compartilhamos suas informações com terceiros.</p>
+      </div>
+    </div>
+
+    <!-- Step 2: Onboarding (first login) -->
+    <div id="onboardingStep" style="display:none;">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;">Bem-vindo! Vamos começar <i class="fa-solid fa-leaf ic-leaf"></i></h3>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;">Preencha seus dados para personalizar sua experiência. Você pode atualizar isso depois.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+        <div class="form-field">
+          <label class="form-label">Sexo</label>
+          <select id="onbSex" class="form-select"><option value="f">Feminino</option><option value="m">Masculino</option><option value="o">Outro</option></select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Idade</label>
+          <input type="number" id="onbAge" class="form-input" placeholder="25" min="10" max="120">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Peso (kg)</label>
+          <input type="number" id="onbWeight" class="form-input" placeholder="70" min="20" max="500">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Altura (cm)</label>
+          <input type="number" id="onbHeight" class="form-input" placeholder="170" min="100" max="250">
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:0.5rem;">
+        <label class="form-label">Objetivo principal</label>
+        <div class="goal-btns">
+          <button class="goal-btn active" data-goal="-500" onclick="selectOnbGoal(this)"><i class="fa-solid fa-fire ic-fire"></i> Emagrecer</button>
+          <button class="goal-btn" data-goal="0" onclick="selectOnbGoal(this)"><i class="fa-solid fa-scale-balanced ic-compare"></i> Manter</button>
+          <button class="goal-btn" data-goal="300" onclick="selectOnbGoal(this)"><i class="fa-solid fa-dumbbell ic-fire"></i> Ganhar</button>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:1.2rem;" onclick="completeOnboarding()">Começar agora <i class="fa-solid fa-arrow-right ic-search"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo" style="display:flex;align-items:center;gap:0.5rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:40px;width:auto;display:block;"><span>Calor<span>IA</span></span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-label" data-i18n="nav_tools">Ferramentas</div>
+      <button class="nav-item active" id="nav-home" onclick="showPanel('home',this)">
+        <span class="nav-icon"><i class="fa-solid fa-house ic-home"></i></span><span>Início</span>
+      </button>
+      <button class="nav-item" id="nav-search" onclick="showPanel('search',this)">
+        <span class="nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span><span data-i18n="nav_search">Pesquisar</span>
+      </button>
+      <button class="nav-item" id="nav-diary" onclick="showPanel('diary',this)">
+        <span class="nav-icon"><i class="fa-solid fa-book ic-diary"></i></span><span data-i18n="nav_diary">Diário</span>
+      </button>
+      <button class="nav-item" id="nav-goal" onclick="showPanel('goal',this)">
+        <span class="nav-icon"><i class="fa-solid fa-bullseye ic-goal"></i></span><span data-i18n="nav_goal">Meta & Calculadora</span>
+      </button>
+      <button class="nav-item" id="nav-camera" onclick="showPanel('camera',this)">
+        <span class="nav-icon"><i class="fa-solid fa-camera ic-camera"></i></span><span data-i18n="nav_camera">Câmera IA</span>
+      </button>
+      <button class="nav-item" id="nav-compare" onclick="showPanel('compare',this)">
+        <span class="nav-icon"><i class="fa-solid fa-scale-balanced ic-compare"></i></span><span data-i18n="nav_compare">Comparar</span>
+      </button>
+      <button class="nav-item" id="nav-recipes" onclick="showPanel('recipes',this)">
+        <span class="nav-icon"><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="nav_recipes">Receitas</span>
+      </button>
+
+      <div class="nav-group-label" id="navGroupPro" style="display:none;" data-i18n="nav_professional">Profissional</div>
+      <button class="nav-item" id="nav-prof" style="display:none;" onclick="showPanel('prof',this)">
+        <span class="nav-icon"><i class="fa-solid fa-users ic-patients"></i></span><span data-i18n="nav_patients">Pacientes</span>
+        <span class="nav-badge" id="patientNotifBadge" style="display:none;">!</span>
+      </button>
+      <button class="nav-item" id="nav-chat" style="display:none;" onclick="showPanel('chat',this);initChatPanel()">
+        <span class="nav-icon"><i class="fa-solid fa-comments ic-chat"></i></span><span>Canal</span>
+        <span class="nav-badge" id="chatNavBadge" style="display:none;"></span>
+      </button>
+
+      <div class="nav-group-label" id="navGroupAdmin" style="display:none;">Admin</div>
+      <button class="nav-item" id="nav-admin" style="display:none;" onclick="showPanel('admin',this)">
+        <span class="nav-icon"><i class="fa-solid fa-gear ic-admin"></i></span>Admin
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="plan-chip-sidebar chip-free" id="sidebarPlanChip"><i class="fa-solid fa-seedling ic-leaf"></i> Gratuito</div>
+      <div style="margin-bottom:0.5rem;font-size:0.75rem;color:rgba(255,255,255,0.5);" id="sidebarUserName"></div>
+      <button class="btn-upgrade-sidebar" id="sidebarUpgradeBtn" onclick="openUpgradeModal()">⬆ Fazer Upgrade</button>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-title" id="topbarTitle" data-i18n="nav_search">Pesquisar</div>
+    <div class="topbar-progress" id="topbarProgress">
+      <span id="topbarKcalText">0 / 2000 kcal</span>
+      <div class="topbar-kcal-bar"><div class="topbar-kcal-fill" id="topbarKcalFill" style="width:0%"></div></div>
+    </div>
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Alternar tema"><i class="fa-solid fa-moon ic-moon"></i></button>
+    <div style="position:relative;">
+      <button class="user-avatar-btn" id="userAvatarBtn" onclick="toggleDropdown()">
+        <span id="userInitials">?</span>
+      </button>
+      <div class="user-dropdown" id="userDropdown" style="display:none;">
+        <div class="dropdown-header">
+          <div class="dropdown-name" id="dropdownName">—</div>
+          <div class="dropdown-email" id="dropdownEmail">—</div>
+          <div style="margin-top:0.4rem;"><span class="plan-badge-inline badge-free" id="dropdownPlanBadge">Gratuito</span></div>
+        </div>
+        <button class="dropdown-item" onclick="showPanel('profile',null);closeDropdown()">
+          <span><i class="fa-solid fa-user ic-user"></i></span><span data-i18n="menu_profile">Meu Perfil</span>
+        </button>
+        <button class="dropdown-item" id="dropdownUpgradeBtn" onclick="openUpgradeModal();closeDropdown()">
+          <span><i class="fa-solid fa-star ic-star"></i></span><span data-i18n="menu_upgrade">Planos & Upgrade</span>
+        </button>
+        <button class="dropdown-item" id="dropdownBecomeNut" onclick="openNutritionistRequest();closeDropdown()">
+          <span><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="menu_become_nut">Ser Nutricionista</span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" onclick="forceRefreshProfile();closeDropdown()" title="Atualiza role e plano do banco de dados">
+          <span><i class="fa-solid fa-arrows-rotate ic-water"></i></span><span>Atualizar perfil</span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item danger" onclick="doLogout();closeDropdown()">
+          <span><i class="fa-solid fa-door-open ic-alert"></i></span><span data-i18n="menu_logout">Sair</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" id="mainContent">
+
+    <!-- ══ HOME PANEL ══ -->
+    <div class="panel" id="panel-home">
+      <!-- Welcome banner -->
+      <div class="card" style="background:linear-gradient(135deg,var(--green-deep) 0%,#1e5c23 100%);color:white;border:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;">Olá, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
+            <div style="opacity:0.8;font-size:0.88rem;margin-top:0.25rem;">Aqui está o seu resumo de hoje</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:2rem;font-weight:900;font-family:'Playfair Display',serif;" id="homeKcalToday">0</div>
+            <div style="opacity:0.7;font-size:0.75rem;">kcal hoje</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;background:rgba(255,255,255,0.2);border-radius:8px;height:8px;overflow:hidden;">
+          <div id="homeKcalBar" style="height:100%;background:var(--yellow-hot);border-radius:8px;width:0%;transition:width 0.5s ease;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;opacity:0.75;margin-top:0.35rem;">
+          <span>0 kcal</span><span id="homeKcalGoalLabel">meta: 2000 kcal</span>
+        </div>
+      </div>
+
+      <!-- Quick actions grid -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
+        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('search',document.getElementById('nav-search'))">
+          <div style="font-size:2rem;"><i class="fa-solid fa-magnifying-glass ic-search"></i></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Tabela nutricional</div>
+        </div>
+        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('diary',document.getElementById('nav-diary'))">
+          <div style="font-size:2rem;"><i class="fa-solid fa-book ic-diary"></i></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Registrar refeições</div>
+        </div>
+        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('camera',document.getElementById('nav-camera'))">
+          <div style="font-size:2rem;"><i class="fa-solid fa-camera ic-camera"></i></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Analisar foto do prato</div>
+        </div>
+        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('goal',document.getElementById('nav-goal'))">
+          <div style="font-size:2rem;"><i class="fa-solid fa-bullseye ic-goal"></i></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Minha Meta</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Calcular calorias</div>
+        </div>
+        <!-- Diet Generator shortcut -->
+        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:linear-gradient(135deg,var(--green-deep),#1a4a1f);border:none;color:white;" onclick="openDietGenModal()">
+          <div style="font-size:2rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#ffd54f!important;"></i></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
+          <div style="font-size:0.75rem;opacity:0.75;margin-top:0.2rem;">Plano alimentar personalizado baseado na sua anamnese</div>
+        </div>
+      </div>
+
+      <!-- Today macros + recipes side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-pills ic-water"></i> Macros de Hoje</div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.75rem;">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
+                <span><i class="fa-solid fa-wheat-awn ic-carb"></i> Carbs</span><span id="homeCarbsVal">0g</span>
+              </div>
+              <div style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
+                <div id="homeCarbsBar" style="height:100%;background:#f59e0b;width:0%;border-radius:3px;transition:width 0.4s;"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
+                <span><i class="fa-solid fa-dumbbell ic-fire"></i> Proteínas</span><span id="homeProtVal">0g</span>
+              </div>
+              <div style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
+                <div id="homeProtBar" style="height:100%;background:var(--green-mid);width:0%;border-radius:3px;transition:width 0.4s;"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
+                <span><i class="fa-solid fa-droplet ic-water"></i> Gorduras</span><span id="homeFatVal">0g</span>
+              </div>
+              <div style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
+                <div id="homeFatBar" style="height:100%;background:#ef4444;width:0%;border-radius:3px;transition:width 0.4s;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0;cursor:pointer;" onclick="showPanel('recipes',document.getElementById('nav-recipes'))">
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-utensils ic-recipes"></i> Receitas</div>
+          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;">Explore receitas saudáveis com informações nutricionais completas.</div>
+          <div style="margin-top:0.75rem;background:var(--green-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--green-deep);font-weight:600;">Ver receitas <i class="fa-solid fa-arrow-right ic-search"></i></div>
+        </div>
+      </div>
+
+      <!-- Compare + calculator side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div class="card" style="margin-bottom:0;cursor:pointer;" onclick="showPanel('compare',document.getElementById('nav-compare'))">
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-scale-balanced ic-compare"></i> Comparar</div>
+          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;">Compare dois alimentos lado a lado por 100g.</div>
+          <div style="margin-top:0.75rem;background:var(--yellow-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:#b8860b;font-weight:600;">Comparar agora <i class="fa-solid fa-arrow-right ic-search"></i></div>
+        </div>
+        <div class="card" style="margin-bottom:0;cursor:pointer;" onclick="showPanel('goal',document.getElementById('nav-goal'))">
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-calculator ic-goal"></i> Calculadora</div>
+          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;">Calcule seu metabolismo basal e meta calórica ideal.</div>
+          <div style="margin-top:0.75rem;background:var(--orange-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--orange-hot);font-weight:600;">Calcular <i class="fa-solid fa-arrow-right ic-search"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SEARCH PANEL ══ -->
+    <div class="panel" id="panel-search">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-magnifying-glass ic-search"></i> <span data-i18n="search_title">Busca Nutricional</span></div>
+        <div class="card-sub" data-i18n="search_sub">Pesquise qualquer alimento e veja informações nutricionais completas</div>
+        <div class="search-input-row">
+          <input type="text" id="foodSearchInput" class="search-input" data-i18n-ph="search_ph" placeholder="Ex: arroz branco cozido, banana, frango..." autocomplete="off" onkeydown="if(event.key==='Enter')searchFood()">
+          <button class="btn-search" id="searchBtn" onclick="searchFood()"><i class="fa-solid fa-magnifying-glass ic-search"></i> <span data-i18n="search_btn">Buscar</span></button>
+        </div>
+        <div class="qty-row">
+          <span class="qty-label" data-i18n="qty_label">Quantidade:</span>
+          <input type="number" id="qtyInput" class="qty-input" value="100" min="1" max="9999">
+          <select id="qtyUnit" class="qty-unit">
+            <option value="g">g</option>
+            <option value="ml">ml</option>
+            <option value="xícara">xícara (240ml)</option>
+            <option value="colher de sopa">colher de sopa (15g)</option>
+            <option value="colher de chá">colher de chá (5g)</option>
+            <option value="kg">kg</option>
+          </select>
+        </div>
+        <div class="pop-tags">
+          <button class="pop-tag" onclick="quickSearch('arroz branco cozido')"><i class="fa-solid fa-seedling ic-leaf"></i> Arroz</button>
+          <button class="pop-tag" onclick="quickSearch('feijão carioca cozido')"><i class="fa-solid fa-circle-dot ic-goal"></i> Feijão</button>
+          <button class="pop-tag" onclick="quickSearch('frango grelhado peito')"><i class="fa-solid fa-drumstick-bite ic-protein"></i> Frango</button>
+          <button class="pop-tag" onclick="quickSearch('banana nanica')"><i class="fa-solid fa-apple-whole ic-leaf"></i> Banana</button>
+          <button class="pop-tag" onclick="quickSearch('ovo cozido')"><i class="fa-solid fa-egg ic-protein"></i> Ovo</button>
+          <button class="pop-tag" onclick="quickSearch('aveia flocos')"><i class="fa-solid fa-wheat-awn ic-carb"></i> Aveia</button>
+          <button class="pop-tag" onclick="quickSearch('abacate')"><i class="fa-solid fa-seedling ic-leaf"></i> Abacate</button>
+          <button class="pop-tag" onclick="quickSearch('batata doce cozida')"><i class="fa-solid fa-carrot ic-leaf"></i> Batata-doce</button>
+        </div>
+        <div class="loading-pulse" id="searchLoading"><div class="pulse-ring"></div><p>Buscando...</p></div>
+        <div class="error-msg" id="searchError"><i class="fa-solid fa-triangle-exclamation ic-alert"></i> Alimento não encontrado. Tente um nome diferente.</div>
+        <div class="result-card" id="resultCard">
+          <p class="result-food-name" id="resultName">—</p>
+          <p class="result-portion" id="resultPortion">—</p>
+          <div class="result-kcal-big" id="resultKcal">0</div>
+          <p class="result-kcal-label">kcal</p>
+          <div class="macros-grid">
+            <div class="macro-item"><div class="macro-val" id="resCarbs">0g</div><div class="macro-label">Carboidratos</div></div>
+            <div class="macro-item"><div class="macro-val" id="resProt">0g</div><div class="macro-label">Proteínas</div></div>
+            <div class="macro-item"><div class="macro-val" id="resFat">0g</div><div class="macro-label">Gorduras</div></div>
+          </div>
+          <div class="extras-grid">
+            <div class="extra-item"><div class="extra-val" id="resFiber">0g</div><div class="extra-label">Fibras</div></div>
+            <div class="extra-item"><div class="extra-val" id="resSodium">0mg</div><div class="extra-label">Sódio</div></div>
+            <div class="extra-item"><div class="extra-val" id="resSugar">0g</div><div class="extra-label">Açúcares</div></div>
+            <div class="extra-item"><div class="extra-val" id="resCholest">0mg</div><div class="extra-label">Colesterol</div></div>
+          </div>
+
+          <!-- Expandable full nutrition panel -->
+          <button class="btn-toggle-nutr" id="btnToggleNutr" onclick="toggleNutritionPanel()">
+            <i class="fa-solid fa-flask ic-water"></i> Ver nutrição completa (vitaminas, minerais…)
+            <span style="margin-left:0.5rem;background:rgba(255,255,255,0.18);border-radius:50px;padding:1px 8px;font-size:0.72rem;font-weight:700;">38 nutrientes</span>
+          </button>
+          <div class="nutrition-expanded" id="nutritionExpanded">
+            <div class="nutr-section-title"><i class="fa-solid fa-droplet ic-water"></i> Lipídios & Água</div>
+            <div class="nutr-grid-4">
+              <div class="nutr-item"><div class="nutr-item-val" id="resLipids">0g</div><div class="nutr-item-label">Lipídios totais</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resSatFat">0g</div><div class="nutr-item-label">G. Saturada</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resMonoFat">0g</div><div class="nutr-item-label">G. Monoinsaturada</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resPolyFat">0g</div><div class="nutr-item-label">G. Poli-insaturada</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resTransFat">0g</div><div class="nutr-item-label">G. Trans</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resWater">0g</div><div class="nutr-item-label">Água</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resAsh">0g</div><div class="nutr-item-label">Cinzas</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resCholine">0mg</div><div class="nutr-item-label">Colina</div></div>
+            </div>
+
+            <div class="nutr-section-title"><i class="fa-solid fa-sun ic-sun"></i> Vitaminas</div>
+            <div class="nutr-grid-4">
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitA">0µg</div><div class="nutr-item-label">Vit. A (RAE)</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitC">0mg</div><div class="nutr-item-label">Vit. C</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitD">0µg</div><div class="nutr-item-label">Vit. D</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitE">0mg</div><div class="nutr-item-label">Vit. E</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitK">0µg</div><div class="nutr-item-label">Vit. K</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB1">0mg</div><div class="nutr-item-label">B1 Tiamina</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB2">0mg</div><div class="nutr-item-label">B2 Riboflavina</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB3">0mg</div><div class="nutr-item-label">B3 Niacina</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB5">0mg</div><div class="nutr-item-label">B5 Pant.</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB6">0mg</div><div class="nutr-item-label">B6</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB9">0µg</div><div class="nutr-item-label">B9 Folato</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resVitB12">0µg</div><div class="nutr-item-label">B12</div></div>
+            </div>
+
+            <div class="nutr-section-title"><i class="fa-solid fa-gem" style="color:#b0bec5;"></i> Minerais</div>
+            <div class="nutr-grid-4">
+              <div class="nutr-item"><div class="nutr-item-val" id="resCalcium">0mg</div><div class="nutr-item-label">Cálcio</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resIron">0mg</div><div class="nutr-item-label">Ferro</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resMagnesium">0mg</div><div class="nutr-item-label">Magnésio</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resPhosphorus">0mg</div><div class="nutr-item-label">Fósforo</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resPotassium">0mg</div><div class="nutr-item-label">Potássio</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resZinc">0mg</div><div class="nutr-item-label">Zinco</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resSelenium">0µg</div><div class="nutr-item-label">Selênio</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resManganese">0mg</div><div class="nutr-item-label">Manganês</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resCopper">0mg</div><div class="nutr-item-label">Cobre</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resFluoride">0µg</div><div class="nutr-item-label">Flúor</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resIodine">0µg</div><div class="nutr-item-label">Iodo</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resSodium2">0mg</div><div class="nutr-item-label">Sódio</div></div>
+            </div>
+
+            <div class="nutr-section-title"><i class="fa-solid fa-leaf ic-leaf"></i> Fitoquímicos</div>
+            <div class="nutr-grid-3">
+              <div class="nutr-item"><div class="nutr-item-val" id="resFlavonoids">0mg</div><div class="nutr-item-label">Flavonoides</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resPolyphenols">0mg</div><div class="nutr-item-label">Polifenóis</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resCarotenoids">0µg</div><div class="nutr-item-label">Carotenoides</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resLycopene">0µg</div><div class="nutr-item-label">Licopeno</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resLutein">0µg</div><div class="nutr-item-label">Luteína</div></div>
+              <div class="nutr-item"><div class="nutr-item-val" id="resPhytosterols">0mg</div><div class="nutr-item-label">Fitoesteróis</div></div>
+            </div>
+            <p style="font-size:0.68rem;opacity:0.55;margin-top:0.75rem;line-height:1.5;">* Valores estimados com base em dados TACO/USDA. Fitoquímicos podem variar conforme variedade, safra e preparo. Consulte um nutricionista para avaliação individualizada.</p>
+
+            <!-- Score nutricional dinâmico -->
+            <div id="nutriScoreBox" style="margin-top:1rem;background:rgba(255,255,255,0.08);border-radius:12px;padding:0.9rem;display:none;">
+              <div style="font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.65;margin-bottom:0.6rem;">Perfil Nutricional</div>
+              <div id="nutriScoreContent" style="font-size:0.82rem;line-height:1.6;opacity:0.85;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <select id="searchMealSelect" style="flex:1;min-width:130px;padding:0.6rem 0.8rem;border:2px solid var(--border);border-radius:50px;font-size:0.88rem;font-family:'DM Sans',sans-serif;background:var(--bg-card);color:var(--text-main);outline:none;">
+              <option value="cafe">☀️ Café da manhã</option>
+              <option value="almoco" selected>🍽️ Almoço</option>
+              <option value="lanche">🍎 Lanche</option>
+              <option value="jantar">🌙 Jantar</option>
+            </select>
+            <button class="btn-add-diary" style="flex:1;margin-top:0;" onclick="addToDiaryFromSearch()"><i class="fa-solid fa-book ic-diary"></i> <span data-i18n="add_to_diary">Adicionar ao Diário</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DIARY PANEL ══ -->
+    <div class="panel" id="panel-diary">
+      <!-- Nutricionista vinculada (só aparece para pacientes) -->
+      <div class="nutritionist-card" id="nutritionistCard" style="display:none;">
+        <span style="font-size:1.5rem;"><i class="fa-solid fa-utensils ic-recipes"></i></span>
+        <div>
+          <div class="nutritionist-label" data-i18n="linked_nutritionist">Nutricionista responsável</div>
+          <div class="nutritionist-name" id="linkedNutritionistName">—</div>
+        </div>
+      </div>
+
+      <div class="diary-topbar">
+        <div class="diary-date-nav">
+          <button onclick="changeDiaryDate(-1)">◀</button>
+          <div class="diary-date-label" id="diaryDate">—</div>
+          <button onclick="changeDiaryDate(1)">▶</button>
+        </div>
+        <button onclick="clearDiary()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.4rem 1rem;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;font-size:0.82rem;color:var(--text-muted);transition:all var(--transition);" onmouseover="this.style.borderColor='#e53935';this.style.color='#e53935'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"><i class="fa-solid fa-trash ic-alert"></i> <span data-i18n="clear">Limpar</span></button>
+      </div>
+
+      <div class="progress-mega">
+        <div class="progress-top">
+          <div>
+            <div class="progress-consumed" id="diaryKcalConsumed">0</div>
+            <div class="progress-goal-label" data-i18n="kcal_consumed">kcal consumidas</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="progress-remaining" id="diaryRemaining">—</div>
+            <div class="progress-goal-label"><span data-i18n="goal_label">meta:</span> <span id="diaryGoalDisplay">2000</span> kcal</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="diaryProgressBar" style="width:0%"></div></div>
+        <div class="macro-bars">
+          <div class="macro-bar-item"><div class="macro-bar-label"><i class="fa-solid fa-wheat-awn ic-carb"></i> <span data-i18n="carbs">Carboidratos</span>: <span id="diaryCarbsVal">0g</span></div><div class="macro-bar-bg"><div class="macro-bar-inner carbs" id="diaryCarbsBar" style="width:0%"></div></div></div>
+          <div class="macro-bar-item"><div class="macro-bar-label"><i class="fa-solid fa-dumbbell ic-fire"></i> <span data-i18n="protein">Proteínas</span>: <span id="diaryProtVal">0g</span></div><div class="macro-bar-bg"><div class="macro-bar-inner prot" id="diaryProtBar" style="width:0%"></div></div></div>
+          <div class="macro-bar-item"><div class="macro-bar-label"><i class="fa-solid fa-seedling ic-leaf"></i> <span data-i18n="fat">Gorduras</span>: <span id="diaryFatVal">0g</span></div><div class="macro-bar-bg"><div class="macro-bar-inner fat" id="diaryFatBar" style="width:0%"></div></div></div>
+          <!-- Açúcar e Água -->
+          <div class="macro-bar-item" id="diarySugarRow">
+            <div class="macro-bar-label" style="display:flex;justify-content:space-between;align-items:center;">
+              <span><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> Açúcares: <span id="diarySugarVal">0g</span></span>
+              <span style="font-size:0.72rem;color:var(--text-muted);">máx. <span id="diarySugarGoalDisplay">25</span>g</span>
+            </div>
+            <div class="macro-bar-bg"><div class="macro-bar-inner sugar" id="diarySugarBar" style="width:0%"></div></div>
+          </div>
+          <!-- Água: registro manual por copos/ml -->
+          <div class="macro-bar-item" id="diaryWaterRow">
+            <div class="macro-bar-label" style="display:flex;justify-content:space-between;align-items:center;">
+              <span><i class="fa-solid fa-droplet ic-water"></i> Água: <span id="diaryWaterVal">0</span> ml</span>
+              <span style="font-size:0.72rem;color:var(--text-muted);">meta: <span id="diaryWaterGoalDisplay">2000</span> ml</span>
+            </div>
+            <div class="macro-bar-bg"><div class="macro-bar-inner water" id="diaryWaterBar" style="width:0%"></div></div>
+            <div class="water-btn-row">
+              <button class="water-btn" onclick="addWater(150)">+ 150ml</button>
+              <button class="water-btn" onclick="addWater(200)">+ 200ml</button>
+              <button class="water-btn" onclick="addWater(300)">+ 300ml</button>
+              <button class="water-btn" onclick="addWater(500)">+ 500ml</button>
+              <button class="water-btn" onclick="addWater(-200)" style="background:#fdecea;color:#c62828;" title="Remover 200ml">− 200ml</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="add-food-row">
+        <input type="text" id="diaryAddInput" class="add-food-input" data-i18n-ph="diary_add_ph" placeholder="Pesquisar alimento..." onkeydown="if(event.key==='Enter')diaryAddFood()">
+        <input type="number" id="diaryAddQty" class="add-food-input" style="max-width:75px;flex:0 0 75px;" value="100" min="1">
+        <select id="diaryAddUnit" class="add-food-input" style="max-width:110px;flex:0 0 110px;">
+          <option value="g">g</option>
+          <option value="ml">ml</option>
+          <option value="xícara">xícara (240ml)</option>
+          <option value="colher de sopa">col. sopa (15g)</option>
+          <option value="colher de chá">col. chá (5g)</option>
+          <option value="kg">kg</option>
+        </select>
+        <select id="diaryMealSelect" class="add-food-input" style="max-width:115px;flex:0 0 115px;">
+          <option value="cafe">Café</option>
+          <option value="almoco" selected>Almoço</option>
+          <option value="lanche">Lanche</option>
+          <option value="jantar">Jantar</option>
+        </select>
+        <button class="btn-add" id="btnDiaryAdd" onclick="diaryAddFood()">+ <span data-i18n="add">Adicionar</span></button>
+      </div>
+
+      <div id="mealSections">
+        <div class="meal-block" id="meal-cafe">
+          <div class="meal-block-header" onclick="toggleMeal('cafe')"><div class="meal-block-name"><i class="fa-solid fa-sun ic-sun"></i> <span data-i18n="breakfast">Café da manhã</span></div><div class="meal-block-kcal" id="meal-cafe-kcal">0 kcal</div></div>
+          <div class="meal-items" id="meal-cafe-items"><p style="color:var(--text-muted);font-size:0.82rem;padding:0.6rem 0;" data-i18n="no_food">Nenhum alimento adicionado</p></div>
+          <div class="edit-item-form" id="edit-form-cafe"></div>
+        </div>
+        <div class="meal-block" id="meal-almoco">
+          <div class="meal-block-header" onclick="toggleMeal('almoco')"><div class="meal-block-name"><i class="fa-solid fa-sun ic-sun"></i> <span data-i18n="lunch">Almoço</span></div><div class="meal-block-kcal" id="meal-almoco-kcal">0 kcal</div></div>
+          <div class="meal-items" id="meal-almoco-items"><p style="color:var(--text-muted);font-size:0.82rem;padding:0.6rem 0;" data-i18n="no_food">Nenhum alimento adicionado</p></div>
+          <div class="edit-item-form" id="edit-form-almoco"></div>
+        </div>
+        <div class="meal-block" id="meal-lanche">
+          <div class="meal-block-header" onclick="toggleMeal('lanche')"><div class="meal-block-name"><i class="fa-solid fa-mug-hot ic-water"></i> <span data-i18n="snack">Lanche</span></div><div class="meal-block-kcal" id="meal-lanche-kcal">0 kcal</div></div>
+          <div class="meal-items" id="meal-lanche-items"><p style="color:var(--text-muted);font-size:0.82rem;padding:0.6rem 0;" data-i18n="no_food">Nenhum alimento adicionado</p></div>
+          <div class="edit-item-form" id="edit-form-lanche"></div>
+        </div>
+        <div class="meal-block" id="meal-jantar">
+          <div class="meal-block-header" onclick="toggleMeal('jantar')"><div class="meal-block-name"><i class="fa-solid fa-moon ic-moon"></i> <span data-i18n="dinner">Jantar</span></div><div class="meal-block-kcal" id="meal-jantar-kcal">0 kcal</div></div>
+          <div class="meal-items" id="meal-jantar-items"><p style="color:var(--text-muted);font-size:0.82rem;padding:0.6rem 0;" data-i18n="no_food">Nenhum alimento adicionado</p></div>
+          <div class="edit-item-form" id="edit-form-jantar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ GOAL & CALCULATOR PANEL ══ -->
+    <div class="panel" id="panel-goal">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-bolt ic-fire"></i> <span data-i18n="calc_title">Calculadora Calórica</span></div>
+        <div class="card-sub" data-i18n="calc_sub">Calcule seu metabolismo e meta diária de calorias</div>
+        <div class="calc-grid">
+          <div class="form-field">
+            <label class="form-label" data-i18n="sex">Sexo</label>
+            <select id="calcSex" class="form-select">
+              <option value="m" data-i18n="male">Masculino</option>
+              <option value="f" data-i18n="female">Feminino</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="age">Idade (anos)</label>
+            <input type="number" id="calcAge" class="form-input" value="25" min="1" max="120">
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="weight">Peso (kg)</label>
+            <input type="number" id="calcWeight" class="form-input" value="70" min="1" max="500">
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="height">Altura (cm)</label>
+            <input type="number" id="calcHeight" class="form-input" value="170" min="50" max="300">
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label class="form-label" data-i18n="activity">Nível de Atividade</label>
+            <select id="calcActivity" class="form-select">
+              <option value="1.2">Sedentário</option>
+              <option value="1.375">Levemente ativo (1-3x/sem)</option>
+              <option value="1.55" selected>Moderado (3-5x/sem)</option>
+              <option value="1.725">Muito ativo (6-7x/sem)</option>
+              <option value="1.9">Atleta</option>
+            </select>
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label class="form-label" data-i18n="objective">Objetivo</label>
+            <div class="goal-btns">
+              <button class="goal-btn" data-goal="-500" onclick="selectGoal(this)"><i class="fa-solid fa-fire ic-fire"></i> <span data-i18n="lose">Emagrecer</span><br><small>-500 kcal/dia</small></button>
+              <button class="goal-btn active" data-goal="0" onclick="selectGoal(this)"><i class="fa-solid fa-scale-balanced ic-compare"></i> <span data-i18n="maintain">Manter</span><br><small>Neutro</small></button>
+              <button class="goal-btn" data-goal="300" onclick="selectGoal(this)"><i class="fa-solid fa-dumbbell ic-fire"></i> <span data-i18n="gain">Ganhar</span><br><small>+300 kcal/dia</small></button>
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-top:1.2rem;" onclick="calcCalories()">Calcular minha meta <i class="fa-solid fa-bullseye ic-goal"></i></button>
+        <div class="calc-result-card" id="calcResult">
+          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:0.2rem;">Metabolismo Basal (TMB)</p>
+          <div class="tmb-big" id="calcTMB">0</div>
+          <p class="tmb-label">kcal/dia em repouso</p>
+          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1rem;margin-bottom:0.2rem;">Necessidade Total</p>
+          <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1;" id="calcTDEE">0</div>
+          <p class="tmb-label">kcal/dia com atividade</p>
+          <div style="background:rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-top:1rem;">
+            <p style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;"><i class="fa-solid fa-bullseye ic-goal"></i> Sua meta: <span id="calcGoalVal">0</span> kcal/dia</p>
+          </div>
+          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1.2rem;margin-bottom:0.5rem;">Macros Recomendados</p>
+          <div class="macros-rec">
+            <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroCarbs">0g</div><div class="macro-rec-label">Carboidratos</div></div>
+            <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroProt">0g</div><div class="macro-rec-label">Proteínas</div></div>
+            <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroFat">0g</div><div class="macro-rec-label">Gorduras</div></div>
+          </div>
+          <div class="advice-box" id="calcAdvice"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-bullseye ic-goal"></i> <span data-i18n="weekly_goal">Meta Semanal</span></div>
+        <div class="card-sub" data-i18n="weekly_goal_sub">Acompanhe seu progresso ao longo da semana</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.2rem;">
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label"><i class="fa-solid fa-fire ic-fire"></i> Meta diária (kcal)</label>
+            <input type="number" id="goalInput" class="form-input" value="2000" min="800" max="6000">
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> Açúcar máx. (g/dia)</label>
+            <input type="number" id="goalSugarInput" class="form-input" value="25" min="0" max="200" placeholder="25g (OMS)">
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> Água meta (ml/dia)</label>
+            <input type="number" id="goalWaterInput" class="form-input" value="2000" min="500" max="6000" placeholder="2000ml">
+          </div>
+        </div>
+        <button class="btn-primary" style="width:auto;padding:0.82rem 1.8rem;margin-bottom:1.2rem;" onclick="saveGoal()">Salvar metas <i class="fa-solid fa-check ic-check"></i></button>
+        <div class="weekly-grid" id="weeklyGrid"></div>
+        <div style="margin-top:1rem;background:var(--green-pale);border-radius:var(--radius-mid);padding:1rem;font-size:0.88rem;line-height:1.7;color:var(--text-muted);" id="goalInsight">Configure suas metas acima e acompanhe o progresso diário no Diário Alimentar.</div>
+      </div>
+    </div>
+
+    <!-- ══ CAMERA PANEL ══ -->
+    <div class="panel" id="panel-camera">
+      <div class="card camera-card">
+        <div class="card-title"><i class="fa-solid fa-camera ic-camera"></i> <span data-i18n="camera_title">Análise por Câmera IA</span></div>
+        <div class="card-sub" data-i18n="camera_sub">Tire uma foto do alimento e a IA identifica as calorias</div>
+        <div class="camera-area" id="cameraArea">
+          <input type="file" accept="image/*" capture="environment" id="cameraInput" onchange="handleImageUpload(event)">
+          <span class="camera-icon"><i class="fa-solid fa-camera ic-camera"></i></span>
+          <p class="camera-text" data-i18n="camera_tap">Toque para tirar foto ou carregar imagem</p>
+          <p class="camera-hint">JPG, PNG ou WEBP</p>
+        </div>
+        <div class="camera-preview" id="cameraPreview"><img id="cameraImg" src="" alt="Alimento"></div>
+        <button class="btn-analyze" id="analyzeBtn" onclick="analyzeImage()"><i class="fa-solid fa-magnifying-glass ic-search"></i> <span data-i18n="analyze">Analisar com IA</span></button>
+        <div class="loading-pulse" id="camLoading"><div class="pulse-ring"></div><p data-i18n="analyzing">Analisando com IA...</p></div>
+        <div class="cam-result-card" id="camResult">
+          <div class="cam-food-id" id="camFoodName">—</div>
+          <div class="cam-confidence" id="camConfidence">—</div>
+          <div class="cam-macros">
+            <div class="cam-macro"><div class="cam-macro-val" id="camKcal">0</div><div class="cam-macro-label">kcal</div></div>
+            <div class="cam-macro"><div class="cam-macro-val" id="camCarbs">0g</div><div class="cam-macro-label">Carboidratos</div></div>
+            <div class="cam-macro"><div class="cam-macro-val" id="camProt">0g</div><div class="cam-macro-label">Proteínas</div></div>
+            <div class="cam-macro"><div class="cam-macro-val" id="camFat">0g</div><div class="cam-macro-label">Gorduras</div></div>
+          </div>
+          <div id="camExtra" style="margin-top:1rem;font-size:0.85rem;opacity:0.8;line-height:1.7;"></div>
+          <div style="margin-top:1rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <select id="camMealSelect" style="flex:1;min-width:130px;padding:0.6rem 0.8rem;border:2px solid rgba(255,255,255,0.3);border-radius:50px;font-size:0.88rem;font-family:'DM Sans',sans-serif;background:rgba(255,255,255,0.15);color:white;outline:none;">
+              <option value="cafe">☀️ Café da manhã</option>
+              <option value="almoco" selected>🍽️ Almoço</option>
+              <option value="lanche">🍎 Lanche</option>
+              <option value="jantar">🌙 Jantar</option>
+            </select>
+            <button class="btn-add-diary" style="flex:1;margin-top:0;" onclick="addCamToDiary()"><i class="fa-solid fa-book ic-diary"></i> <span data-i18n="add_to_diary">Adicionar ao Diário</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ COMPARE PANEL ══ -->
+    <div class="panel" id="panel-compare">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-scale-balanced ic-compare"></i> <span data-i18n="compare_title">Comparar Alimentos</span></div>
+        <div class="card-sub" data-i18n="compare_sub">Compare dois alimentos lado a lado por 100g</div>
+        <div class="compare-inputs">
+          <input type="text" id="cmp1" class="search-input" placeholder="Alimento 1" onkeydown="if(event.key==='Enter')compareFoods()">
+          <div class="vs-badge">VS</div>
+          <input type="text" id="cmp2" class="search-input" placeholder="Alimento 2" onkeydown="if(event.key==='Enter')compareFoods()">
+        </div>
+        <div style="text-align:center;margin:1rem 0;">
+          <button class="btn-primary" style="width:auto;padding:0.8rem 2rem;" onclick="compareFoods()"><i class="fa-solid fa-scale-balanced ic-compare"></i> <span data-i18n="compare_btn">Comparar</span></button>
+        </div>
+        <div class="loading-pulse" id="cmpLoading"><div class="pulse-ring"></div><p data-i18n="comparing">Comparando alimentos...</p></div>
+        <div id="cmpMealSelectRow" style="display:none;margin-bottom:0.75rem;">
+          <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:0.4rem;">Adicionar à refeição:</label>
+          <select id="cmpDiaryMealSelect" class="qty-unit" style="width:100%;padding:0.7rem 1rem;border-radius:var(--radius-sm);font-size:0.9rem;">
+            <option value="cafe">☕ Café da manhã</option>
+            <option value="almoco">🍽️ Almoço</option>
+            <option value="lanche">🍎 Lanche</option>
+            <option value="jantar">🌙 Jantar</option>
+          </select>
+        </div>
+        <div class="compare-cards" id="compareCards">
+          <div class="compare-card" id="cmpCard1">
+            <div class="winner-badge" id="cmpBadge1"><i class="fa-solid fa-trophy ic-trophy"></i> Menos calórico</div>
+            <div class="compare-food-name" id="cmpName1">—</div>
+            <div class="compare-kcal-big" id="cmpKcal1">0 kcal</div>
+            <div id="cmpStats1"></div>
+          </div>
+          <div class="compare-card" id="cmpCard2">
+            <div class="winner-badge" id="cmpBadge2"><i class="fa-solid fa-trophy ic-trophy"></i> Menos calórico</div>
+            <div class="compare-food-name" id="cmpName2">—</div>
+            <div class="compare-kcal-big" id="cmpKcal2">0 kcal</div>
+            <div id="cmpStats2"></div>
+          </div>
+        </div>
+        <div id="cmpSummary" style="display:none;margin-top:1rem;background:var(--green-deep);color:white;border-radius:var(--radius-mid);padding:1.2rem;font-size:0.9rem;line-height:1.7;"></div>
+      </div>
+    </div>
+
+    <!-- ══ RECIPES PANEL ══ -->
+    <div class="panel" id="panel-recipes">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+          <div>
+            <div class="card-title" style="margin-bottom:0;"><i class="fa-solid fa-utensils ic-recipes"></i> <span data-i18n="recipes_title">Receitas</span></div>
+            <div class="card-sub" style="margin-bottom:0;" data-i18n="recipes_sub">Receitas saudáveis com valores nutricionais</div>
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn-add-recipe" id="aiRecipeBtn" onclick="openAiRecipeModal()" style="background:linear-gradient(135deg,var(--green-mid),#388e3c);color:white;border:none;">🤖 IA Cria Receita</button>
+            <button class="btn-add-recipe" id="addRecipeBtn" onclick="toggleRecipeForm()" style="display:none;">+ <span data-i18n="add_recipe">Nova Receita</span></button>
+          </div>
+        </div>
+
+        <!-- Add recipe form -->
+        <div class="recipe-add-form" id="recipeAddForm">
+          <div style="background:var(--green-pale);border-radius:var(--radius-mid);padding:1.2rem;margin-bottom:1.2rem;">
+            <div class="form-field">
+              <label class="form-label" data-i18n="recipe_name">Nome da Receita</label>
+              <input type="text" id="newRecipeName" class="form-input" placeholder="Ex: Bowl de Quinoa">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;">
+              <div class="form-field">
+                <label class="form-label">Kcal</label>
+                <input type="number" id="newRecipeKcal" class="form-input" placeholder="380">
+              </div>
+              <div class="form-field">
+                <label class="form-label" data-i18n="protein">Proteína (g)</label>
+                <input type="number" id="newRecipeProt" class="form-input" placeholder="25">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Total (g/kg)</label>
+                <input type="number" id="newRecipeTotalGrams" class="form-input" placeholder="400">
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label" data-i18n="category">Categoria</label>
+              <select id="newRecipeCat" class="form-select">
+                <option value="cafe">Café da manhã</option>
+                <option value="almoco">Almoço</option>
+                <option value="lanche">Lanche</option>
+                <option value="jantar">Jantar</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label" data-i18n="ingredients">Ingredientes (um por linha)</label>
+              <textarea id="newRecipeIngredients" class="form-input" rows="4" placeholder="200g frango&#10;100g quinoa&#10;..."></textarea>
+            </div>
+            <div class="form-field">
+              <label class="form-label" data-i18n="steps">Modo de preparo (um passo por linha)</label>
+              <textarea id="newRecipeSteps" class="form-input" rows="4" placeholder="1. Cozinhe o frango...&#10;2. ..."></textarea>
+            </div>
+            <!-- Photos -->
+            <div class="form-field">
+              <label class="form-label">📷 Fotos do prato (uma ou mais)</label>
+              <input type="file" id="newRecipePhotos" accept="image/*" multiple style="padding:0.5rem;border:2px dashed var(--border);border-radius:var(--radius-sm);width:100%;background:var(--bg-card);color:var(--text-main);cursor:pointer;" onchange="previewRecipePhotos(event)">
+              <div id="recipePhotoPreview" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;"></div>
+            </div>
+            <div class="form-field" id="visibilityField">
+              <label class="form-label" data-i18n="visibility">Visibilidade</label>
+              <div class="visibility-toggle">
+                <button class="visibility-btn" id="visPrivate" onclick="setVisibility('private',this)"><i class="fa-solid fa-lock ic-lock"></i> <span data-i18n="private">Só para mim</span></button>
+                <button class="visibility-btn active" id="visAllPatients" onclick="setVisibility('all_patients',this)"><i class="fa-solid fa-users ic-patients"></i> <span>Todos pacientes</span></button>
+                <button class="visibility-btn" id="visPatient" onclick="setVisibility('patient',this)" style="display:none;"><i class="fa-solid fa-user ic-user"></i> <span data-i18n="for_patient">Paciente específico</span></button>
+              </div>
+            </div>
+            <div class="form-field" id="patientSelectField" style="display:none;">
+              <label class="form-label" data-i18n="select_patient">Selecionar Paciente</label>
+              <select id="recipePatientSelect" class="form-select"><option>Carregando...</option></select>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+              <button class="btn-primary" style="width:auto;padding:0.7rem 1.5rem;" onclick="submitRecipe()">Salvar Receita <i class="fa-solid fa-check ic-check"></i></button>
+              <button onclick="toggleRecipeForm()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.7rem 1.2rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-filter-row">
+          <button class="filter-btn active" onclick="filterRecipes('all',this)"><i class="fa-solid fa-leaf ic-leaf"></i> <span data-i18n="all">Todos</span></button>
+          <button class="filter-btn" onclick="filterRecipes('cafe',this)"><i class="fa-solid fa-sun ic-sun"></i> <span data-i18n="breakfast">Café</span></button>
+          <button class="filter-btn" onclick="filterRecipes('almoco',this)"><i class="fa-solid fa-sun ic-sun"></i> <span data-i18n="lunch">Almoço</span></button>
+          <button class="filter-btn" onclick="filterRecipes('lanche',this)"><i class="fa-solid fa-mug-hot ic-water"></i> <span data-i18n="snack">Lanche</span></button>
+          <button class="filter-btn" onclick="filterRecipes('jantar',this)"><i class="fa-solid fa-moon ic-moon"></i> <span data-i18n="dinner">Jantar</span></button>
+          <button class="filter-btn" onclick="filterRecipes('lowcal',this)"><i class="fa-solid fa-fire ic-fire"></i> Baixo Cal</button>
+          <button class="filter-btn" onclick="filterRecipes('highprot',this)"><i class="fa-solid fa-dumbbell ic-fire"></i> + Proteína</button>
+          <button class="filter-btn" id="myRecipesBtn" style="display:none;" onclick="filterRecipes('mine',this)"><i class="fa-solid fa-user ic-user"></i> <span data-i18n="my_recipes">Minhas</span></button>
+        </div>
+        <div class="recipes-grid" id="recipesGrid"></div>
+      </div>
+    </div>
+
+    <!-- ══ PROFESSIONAL PANEL ══ -->
+    <div class="panel" id="panel-prof">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-users ic-patients"></i> <span data-i18n="patients_title">Meus Pacientes</span></div>
+        <div class="card-sub" data-i18n="patients_sub">Gerencie pacientes e acompanhe o progresso deles</div>
+
+        <div style="margin-bottom:1.2rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
+          <button class="btn-primary" style="width:auto;padding:0.7rem 1.6rem;display:inline-flex;align-items:center;gap:0.5rem;" onclick="openCreatePatientModal()">
+            <i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_btn_2">Cadastrar Novo Paciente</span>
+          </button>
+          <button class="btn-primary" style="width:auto;padding:0.7rem 1.6rem;display:inline-flex;align-items:center;gap:0.5rem;background:var(--orange-pale, #ffe0b2);color:var(--orange-hot, #e65100);border:1px solid var(--orange-hot, #e65100);" onclick="openAnnouncementModal()">
+            <i class="fa-solid fa-bullhorn"></i> <span data-i18n="send_announcement_btn">Enviar Aviso</span>
+          </button>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+          <p style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);"><span data-i18n="patients_list">Lista</span> (<span id="patientCount">0</span>)</p>
+          <span id="patientLimitInfo" style="font-size:0.75rem;color:var(--text-muted);"></span>
+        </div>
+        <div id="patientsList"><p style="color:var(--text-muted);text-align:center;padding:2rem;" data-i18n="loading">Carregando...</p></div>
+      </div>
+    </div>
+
+    <!-- ══ CHAT PANEL ══ -->
+    <div class="panel" id="panel-chat">
+      <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 8rem);max-height:700px;">
+        <div class="card-title"><i class="fa-solid fa-comments ic-chat"></i> <span data-i18n="chat_title_prefix">Canal com</span> <span id="chatPartnerName">seu Nutricionista</span>
+          <span id="chatNutBadge" style="display:none;font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:50px;margin-left:0.5rem;vertical-align:middle;"></span>
+        </div>
+        <div class="card-sub" id="chatSubtitle">Converse, receba receitas e PDFs do seu nutricionista</div>
+
+        <!-- PDF upload area (nutritionist only) -->
+        <div id="chatPdfArea" style="display:none;margin-bottom:0.75rem;padding:0.6rem;background:var(--bg-app);border-radius:var(--radius-sm);border:1px dashed var(--border);">
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:var(--text-muted);">
+            <i class="fa-solid fa-file-pdf" style="color:#ef5350;font-size:1.1rem;"></i>
+            <span data-i18n="chat_pdf_input_placeholder">Anexar PDF</span>
+            <input type="file" id="chatPdfInput" accept=".pdf" style="display:none;" onchange="uploadChatPdf(event)">
+          </label>
+        </div>
+
+        <!-- Photo upload area (patient only) -->
+        <div id="chatPhotoArea" style="display:none;margin-bottom:0.75rem;padding:0.6rem;background:var(--bg-app);border-radius:var(--radius-sm);border:1px dashed var(--border);">
+          <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:var(--text-muted);">
+            <i class="fa-solid fa-image" style="color:#64b5f6;font-size:1.1rem;"></i>
+            <span data-i18n="chat_photo_input_placeholder">Enviar Foto</span>
+            <input type="file" id="chatPhotoInput" accept="image/*" style="display:none;" onchange="uploadChatPhoto(event)">
+          </label>
+        </div>
+
+        <!-- Messages -->
+        <div id="chatMessages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0.6rem;padding:0.5rem 0;margin-bottom:0.75rem;"></div>
+
+        <!-- Patient selector (nutritionist) -->
+        <div id="chatPatientSelector" style="display:none;margin-bottom:0.5rem;">
+          <select id="chatPatientSelect" class="form-select" onchange="loadChatMessages()">
+            <option value="" data-i18n="chat_select_patient">Selecionar paciente...</option>
+          </select>
+        </div>
+
+        <!-- Input -->
+        <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+          <textarea id="chatInput" class="form-input" rows="2" placeholder="Escreva uma mensagem..." data-i18n-ph="chat_input_placeholder" style="flex:1;resize:none;border-radius:var(--radius-mid);" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+          <button onclick="sendChatMessage()" style="background:var(--green-mid);color:white;border:none;border-radius:50%;width:44px;height:44px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+            <i class="fa-solid fa-paper-plane" style="color:white!important;"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ADMIN PANEL ══ -->
+    <div class="panel" id="panel-admin">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-gear ic-admin"></i> Painel Administrativo</div>
+        <div class="card-sub">Gerenciar usuários, planos e receitas pendentes</div>
+
+        <div class="admin-stat-grid">
+          <div class="admin-stat"><div class="admin-stat-num" id="statTotal">—</div><div class="admin-stat-label">Usuários</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statProf">—</div><div class="admin-stat-label">Profissionais</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPro">—</div><div class="admin-stat-label">Plano Pro</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statClinic">—</div><div class="admin-stat-label">Clínica</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPatients">—</div><div class="admin-stat-label">Pacientes</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPendingRecipes">—</div><div class="admin-stat-label">Receitas Pendentes</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPendingNutritionists">—</div><div class="admin-stat-label">Nutricionistas Pendentes</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPendingUpgrades">�</div><div class="admin-stat-label">Upgrades Pendentes</div></div>
+        </div>
+      </div>
+      <!-- Pending upgrade requests -->
+      <div class="card">
+        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-star ic-star"></i> Solicita��es de Upgrade</div>
+        <div id="pendingUpgradesList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="loading">Carregando...</p></div>
+      </div>
+
+
+      <!-- Pending nutritionist requests -->
+      <div class="card">
+        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitações de Nutricionista</div>
+        <select id="nutritionistRequestStatusFilter" class="form-select" style="max-width:220px;margin:0.5rem 0 1rem;" onchange="loadNutritionistRequests()">
+          <option value="pending">Pendentes</option>
+          <option value="approved">Aprovadas</option>
+          <option value="rejected">Negadas</option>
+          <option value="all">Todas</option>
+        </select>
+        <div id="pendingNutritionistsList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="loading">Carregando...</p></div>
+      </div>
+
+      <!-- Pending recipes queue -->
+      <div class="card">
+        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-clipboard ic-diary"></i> Receitas Aguardando Aprovação</div>
+        <div id="pendingRecipesList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="loading">Carregando...</p></div>
+      </div>
+
+      <!-- Admin Notices -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+          <div>
+            <div class="card-title" style="font-size:1.1rem;margin-bottom:0;"><i class="fa-solid fa-bell" style="color:#ef9a9a;"></i> Avisos do Sistema</div>
+            <div class="card-sub" style="margin:0;">Envie avisos para um usuário específico ou para todos</div>
+          </div>
+          <button class="btn-primary" style="width:auto;padding:0.65rem 1.3rem;display:flex;align-items:center;gap:0.5rem;" onclick="openAdminNoticeModal()">
+            <i class="fa-solid fa-paper-plane" style="color:white!important;"></i> Novo Aviso
+          </button>
+        </div>
+        <div id="adminNoticesList"><p style="color:var(--text-muted);font-size:0.88rem;">Nenhum aviso enviado ainda.</p></div>
+      </div>
+
+      <!-- Users table -->
+      <div class="card">
+        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-users ic-patients"></i> Usuários</div>
+        <input type="text" class="admin-search" id="adminSearchInput" placeholder="Buscar por nome ou e-mail..." oninput="filterAdminTable()">
+        <div style="overflow-x:auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Plano</th><th>Desde</th><th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROFILE PANEL ══ -->
+    <div class="panel" id="panel-profile">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-user ic-user"></i> <span data-i18n="profile_title">Meu Perfil</span></div>
+
+        <div class="profile-avatar-big" id="profileAvatarBig" onclick="document.getElementById('avatarInput').click()">
+          <span id="profileInitialsBig">?</span>
+          <div class="avatar-upload-overlay"><i class="fa-solid fa-camera ic-camera"></i></div>
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(event)">
+
+        <!-- Exibe username + plano abaixo do avatar -->
+        <div style="text-align:center;margin:0.5rem 0 1.2rem;">
+          <p id="profileUsernameDisplay" style="font-size:0.85rem;color:var(--green-mid);font-weight:700;margin:0;"></p>
+          <span id="profilePlanBadgeDisplay" style="font-size:0.72rem;color:var(--text-muted);"></span>
+        </div>
+
+        <div class="profile-grid" style="margin-top:0.5rem;">
+          <div class="form-field">
+            <label class="form-label">Nome de usuário</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-weight:600;">@</span>
+              <input type="text" id="profileUsername" class="form-input" placeholder="seu_usuario" style="padding-left:1.8rem;" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')">
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="full_name">Nome completo</label>
+            <input type="text" id="profileName" class="form-input" placeholder="Seu nome verdadeiro">
+          </div>
+          <div class="form-field">
+            <label class="form-label">E-mail</label>
+            <input type="email" id="profileEmail" class="form-input" placeholder="Email" disabled style="opacity:0.6;">
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="sex">Sexo</label>
+            <select id="profileSex" class="form-select" onchange="profileDetectLifeStage()">
+              <option value="f">Feminino</option>
+              <option value="m">Masculino</option>
+              <option value="o">Outro</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="age">Idade</label>
+            <input type="number" id="profileAge" class="form-input" placeholder="25">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Data de Nascimento</label>
+            <input type="date" id="profileDob" class="form-input" onchange="profileUpdateAgeFromDob();profileDetectLifeStage()">
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="weight">Peso (kg)</label>
+            <input type="number" id="profileWeight" class="form-input" placeholder="70" step="0.1">
+          </div>
+          <div class="form-field">
+            <label class="form-label" data-i18n="height">Altura (cm)</label>
+            <input type="number" id="profileHeight" class="form-input" placeholder="170">
+          </div>
+          <div class="form-field">
+            <label class="form-label"><i class="fa-solid fa-percent ic-fire"></i> % Gordura Corporal</label>
+            <div style="display:flex;gap:0.4rem;align-items:center;">
+              <input type="number" id="profileBodyFat" class="form-input" placeholder="Ex: 22.5" step="0.1" style="flex:1;" oninput="profileUpdateFatClassification()">
+              <button type="button" onclick="profileCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 0.9rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-calculator"></i> Calcular</button>
+            </div>
+            <div id="profileFatClassification" style="display:none;margin-top:0.4rem;padding:0.4rem 0.75rem;border-radius:var(--radius-sm);font-size:0.78rem;font-weight:600;"></div>
+          </div>
+        </div>
+
+        <!-- Painel de Tipo de Paciente (IA) -->
+        <div id="profilePatientTypePanel" style="display:none;background:linear-gradient(135deg,var(--green-pale),var(--yellow-pale));border:1px solid var(--green-light);border-radius:var(--radius-mid);padding:1rem 1.2rem;margin-top:0.75rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+            <i class="fa-solid fa-robot ic-chat" style="font-size:1.1rem;"></i>
+            <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
+          </div>
+          <div id="profilePatientTypeContent" style="font-size:0.85rem;color:var(--text-main);line-height:1.6;"></div>
+        </div>
+
+        <div class="form-field" style="margin-top:0.75rem;">
+          <label class="form-label" data-i18n="language">Idioma</label>
+          <div class="lang-selector">
+            <button class="lang-btn active" id="langBtnPT" onclick="setLanguage('pt')">🇧🇷 Português</button>
+            <button class="lang-btn" id="langBtnEN" onclick="setLanguage('en')">🇺🇸 English</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" style="margin-top:1rem;" onclick="saveProfile()">Salvar alterações</button>
+      </div>
+
+      <!-- Become nutritionist -->
+      <div class="nutritionist-request-card" id="becomeNutritionistCard">
+        <h3><i class="fa-solid fa-utensils ic-recipes"></i> <span data-i18n="become_nut_title">Quero ser Nutricionista</span></h3>
+        <p data-i18n="become_nut_desc">Envie suas credenciais profissionais para análise. Após aprovação, você terá acesso ao painel de pacientes e poderá gerenciar dietas personalizadas.</p>
+        <div id="nutritionistRequestStatus" style="display:none;margin:0.75rem 0;padding:0.7rem 0.9rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text-muted);"></div>
+        <button class="btn-request-nutritionist" id="nutritionistRequestBtn" onclick="openNutritionistRequest()">Enviar Solicitação</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bottom-nav-item active" id="bnav-search" onclick="showPanel('search',null);setBottomNav('search')">
+        <span class="bottom-nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span>
+        <span class="bottom-nav-label" data-i18n="nav_search">Buscar</span>
+      </button>
+      <button class="bottom-nav-item" id="bnav-diary" onclick="showPanel('diary',null);setBottomNav('diary')">
+        <span class="bottom-nav-icon"><i class="fa-solid fa-book ic-diary"></i></span>
+        <span class="bottom-nav-label" data-i18n="nav_diary">Diário</span>
+      </button>
+      <button class="bottom-nav-item" id="bnav-camera" onclick="showPanel('camera',null);setBottomNav('camera')">
+        <span class="bottom-nav-icon"><i class="fa-solid fa-camera ic-camera"></i></span>
+        <span class="bottom-nav-label" data-i18n="nav_camera">Câmera</span>
+      </button>
+      <button class="bottom-nav-item" id="bnav-recipes" onclick="showPanel('recipes',null);setBottomNav('recipes')">
+        <span class="bottom-nav-icon"><i class="fa-solid fa-utensils ic-recipes"></i></span>
+        <span class="bottom-nav-label" data-i18n="nav_recipes">Receitas</span>
+      </button>
+      <button class="bottom-nav-item" id="bnav-more" onclick="toggleSidebar()">
+        <span class="bottom-nav-icon">⋯</span>
+        <span class="bottom-nav-label" data-i18n="nav_more">Mais</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- Force Change Password Modal -->
+<div class="modal-overlay" id="forceChangePasswordModal">
+  <div class="modal-box" style="max-width:400px;width:92vw;">
+    <div class="modal-title"><i class="fa-solid fa-key ic-lock"></i> <span data-i18n="change_password_title">Trocar Senha</span></div>
+    <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:1.2rem;" data-i18n="change_password_desc">Para continuar, você precisa criar uma senha pessoal diferente da senha temporária que recebeu.</p>
+    <div class="form-field">
+      <label class="form-label" data-i18n="new_password">Nova Senha *</label>
+      <input type="password" id="fcpNew" class="form-input" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="form-field">
+      <label class="form-label" data-i18n="confirm_new_password">Confirmar Nova Senha *</label>
+      <input type="password" id="fcpConfirm" class="form-input" placeholder="Repita a senha" data-i18n-ph="confirm_pwd_ph">
+    </div>
+    <div id="fcpError" style="display:none;background:#fdecea;color:#c62828;border-radius:var(--radius-sm);padding:0.6rem 0.9rem;font-size:0.83rem;margin:0.5rem 0;"></div>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="submitForcePasswordChange()" data-i18n="save_new_password">Salvar Nova Senha</button>
+  </div>
+</div>
+
+<!-- Create Patient Modal -->
+<div class="modal-overlay" id="createPatientModal" onclick="if(event.target===this)closeCreatePatientModal()">
+  <div class="modal-box" style="max-width:620px;width:95vw;max-height:92vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeCreatePatientModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_title">Cadastrar Paciente</span></div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.2rem;" data-i18n="create_patient_desc">Crie a conta do paciente diretamente. Na primeira entrada ele deverá trocar a senha.</p>
+
+    <!-- Avatar -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.2rem;">
+      <div id="cpAvatarPreview" onclick="document.getElementById('cpAvatarFile').click()" style="width:80px;height:80px;border-radius:50%;background:var(--green-pale);border:3px dashed var(--green-light);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;font-size:1.8rem;position:relative;">
+        <span id="cpAvatarInitial" style="font-family:'Syne',sans-serif;font-weight:700;color:var(--green-deep);">?</span>
+        <div style="position:absolute;bottom:0;width:100%;background:rgba(0,0,0,0.4);color:white;font-size:0.6rem;text-align:center;padding:2px;"><i class="fa-solid fa-camera ic-camera"></i> Foto</div>
+      </div>
+      <input type="file" id="cpAvatarFile" accept="image/*" style="display:none;" onchange="handleCpAvatarUpload(event)">
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem;" data-i18n="click_add_photo">Clique para adicionar foto</p>
+    </div>
+
+    <!-- SEÇÃO 1: Identificação -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-user ic-user"></i> Identificação</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-field" style="grid-column:1/-1;">
+          <label class="form-label" data-i18n="full_name_req">Nome Completo *</label>
+          <input type="text" id="cpName" class="form-input" placeholder="Nome do paciente" oninput="updateCpInitial()">
+        </div>
+        <div class="form-field" style="grid-column:1/-1;">
+          <label class="form-label" data-i18n="email_req">E-mail *</label>
+          <input type="email" id="cpEmail" class="form-input" placeholder="email@paciente.com">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Data de Nascimento</label>
+          <input type="date" id="cpDob" class="form-input" onchange="cpUpdateAgeFromDob();cpDetectPatientType()">
+        </div>
+        <div class="form-field">
+          <label class="form-label" data-i18n="age">Idade (calculada)</label>
+          <input type="number" id="cpAge" class="form-input" placeholder="25" min="0" max="120" readonly style="opacity:0.7;cursor:not-allowed;">
+        </div>
+        <!-- Patient Type Detection Panel -->
+        <div id="cpPatientTypePanel" style="display:none;grid-column:1/-1;background:linear-gradient(135deg,#e8f5e9,#fff8e1);border:1px solid #a5d6a7;border-radius:12px;padding:0.9rem 1rem;margin-bottom:0.25rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.4rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <i class="fa-solid fa-robot ic-chat" style="font-size:1rem;"></i>
+              <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Classificação do Paciente</span>
+            </div>
+            <div id="cpPatientTypeBadge" style="font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:50px;background:var(--green-mid);color:white;font-family:'Syne',sans-serif;"></div>
+          </div>
+          <div id="cpPatientTypeContent" style="font-size:0.82rem;color:var(--text-main);line-height:1.6;"></div>
+          <!-- Disease-specific form suggestions -->
+          <div id="cpDiseaseFormSuggestions" style="display:none;margin-top:0.6rem;border-top:1px solid #c8e6c9;padding-top:0.6rem;">
+            <div style="font-size:0.75rem;font-weight:700;font-family:'Syne',sans-serif;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Formulários Recomendados pela IA</div>
+            <div id="cpDiseaseFormList" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label" data-i18n="sex">Sexo biológico</label>
+          <select id="cpSex" class="form-select" onchange="cpToggleFemFields();cpDetectPatientType()">
+            <option value="f" data-i18n="female">Feminino</option>
+            <option value="m" data-i18n="male">Masculino</option>
+            <option value="o" data-i18n="other_sex">Outro</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Raça / Etnia</label>
+          <select id="cpRace" class="form-select">
+            <option value="">Não informado</option>
+            <option value="branca">Branca</option>
+            <option value="preta">Preta</option>
+            <option value="parda">Parda</option>
+            <option value="amarela">Amarela</option>
+            <option value="indigena">Indígena</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Telefone</label>
+          <input type="tel" id="cpPhone" class="form-input" placeholder="(11) 99999-0000">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Profissão</label>
+          <input type="text" id="cpProfession" class="form-input" placeholder="Ex: professor, atleta...">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Cartão SUS</label>
+          <input type="text" id="cpSusCard" class="form-input" placeholder="Nº do cartão SUS">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Escolaridade</label>
+          <select id="cpEducation" class="form-select">
+            <option value="">Não informado</option>
+            <option value="fundamental_incompleto">Fundamental incompleto</option>
+            <option value="fundamental_completo">Fundamental completo</option>
+            <option value="medio_incompleto">Médio incompleto</option>
+            <option value="medio_completo">Médio completo</option>
+            <option value="superior_incompleto">Superior incompleto</option>
+            <option value="superior_completo">Superior completo</option>
+            <option value="pos_graduacao">Pós-graduação</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Renda Familiar Mensal</label>
+          <select id="cpIncome" class="form-select">
+            <option value="">Não informado</option>
+            <option value="ate1">Até 1 salário mínimo</option>
+            <option value="1a3">1 a 3 salários</option>
+            <option value="3a5">3 a 5 salários</option>
+            <option value="5a10">5 a 10 salários</option>
+            <option value="acima10">Acima de 10 salários</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Pessoas na residência</label>
+          <input type="number" id="cpHousehold" class="form-input" placeholder="Nº de pessoas" min="1">
+        </div>
+        <div class="form-field" style="grid-column:1/-1;">
+          <label class="form-label">Endereço</label>
+          <input type="text" id="cpAddress" class="form-input" placeholder="Rua, número, bairro, cidade">
+        </div>
+        <div class="form-field" style="grid-column:1/-1;">
+          <label class="form-label">Religião (relevante para hábitos alimentares)</label>
+          <input type="text" id="cpReligion" class="form-input" placeholder="Opcional">
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: Dados Antropométricos -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-ruler-vertical ic-compare"></i> Dados Antropométricos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-field">
+          <label class="form-label" data-i18n="weight">Peso atual (kg)</label>
+          <input type="number" id="cpWeight" class="form-input" placeholder="70.0" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label" data-i18n="height">Altura (cm)</label>
+          <input type="number" id="cpHeight" class="form-input" placeholder="170">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Peso habitual (kg)</label>
+          <input type="number" id="cpWeightUsual" class="form-input" placeholder="Peso de costume" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Peso desejado (kg)</label>
+          <input type="number" id="cpWeightDesired" class="form-input" placeholder="Meta" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Circunferência Abdominal (cm)</label>
+          <input type="number" id="cpWaist" class="form-input" placeholder="CC" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Circunferência do Quadril (cm)</label>
+          <input type="number" id="cpHip" class="form-input" placeholder="CQ" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Circunferência do Braço (cm)</label>
+          <input type="number" id="cpArmCirc" class="form-input" placeholder="CB" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Circunferência Panturrilha (cm)</label>
+          <input type="number" id="cpCalfCirc" class="form-input" placeholder="CP" step="0.1">
+        </div>
+        <!-- Bioimpedância -->
+        <div class="form-field" style="grid-column:1/-1;">
+          <label class="form-label"><i class="fa-solid fa-bolt ic-fire"></i> Percentual de Gordura (%)</label>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <input type="number" id="cpBodyFat" class="form-input" placeholder="Ex: 22.5" step="0.1" style="flex:1;min-width:100px;">
+            <button type="button" onclick="cpCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;"><i class="fa-solid fa-calculator"></i> Calcular</button>
+          </div>
+          <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;">Insira o valor do exame de bioimpedância ou clique em "Calcular" para estimativa pela fórmula de Deurenberg.</p>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Massa Muscular (kg)</label>
+          <input type="number" id="cpMuscleMass" class="form-input" placeholder="Bioimpedância" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Massa Óssea (kg)</label>
+          <input type="number" id="cpBoneMass" class="form-input" placeholder="Bioimpedância" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Água Corporal (%)</label>
+          <input type="number" id="cpBodyWater" class="form-input" placeholder="Bioimpedância" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Taxa Metabólica Basal (kcal)</label>
+          <input type="number" id="cpBmrMeasured" class="form-input" placeholder="Bioimpedância">
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3: Objetivo -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-bullseye ic-goal"></i> Objetivo e Atividade Física</div>
+      <div class="form-field">
+        <label class="form-label" data-i18n="goal_objective">Objetivo principal</label>
+        <div class="goal-btns" id="cpGoalBtns">
+          <button type="button" class="goal-btn active" data-goal="-500" onclick="selectCpGoal(this)"><i class="fa-solid fa-fire ic-fire"></i> Emagrecer</button>
+          <button type="button" class="goal-btn" data-goal="0" onclick="selectCpGoal(this)"><i class="fa-solid fa-scale-balanced ic-compare"></i> Manter</button>
+          <button type="button" class="goal-btn" data-goal="300" onclick="selectCpGoal(this)"><i class="fa-solid fa-dumbbell ic-fire"></i> Ganhar</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
+        <div class="form-field">
+          <label class="form-label">Nível de Atividade Física</label>
+          <select id="cpActivity" class="form-select">
+            <option value="1.2">Sedentário</option>
+            <option value="1.375">Levemente ativo (1-3x/sem)</option>
+            <option value="1.55" selected>Moderado (3-5x/sem)</option>
+            <option value="1.725">Muito ativo (6-7x/sem)</option>
+            <option value="1.9">Atleta / profissional</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tipo de atividade física</label>
+          <input type="text" id="cpActivityType" class="form-input" placeholder="Ex: musculação, corrida, natação">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Frequência semanal (dias)</label>
+          <input type="number" id="cpActivityFreq" class="form-input" placeholder="Ex: 3" min="0" max="7">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Duração por sessão (min)</label>
+          <input type="number" id="cpActivityDuration" class="form-input" placeholder="Ex: 60">
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 4: Histórico Clínico -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-notes-medical ic-stethoscope"></i> Histórico Clínico</div>
+
+      <div class="form-field">
+        <label class="form-label">Doenças gerais (selecione todas que se aplicam)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.5rem;margin-top:0.3rem;" id="cpDiseasesGeneral">
+          <label class="radio-opt"><input type="checkbox" value="obesidade"> Obesidade</label>
+          <label class="radio-opt"><input type="checkbox" value="sobrepeso"> Sobrepeso</label>
+          <label class="radio-opt"><input type="checkbox" value="hipertensao"> Hipertensão</label>
+          <label class="radio-opt"><input type="checkbox" value="diabetes_t2"> Diabetes Tipo 2</label>
+          <label class="radio-opt"><input type="checkbox" value="diabetes_t1"> Diabetes Tipo 1</label>
+          <label class="radio-opt"><input type="checkbox" value="prediabetes"> Pré-Diabetes</label>
+          <label class="radio-opt"><input type="checkbox" value="dislipidemia"> Dislipidemia</label>
+          <label class="radio-opt"><input type="checkbox" value="cancer"> Câncer</label>
+          <label class="radio-opt"><input type="checkbox" value="anemia"> Anemia</label>
+          <label class="radio-opt"><input type="checkbox" value="osteoporose"> Osteoporose</label>
+          <label class="radio-opt"><input type="checkbox" value="gota"> Gota</label>
+          <label class="radio-opt"><input type="checkbox" value="hipotireoidismo"> Hipotireoidismo</label>
+          <label class="radio-opt"><input type="checkbox" value="hipertireoidismo"> Hipertireoidismo</label>
+          <label class="radio-opt"><input type="checkbox" value="steatose"> Esteatose Hepática</label>
+          <label class="radio-opt"><input type="checkbox" value="insuf_renal"> Insuficiência Renal</label>
+          <label class="radio-opt"><input type="checkbox" value="insuf_cardiaca"> Insuficiência Cardíaca</label>
+          <label class="radio-opt"><input type="checkbox" value="gastrite_ulcera"> Gastrite / Úlcera</label>
+          <label class="radio-opt"><input type="checkbox" value="refluxo"> Refluxo / DRGE</label>
+          <label class="radio-opt"><input type="checkbox" value="constipacao"> Constipação crônica</label>
+          <label class="radio-opt"><input type="checkbox" value="sii"> SII / Cólon irritável</label>
+          <label class="radio-opt"><input type="checkbox" value="sarcopenia"> Sarcopenia</label>
+          <label class="radio-opt"><input type="checkbox" value="desnutricao"> Desnutrição</label>
+        </div>
+      </div>
+
+      <div class="form-field" style="margin-top:0.75rem;">
+        <label class="form-label">Doenças crônicas / autoimunes</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.5rem;margin-top:0.3rem;" id="cpDiseasesChronicAuto">
+          <label class="radio-opt"><input type="checkbox" value="sop"> SOP (ovário policístico)</label>
+          <label class="radio-opt"><input type="checkbox" value="endometriose"> Endometriose</label>
+          <label class="radio-opt"><input type="checkbox" value="artrite_reumatoide"> Artrite Reumatoide</label>
+          <label class="radio-opt"><input type="checkbox" value="lupus"> Lúpus</label>
+          <label class="radio-opt"><input type="checkbox" value="esclerose_multipla"> Esclerose Múltipla</label>
+          <label class="radio-opt"><input type="checkbox" value="crohn"> Doença de Crohn</label>
+          <label class="radio-opt"><input type="checkbox" value="retocolite"> Retocolite Ulcerativa</label>
+          <label class="radio-opt"><input type="checkbox" value="celiaquia"> Doença Celíaca</label>
+          <label class="radio-opt"><input type="checkbox" value="hashimoto"> Tireoidite de Hashimoto</label>
+          <label class="radio-opt"><input type="checkbox" value="psorase"> Psoríase</label>
+          <label class="radio-opt"><input type="checkbox" value="sindrome_metabolica"> Síndrome Metabólica</label>
+          <label class="radio-opt"><input type="checkbox" value="fibromialgia"> Fibromialgia</label>
+        </div>
+      </div>
+
+      <div class="form-field" style="margin-top:0.75rem;">
+        <label class="form-label">Outras doenças / condições (texto livre)</label>
+        <textarea id="cpDiseasesOther" class="form-input" rows="2" placeholder="Descreva outras condições relevantes..."></textarea>
+      </div>
+
+      <div class="form-field" style="margin-top:0.75rem;">
+        <label class="form-label">Histórico familiar relevante</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.5rem;margin-top:0.3rem;">
+          <label class="radio-opt"><input type="checkbox" id="cpFamObesidade"> Obesidade</label>
+          <label class="radio-opt"><input type="checkbox" id="cpFamDiabetes"> Diabetes</label>
+          <label class="radio-opt"><input type="checkbox" id="cpFamHipertensao"> Hipertensão</label>
+          <label class="radio-opt"><input type="checkbox" id="cpFamDislipidemia"> Dislipidemias</label>
+          <label class="radio-opt"><input type="checkbox" id="cpFamCancer"> Câncer</label>
+          <label class="radio-opt"><input type="checkbox" id="cpFamCardio"> Doenças cardiovasculares</label>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;">
+        <div class="form-field">
+          <label class="form-label">Cirurgias realizadas</label>
+          <textarea id="cpSurgeries" class="form-input" rows="2" placeholder="Ex: bariátrica, colecistectomia..."></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Internações recentes</label>
+          <textarea id="cpHospitalizations" class="form-input" rows="2" placeholder="Motivo e data aproximada"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 5: Medicamentos e Suplementos -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-pills ic-water"></i> Medicamentos e Suplementos</div>
+      <div class="form-field">
+        <label class="form-label">Medicamentos em uso</label>
+        <textarea id="cpMedications" class="form-input" rows="3" placeholder="Nome, dose e frequência de cada medicamento. Ex: Metformina 850mg 2x/dia..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Suplementos em uso</label>
+        <textarea id="cpSupplements" class="form-input" rows="2" placeholder="Ex: Whey protein, vitamina D, ômega-3..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Uso de adoçante</label>
+        <div class="radio-group">
+          <label class="radio-opt"><input type="radio" name="cpSweetener" value="nao" checked> Não</label>
+          <label class="radio-opt"><input type="radio" name="cpSweetener" value="sim_eventual"> Eventual</label>
+          <label class="radio-opt"><input type="radio" name="cpSweetener" value="sim_frequente"> Frequente</label>
+        </div>
+        <input type="text" id="cpSweetenerType" class="form-input" placeholder="Qual adoçante? (sucralose, stevia…)" style="margin-top:0.4rem;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-field">
+          <label class="form-label">Tabagismo</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpSmoking" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpSmoking" value="ex"> Ex-fumante</label>
+            <label class="radio-opt"><input type="radio" name="cpSmoking" value="sim"> Sim</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Etilismo (álcool)</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpAlcohol" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpAlcohol" value="social"> Social</label>
+            <label class="radio-opt"><input type="radio" name="cpAlcohol" value="frequente"> Frequente</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 6: Hábitos Alimentares -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-utensils ic-recipes"></i> Hábitos Alimentares</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-field">
+          <label class="form-label">Ingestão hídrica diária</label>
+          <select id="cpWaterIntake" class="form-select">
+            <option value="">Não informado</option>
+            <option value="menos1">Menos de 1L</option>
+            <option value="1a2">1 a 2L</option>
+            <option value="2a3">2 a 3L</option>
+            <option value="mais3">Mais de 3L</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tempo para se alimentar (min)</label>
+          <input type="number" id="cpEatingTime" class="form-input" placeholder="Ex: 20" min="1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Hábito intestinal</label>
+          <select id="cpBowelHabit" class="form-select">
+            <option value="">Não informado</option>
+            <option value="1x_dia">1x ao dia</option>
+            <option value="2x_dia">2x ao dia</option>
+            <option value="3x_semana">3x por semana</option>
+            <option value="2x_semana">2x por semana</option>
+            <option value="menos2x_semana">Menos de 2x por semana</option>
+            <option value="variavel">Variável</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Local habitual das refeições</label>
+          <select id="cpMealLocation" class="form-select">
+            <option value="">Não informado</option>
+            <option value="casa">Em casa</option>
+            <option value="trabalho">No trabalho</option>
+            <option value="restaurante">Restaurante</option>
+            <option value="misto">Misto</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Come sozinho ou acompanhado?</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpEatingCompany" value="sozinho"> Sozinho</label>
+            <label class="radio-opt"><input type="radio" name="cpEatingCompany" value="acompanhado"> Acompanhado</label>
+            <label class="radio-opt"><input type="radio" name="cpEatingCompany" value="variavel"> Variado</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Disfagia / Odinofagia</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpDysphagia" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpDysphagia" value="sim"> Sim</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Pirose (azia)</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpHeartburn" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpHeartburn" value="eventual"> Eventual</label>
+            <label class="radio-opt"><input type="radio" name="cpHeartburn" value="frequente"> Frequente</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Dietas anteriores?</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpPrevDiets" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpPrevDiets" value="sim"> Sim</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Aversões alimentares</label>
+        <textarea id="cpFoodAversions" class="form-input" rows="2" placeholder="Alimentos que não gosta ou não tolera..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Preferências alimentares</label>
+        <textarea id="cpFoodPreferences" class="form-input" rows="2" placeholder="Alimentos favoritos, culinárias preferidas..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Alergias / Intolerâncias alimentares</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.3rem 0.5rem;margin-top:0.3rem;">
+          <label class="radio-opt"><input type="checkbox" id="cpAllergyGluten"> Glúten</label>
+          <label class="radio-opt"><input type="checkbox" id="cpAllergyLactose"> Lactose</label>
+          <label class="radio-opt"><input type="checkbox" id="cpAllergyNuts"> Oleaginosas (nozes, amendoim)</label>
+          <label class="radio-opt"><input type="checkbox" id="cpAllergyEgg"> Ovo</label>
+          <label class="radio-opt"><input type="checkbox" id="cpAllergySeafood"> Frutos do mar</label>
+          <label class="radio-opt"><input type="checkbox" id="cpAllergySoy"> Soja</label>
+        </div>
+        <input type="text" id="cpAllergyOther" class="form-input" placeholder="Outras alergias..." style="margin-top:0.4rem;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-top:0.5rem;">
+        <div class="form-field">
+          <label class="form-label">Óleo/mês (mL)</label>
+          <input type="number" id="cpOilMonth" class="form-input" placeholder="Ex: 900">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Açúcar/mês (g)</label>
+          <input type="number" id="cpSugarMonth" class="form-input" placeholder="Ex: 500">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Sal/mês (g)</label>
+          <input type="number" id="cpSaltMonth" class="form-input" placeholder="Ex: 300">
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:0.5rem;">
+        <label class="form-label">O que o alimento significa para você? (psicologia alimentar)</label>
+        <textarea id="cpFoodMeaning" class="form-input" rows="2" placeholder="Ex: conforto emocional, necessidade, prazer..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Aspectos psicológicos relevantes</label>
+        <textarea id="cpPsychological" class="form-input" rows="2" placeholder="Ansiedade, compulsão, depressão, transtornos alimentares..."></textarea>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 7: Exames Laboratoriais -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-vial ic-water"></i> Exames Laboratoriais</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-field">
+          <label class="form-label">Glicemia em jejum (mg/dL)</label>
+          <input type="number" id="cpLabGlucose" class="form-input" placeholder="Ex: 95" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">HbA1c (%)</label>
+          <input type="number" id="cpLabHba1c" class="form-input" placeholder="Ex: 5.6" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Colesterol Total (mg/dL)</label>
+          <input type="number" id="cpLabCholTotal" class="form-input" placeholder="Ex: 180">
+        </div>
+        <div class="form-field">
+          <label class="form-label">LDL (mg/dL)</label>
+          <input type="number" id="cpLabLdl" class="form-input" placeholder="Ex: 110">
+        </div>
+        <div class="form-field">
+          <label class="form-label">HDL (mg/dL)</label>
+          <input type="number" id="cpLabHdl" class="form-input" placeholder="Ex: 55">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Triglicerídeos (mg/dL)</label>
+          <input type="number" id="cpLabTg" class="form-input" placeholder="Ex: 120">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Creatinina (mg/dL)</label>
+          <input type="number" id="cpLabCreatinine" class="form-input" placeholder="Ex: 0.9" step="0.01">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Ureia (mg/dL)</label>
+          <input type="number" id="cpLabUrea" class="form-input" placeholder="Ex: 30">
+        </div>
+        <div class="form-field">
+          <label class="form-label">TSH (mUI/L)</label>
+          <input type="number" id="cpLabTsh" class="form-input" placeholder="Ex: 2.5" step="0.01">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Vitamina D (ng/mL)</label>
+          <input type="number" id="cpLabVitD" class="form-input" placeholder="Ex: 35" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Ferritina (ng/mL)</label>
+          <input type="number" id="cpLabFerritin" class="form-input" placeholder="Ex: 60" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Hemoglobina (g/dL)</label>
+          <input type="number" id="cpLabHemoglobin" class="form-input" placeholder="Ex: 13.5" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">PCR – Proteína C Reativa (mg/L)</label>
+          <input type="number" id="cpLabCrp" class="form-input" placeholder="Ex: 1.2" step="0.1">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Insulina em jejum (µUI/mL)</label>
+          <input type="number" id="cpLabInsulin" class="form-input" placeholder="Ex: 8.5" step="0.1">
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Outros exames / resultados relevantes</label>
+        <textarea id="cpLabOther" class="form-input" rows="2" placeholder="Outros exames bioquímicos, parasitológico de fezes, EAS de urina..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Data dos exames</label>
+        <input type="date" id="cpLabDate" class="form-input">
+      </div>
+    </div>
+
+    <!-- SEÇÃO 8: Dados Femininos (oculto para masculino) -->
+    <div class="patient-form-section" id="cpFemSection">
+      <div class="patient-form-section-title"><i class="fa-solid fa-venus" style="color:#e91e63;"></i> Dados Ginecológicos e Obstétricos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div class="form-field">
+          <label class="form-label">Status menstrual</label>
+          <select id="cpMenstrualStatus" class="form-select">
+            <option value="">Não informado</option>
+            <option value="regular">Ciclo regular</option>
+            <option value="irregular">Ciclo irregular</option>
+            <option value="amenorreia">Amenorreia</option>
+            <option value="menopausa">Menopausa</option>
+            <option value="perimenopausa">Perimenopausa</option>
+            <option value="pos_menopausa">Pós-menopausa</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Duração do ciclo (dias)</label>
+          <input type="number" id="cpCycleDuration" class="form-input" placeholder="Ex: 28">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Duração da menstruação (dias)</label>
+          <input type="number" id="cpPeriodDuration" class="form-input" placeholder="Ex: 5">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Data da última menstruação (DUM)</label>
+          <input type="date" id="cpLastPeriod" class="form-input">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Sintomas do ciclo</label>
+          <textarea id="cpMenstrualSymptoms" class="form-input" rows="2" placeholder="Cólicas, TPM, inchaço, enxaqueca..."></textarea>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Anticoncepcionais / TRH</label>
+          <input type="text" id="cpContraceptive" class="form-input" placeholder="Tipo e nome do medicamento">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Gestante?</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpPregnant" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpPregnant" value="sim" onclick="cpTogglePregnancyFields(true)"> Sim</label>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Amamentando?</label>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="cpBreastfeeding" value="nao" checked> Não</label>
+            <label class="radio-opt"><input type="radio" name="cpBreastfeeding" value="sim"> Sim</label>
+          </div>
+        </div>
+      </div>
+      <!-- Gestação (aparece só se grávida) -->
+      <div id="cpPregnancyFields" style="display:none;margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.75rem;">
+        <div style="font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.6rem;">Dados Gestacionais</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          <div class="form-field">
+            <label class="form-label">Semana gestacional</label>
+            <input type="number" id="cpGestWeek" class="form-input" placeholder="Ex: 20" min="1" max="42">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Data provável do parto (DPP)</label>
+            <input type="date" id="cpDpp" class="form-input">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Nº de gestações anteriores</label>
+            <input type="number" id="cpPreviousPregnancies" class="form-input" placeholder="Ex: 1" min="0">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Tipo de parto anterior</label>
+            <select id="cpPreviousBirth" class="form-select">
+              <option value="">Não se aplica</option>
+              <option value="normal">Vaginal / Normal</option>
+              <option value="cesareo">Cesárea</option>
+              <option value="misto">Ambos</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Ganho de peso gestacional até agora (kg)</label>
+            <input type="number" id="cpGestWeightGain" class="form-input" placeholder="Ex: 4.5" step="0.1">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Intercorrências gestacionais</label>
+            <input type="text" id="cpGestComplications" class="form-input" placeholder="Ex: pré-eclâmpsia, DMG...">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 9: Credenciais -->
+    <div class="patient-form-section">
+      <div class="patient-form-section-title"><i class="fa-solid fa-key ic-lock"></i> Credenciais de Acesso</div>
+      <div class="form-field">
+        <label class="form-label"><span data-i18n="temp_password">Senha Temporária *</span> <span style="font-weight:400;font-size:0.75rem;color:var(--text-muted);" data-i18n="temp_password_hint">(mín. 6 caracteres — paciente irá trocar no 1º login)</span></label>
+        <div style="position:relative;">
+          <input type="password" id="cpPassword" class="form-input" placeholder="Senha temporária" style="padding-right:2.5rem;">
+          <button type="button" onclick="toggleCpPasswordVisibility()" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--text-muted);" id="cpPasswordEye"><i class="fa-solid fa-eye ic-search"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="cpError" style="display:none;background:#fdecea;color:#c62828;border-radius:var(--radius-sm);padding:0.6rem 0.9rem;font-size:0.83rem;margin:0.5rem 0;"></div>
+    <button class="btn-primary" style="margin-top:1rem;" onclick="createPatientDirect()">
+      <span data-i18n="create_patient_btn">Criar Paciente</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<!-- Recipe Modal -->
+<div class="modal-overlay" id="recipeModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="recipeModalContent"></div>
+</div>
+
+<!-- Upgrade Modal -->
+<div class="modal-overlay" id="upgradeModal" onclick="if(event.target===this)closeUpgradeModal()">
+  <div class="modal-box" style="max-width:700px;width:96vw;">
+    <button class="modal-close" onclick="closeUpgradeModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-star ic-star"></i> <span data-i18n="choose_plan">Escolha seu plano</span></div>
+    <div class="modal-sub" data-i18n="choose_plan_sub">Desbloqueie mais funcionalidades</div>
+
+    <!-- Tabs: Usuário padrão / Nutricionista -->
+    <div style="display:flex;gap:0.5rem;background:var(--green-pale);border-radius:50px;padding:4px;margin-bottom:1.2rem;">
+      <button id="upgradeTabUser" onclick="switchUpgradeTab('user')" style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;background:var(--green-deep);color:white;transition:all 0.2s;">👤 Usuário</button>
+      <button id="upgradeTabNut"  onclick="switchUpgradeTab('nut')"  style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;background:transparent;color:var(--text-muted);transition:all 0.2s;">🩺 Nutricionista</button>
+    </div>
+
+    <!-- Planos de Usuário -->
+    <div id="upgradePlansUser" class="upgrade-plans-grid">
+      <div class="upgrade-plan-card">
+        <div class="upgrade-plan-icon"><i class="fa-solid fa-seedling ic-leaf"></i></div>
+        <div class="upgrade-plan-name">Gratuito</div>
+        <div class="upgrade-plan-price">R$0<span>/mês</span></div>
+        <ul class="upgrade-plan-features">
+          <li>Busca nutricional com IA</li>
+          <li>Calculadora calórica</li>
+          <li>Comparar alimentos</li>
+          <li>Calculadora de macros</li>
+        </ul>
+        <button class="btn-upgrade-now" disabled style="opacity:0.5;cursor:default;">Plano atual</button>
+      </div>
+      <div class="upgrade-plan-card featured">
+        <div class="upgrade-plan-badge">RECOMENDADO</div>
+        <div class="upgrade-plan-icon"><i class="fa-solid fa-star ic-star"></i></div>
+        <div class="upgrade-plan-name">Standard Pro</div>
+        <div class="upgrade-plan-price">R$25<span>/mês</span></div>
+        <ul class="upgrade-plan-features">
+          <li>Tudo do Gratuito</li>
+          <li>Diário alimentar completo</li>
+          <li>Câmera IA ilimitada</li>
+          <li>Receitas por objetivo</li>
+          <li>Criar receitas próprias</li>
+          <li>Relatório pessoal em PDF</li>
+          <li>Alertas de meta e macros</li>
+          <li>Histórico avançado</li>
+        </ul>
+        <button class="btn-upgrade-now featured" onclick="requestUpgrade('pro')">Assinar Pro</button>
+      </div>
+    </div>
+
+    <!-- Planos de Nutricionista -->
+    <div id="upgradePlansNut" class="upgrade-plans-grid" style="display:none;">
+      <div class="upgrade-plan-card">
+        <div class="upgrade-plan-icon"><i class="fa-solid fa-user-doctor ic-stethoscope"></i></div>
+        <div class="upgrade-plan-name">Nutricionista Pro</div>
+        <div class="upgrade-plan-price">R$59<span>/mês</span></div>
+        <ul class="upgrade-plan-features">
+          <li>Tudo do Standard Pro</li>
+          <li>Painel de pacientes (até 15)</li>
+          <li>Cadastrar pacientes diretamente</li>
+          <li>Enviar receitas aos pacientes</li>
+          <li>Chat com pacientes</li>
+          <li>Metas personalizadas por paciente</li>
+          <li>Relatórios nutricionais em PDF</li>
+          <li>Biblioteca privada de receitas</li>
+        </ul>
+        <button class="btn-upgrade-now" onclick="requestUpgrade('nutritionist_pro')">Assinar Nutricionista Pro</button>
+      </div>
+      <div class="upgrade-plan-card featured">
+        <div class="upgrade-plan-badge">CLÍNICA</div>
+        <div class="upgrade-plan-icon"><i class="fa-solid fa-hospital ic-stethoscope"></i></div>
+        <div class="upgrade-plan-name">Nutricionista Clínica</div>
+        <div class="upgrade-plan-price">R$99<span>/mês</span></div>
+        <ul class="upgrade-plan-features">
+          <li>Tudo do Nutricionista Pro</li>
+          <li>Pacientes ilimitados</li>
+          <li>Prontuário clínico do paciente</li>
+          <li>Relatório de evolução clínica</li>
+          <li>Paciente vê dados avançados do app</li>
+          <li>Planos alimentares personalizados</li>
+          <li>Assinatura de documentos</li>
+          <li>Perfil profissional público</li>
+        </ul>
+        <button class="btn-upgrade-now featured" onclick="requestUpgrade('nutritionist_clinic')">Assinar Clínica</button>
+      </div>
+    </div>
+
+    <p style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-top:1rem;">Nutricionistas precisam de aprovação de CRN. <button onclick="openNutritionistRequest();closeUpgradeModal()" style="background:none;border:none;color:var(--green-mid);font-weight:700;cursor:pointer;font-size:0.75rem;">Solicitar aqui →</button></p>
+  </div>
+</div>
+
+<!-- Photo Lightbox -->
+<div id="photoLightbox" onclick="closePhotoLightbox()">
+  <img id="photoLightboxImg" src="" alt="Foto do alimento">
+</div>
+
+<!-- Patient Diary Modal -->
+<div class="patient-diary-modal" id="patientDiaryModal">
+  <div class="patient-diary-box">
+    <button class="modal-close" onclick="closePatientDiary()" style="position:absolute;top:1rem;right:1rem;"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title" id="patientDiaryTitle">Diário do Paciente</div>
+
+    <div class="pd-day-nav">
+      <button id="pdPrevBtn" onclick="pdChangeDay(-1)" title="Dia anterior"><i class="fa-solid fa-arrow-left ic-search"></i></button>
+      <div class="pd-day-label" id="pdDayLabel">Hoje</div>
+      <button id="pdNextBtn" onclick="pdChangeDay(1)" title="Próximo dia"><i class="fa-solid fa-arrow-right ic-search"></i></button>
+    </div>
+
+    <div class="pd-tabs">
+      <button class="pd-tab-btn active" id="pdTabDay" onclick="pdSwitchTab('day')"><i class="fa-solid fa-clipboard ic-diary"></i> Diário do dia</button>
+      <button class="pd-tab-btn" id="pdTabChart" onclick="pdSwitchTab('chart')"><i class="fa-solid fa-chart-bar ic-goal"></i> Comparar com a meta</button>
+    </div>
+
+    <div id="patientDiaryContent"></div>
+  </div>
+</div>
+
+<!-- Nutritionist Request Modal -->
+<div class="modal-overlay" id="nutritionistModal" onclick="if(event.target===this)closeNutritionistModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeNutritionistModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-utensils ic-recipes"></i> Solicitação de Nutricionista</div>
+    <p class="modal-sub">Preencha os dados abaixo. Sua solicitação será enviada diretamente ao nosso time.</p>
+    <div class="form-field">
+      <label class="form-label">CRN (Registro Profissional)</label>
+      <input type="text" id="nutCRN" class="form-input" placeholder="Ex: CRN-3 12345">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Especialidade</label>
+      <input type="text" id="nutSpecialty" class="form-input" placeholder="Ex: Nutrição Clínica, Esportiva...">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Instituição de formação</label>
+      <input type="text" id="nutInstitution" class="form-input" placeholder="Ex: Universidade de São Paulo">
+    </div>
+    <div class="form-field">
+      <label class="form-label">Mensagem adicional</label>
+      <textarea id="nutMessage" class="form-input" rows="3" placeholder="Conte um pouco sobre sua atuação..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="sendNutritionistRequest()"><i class="fa-solid fa-envelope ic-search"></i> Enviar Solicitação</button>
+  </div>
+</div>
+
+<!-- Modal: Enviar Receita para Paciente -->
+<!-- Send Announcement Modal -->
+<div class="modal-overlay" id="announcementModal" onclick="if(event.target===this)closeAnnouncementModal()">
+  <div class="modal-box" style="max-width:480px;width:95vw;">
+    <button class="modal-close" onclick="closeAnnouncementModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-bullhorn"></i> <span data-i18n="announcement_title">Enviar Aviso</span></div>
+    <p class="modal-sub" data-i18n="announcement_sub">Este aviso aparecerá como um popup na tela inicial do(s) paciente(s).</p>
+    <div class="form-field">
+      <label class="form-label" data-i18n="announcement_recipient">Destinatário</label>
+      <select id="announcementRecipient" class="form-select">
+        <option value="all" data-i18n="announcement_all_patients">Todos os meus pacientes</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label class="form-label" data-i18n="announcement_message_label">Mensagem</label>
+      <textarea id="announcementMessage" class="form-input" rows="4" data-i18n-ph="announcement_message_ph" placeholder="Escreva o aviso..." style="resize:vertical;"></textarea>
+    </div>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="sendAnnouncement()">
+      <i class="fa-solid fa-paper-plane" style="color:white!important;margin-right:0.3rem;"></i> <span data-i18n="announcement_send_btn">Enviar Aviso</span>
+    </button>
+  </div>
+</div>
+
+<!-- Admin Notice Modal -->
+<div class="modal-overlay" id="adminNoticeModal" onclick="if(event.target===this)closeAdminNoticeModal()">
+  <div class="modal-box" style="max-width:520px;width:95vw;">
+    <button class="modal-close" onclick="closeAdminNoticeModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-bell" style="color:#ef9a9a;"></i> Novo Aviso do Sistema</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.2rem;">Este aviso aparecerá como popup para o(s) usuário(s) selecionado(s).</p>
+
+    <div class="form-field">
+      <label class="form-label">Destinatário</label>
+      <select id="adminNoticeTarget" class="form-select" onchange="onAdminNoticeTargetChange()">
+        <option value="all">📢 Todos os usuários</option>
+        <option value="specific">👤 Usuário específico</option>
+      </select>
+    </div>
+
+    <div id="adminNoticeUserField" style="display:none;" class="form-field">
+      <label class="form-label">Selecionar usuário</label>
+      <input type="text" id="adminNoticeUserSearch" class="form-input" placeholder="Buscar por nome ou e-mail..." oninput="filterAdminNoticeUsers()" autocomplete="off">
+      <div id="adminNoticeUserResults" style="margin-top:0.4rem;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);display:none;"></div>
+      <input type="hidden" id="adminNoticeUserId">
+      <div id="adminNoticeUserChosen" style="display:none;margin-top:0.5rem;padding:0.5rem 0.8rem;background:var(--green-pale);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--green-deep);font-weight:600;"></div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Título (opcional)</label>
+      <input type="text" id="adminNoticeTitle" class="form-input" placeholder="Ex: Atualização do sistema">
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Mensagem</label>
+      <textarea id="adminNoticeMessage" class="form-input" rows="4" placeholder="Escreva o aviso..." style="resize:vertical;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+      <button class="btn-primary" onclick="sendAdminNotice()" style="flex:1;">
+        <i class="fa-solid fa-paper-plane" style="color:white!important;margin-right:0.3rem;"></i> Enviar Aviso
+      </button>
+      <button onclick="closeAdminNoticeModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Notice Popup (shown to any user) -->
+<div class="modal-overlay" id="adminNoticePopup">
+  <div class="modal-box" style="max-width:420px;width:95vw;border-top:4px solid var(--orange-hot,#ff6f00);">
+    <div class="modal-title" style="display:flex;align-items:center;gap:0.5rem;">
+      <i class="fa-solid fa-bell" style="color:var(--orange-hot,#ff6f00);"></i>
+      <span id="adminNoticePopupTitle">Aviso do Sistema</span>
+    </div>
+    <p id="adminNoticePopupContent" style="font-size:0.95rem;color:var(--text-main);line-height:1.6;white-space:pre-wrap;margin-bottom:1rem;"></p>
+    <span id="adminNoticePopupDate" style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:1rem;"></span>
+    <button class="btn-primary" onclick="dismissAdminNoticePopup()">Entendi</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="announcementPopup">
+  <div class="modal-box" style="max-width:420px;width:95vw;">
+    <div class="modal-title"><i class="fa-solid fa-bullhorn" style="color:var(--orange-hot,#e65100);"></i> <span id="announcementPopupFrom" data-i18n="announcement_popup_title">Aviso da sua Nutricionista</span></div>
+    <p id="announcementPopupContent" style="font-size:0.95rem;color:var(--text-main);line-height:1.6;white-space:pre-wrap;margin-bottom:1rem;"></p>
+    <span id="announcementPopupDate" style="font-size:0.75rem;color:var(--text-muted);display:block;margin-bottom:1rem;"></span>
+    <button class="btn-primary" onclick="dismissAnnouncementPopup()"><span data-i18n="announcement_popup_ok">Entendi</span></button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="quickSendRecipeModal" onclick="if(event.target===this)closeQuickSendRecipeModal()">
+  <div class="modal-box" style="max-width:400px;width:95vw;">
+    <button class="modal-close" onclick="closeQuickSendRecipeModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-paper-plane ic-stethoscope"></i> Enviar Receita</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.8rem;">Enviando: <strong id="qsrRecipeTitle"></strong></p>
+    <div class="form-field">
+      <label class="form-label">Paciente</label>
+      <select id="qsrPatientSelect" class="form-select"></select>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Refeição do dia</label>
+      <select id="qsrMealSelect" class="form-select">
+        <option value="cafe">☕ Café da manhã</option>
+        <option value="almoco" selected>🍽️ Almoço</option>
+        <option value="lanche">🍎 Lanche</option>
+        <option value="jantar">🌙 Jantar</option>
+      </select>
+    </div>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="confirmSendRecipeToPatient()">
+      <i class="fa-solid fa-paper-plane" style="color:white!important;margin-right:0.3rem;"></i> Enviar para Paciente
+    </button>
+  </div>
+</div>
+
+<!-- Prontuário Modal -->
+<div class="modal-overlay" id="recordModal" onclick="if(event.target===this)closeRecordModal()">
+  <div class="modal-box" style="max-width:520px;width:95vw;">
+    <button class="modal-close" onclick="closeRecordModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Gerar Prontuário</div>
+    <p class="modal-sub">Paciente: <strong id="recordPatientName"></strong></p>
+
+    <div class="form-field">
+      <label class="form-label">Período</label>
+      <div style="display:flex;gap:0.5rem;">
+        <button class="goal-btn record-period-btn active" data-period="7" onclick="setRecordPeriod(7,this)" style="flex:1;">📅 Última semana</button>
+        <button class="goal-btn record-period-btn" data-period="30" onclick="setRecordPeriod(30,this)" style="flex:1;">🗓️ Último mês</button>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Informações a incluir</label>
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;"><input type="checkbox" id="recOptProfile" checked> Dados do paciente (idade, sexo, peso, altura)</label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;"><input type="checkbox" id="recOptGoal" checked> Meta calórica diária</label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;"><input type="checkbox" id="recOptSummary" checked> Resumo de consumo (médias e totais)</label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;"><input type="checkbox" id="recOptChart" checked> Gráfico de calorias por dia</label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;"><input type="checkbox" id="recOptMacros" checked> Distribuição de macronutrientes</label>
+        <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;"><input type="checkbox" id="recOptMeals" checked> Diário detalhado por refeição</label>
+      </div>
+    </div>
+
+    <div id="recordAiBox" style="display:none;background:var(--green-pale);border-radius:var(--radius-mid);padding:0.85rem;margin-bottom:1rem;font-size:0.85rem;color:var(--text-main);line-height:1.6;max-height:160px;overflow-y:auto;"></div>
+
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;">
+      <button class="btn-primary" style="flex:1;min-width:150px;" onclick="generatePatientRecordPdf(false)">
+        <i class="fa-solid fa-file-pdf" style="color:white!important;margin-right:0.4rem;"></i> Gerar Prontuário
+      </button>
+      <button class="btn-primary" style="flex:1;min-width:150px;background:linear-gradient(135deg,var(--green-mid),var(--yellow-hot));" onclick="generatePatientRecordPdf(true)" id="recordAiBtn">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color:white!important;margin-right:0.4rem;"></i> Gerar com IA
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Recipe Craving Modal -->
+<div class="modal-overlay" id="aiRecipeModal" onclick="if(event.target===this)closeAiRecipeModal()">
+  <div class="modal-box" style="max-width:480px;width:95vw;">
+    <button class="modal-close" onclick="closeAiRecipeModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title">🤖 IA Cria Receita para Você</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;">Diga o que você quer comer e a IA vai criar uma receita personalizada!</p>
+    <div class="form-field">
+      <label class="form-label">O que você está com vontade de comer?</label>
+      <input type="text" id="cravingFood" class="form-input" placeholder="Ex: algo com frango e legumes, macarrão leve...">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+      <div class="form-field">
+        <label class="form-label">Máx. calorias (kcal)</label>
+        <input type="number" id="cravingKcal" class="form-input" placeholder="400">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Mín. proteína (g)</label>
+        <input type="number" id="cravingProt" class="form-input" placeholder="20">
+      </div>
+    </div>
+    <div id="aiRecipeLoading" style="display:none;text-align:center;padding:1rem;color:var(--text-muted);">
+      <div class="pulse-ring" style="margin:0 auto 0.5rem;"></div> Gerando receita com IA...
+    </div>
+    <div id="aiRecipeResult" style="display:none;background:var(--green-pale);border-radius:var(--radius-mid);padding:1rem;margin-top:0.75rem;"></div>
+    <button class="btn-primary" style="margin-top:1rem;" onclick="generateAiRecipe()">
+      <i class="fa-solid fa-wand-magic-sparkles ic-star"></i> Criar Receita com IA
+    </button>
+  </div>
+</div>
+
+<!-- AI Recipe Rejection Modal -->
+<div class="modal-overlay" id="aiRejectRecipeModal">
+  <div class="modal-box" style="max-width:420px;width:95vw;text-align:center;">
+    <div style="font-size:2.5rem;margin-bottom:0.75rem;">🚫</div>
+    <div class="modal-title" style="color:#c62828;">Receita não aprovada pela IA</div>
+    <p style="font-size:0.9rem;color:var(--text-muted);margin:0.75rem 0 1.25rem;line-height:1.6;" id="aiRejectReason">A receita não foi aprovada.</p>
+    <div style="background:var(--orange-pale);border-radius:var(--radius-sm);padding:0.85rem;margin-bottom:1.25rem;font-size:0.82rem;color:var(--text-main);line-height:1.5;">
+      <i class="fa-solid fa-circle-info" style="color:var(--orange-hot);margin-right:0.3rem;"></i>
+      Você pode editar a receita e tentar salvar novamente.
+    </div>
+    <button class="btn-primary" onclick="document.getElementById('aiRejectRecipeModal').classList.remove('show')" style="width:100%;">
+      <i class="fa-solid fa-pen-to-square"></i> Editar Receita
+    </button>
+  </div>
+</div>
+
+<!-- Patient Goals Modal (for nutritionist to set patient targets) -->
+<div class="modal-overlay" id="patientGoalsModal" onclick="if(event.target===this)closePatientGoalsModal()">
+  <div class="modal-box" style="max-width:440px;width:95vw;">
+    <button class="modal-close" onclick="closePatientGoalsModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-bullseye ic-goal"></i> Metas do Paciente</div>
+    <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:1.2rem;" id="patientGoalsDesc">Definir metas nutricionais individuais para o paciente.</p>
+    <input type="hidden" id="patientGoalsPatientId">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+      <div class="form-field">
+        <label class="form-label">Meta de Calorias (kcal)</label>
+        <input type="number" id="pgKcal" class="form-input" placeholder="2000">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Meta Proteína (g)</label>
+        <input type="number" id="pgProt" class="form-input" placeholder="120">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Meta Carboidratos (g)</label>
+        <input type="number" id="pgCarbs" class="form-input" placeholder="250">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Meta Gorduras (g)</label>
+        <input type="number" id="pgFat" class="form-input" placeholder="65">
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="savePatientGoals()">
+      <i class="fa-solid fa-bullseye ic-goal"></i> Salvar Metas
+    </button>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal-overlay" id="forgotPasswordModal" onclick="if(event.target===this)closeForgotPassword()">
+  <div class="modal-box" style="max-width:400px;width:92vw;">
+    <button class="modal-close" onclick="closeForgotPassword()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-key ic-lock"></i> Recuperar Senha</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.2rem;">Informe seu e-mail e enviaremos um link para você criar uma nova senha.</p>
+    <div class="form-field">
+      <label class="form-label">E-mail</label>
+      <input type="email" id="forgotEmail" class="form-input" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')sendPasswordReset()">
+    </div>
+    <div id="forgotMsg" style="display:none;border-radius:var(--radius-sm);padding:0.7rem 1rem;font-size:0.85rem;margin-bottom:0.8rem;"></div>
+    <button class="btn-primary" id="forgotSubmitBtn" onclick="sendPasswordReset()">
+      <i class="fa-solid fa-paper-plane" style="color:white!important;margin-right:0.4rem;"></i> Enviar link de recuperação
+    </button>
+  </div>
+</div>
+
+<!-- ══ AI DIET GENERATOR MODAL ══ -->
+<div class="modal-overlay" id="dietGenModal" onclick="if(event.target===this)closeDietGenModal()">
+  <div class="modal-box" style="max-width:640px;width:96vw;max-height:92vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeDietGenModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-wand-magic-sparkles ic-star"></i> Gerar Dieta com IA</div>
+    <p class="modal-sub">A IA cria um plano alimentar completo baseado nos seus dados e anamnese.</p>
+
+    <div id="dietGenForm">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">Objetivo</label>
+          <select id="dietGenGoal" class="form-select">
+            <option value="emagrecer">Emagrecimento</option>
+            <option value="manter" selected>Manutenção de peso</option>
+            <option value="hipertrofia">Ganho de massa muscular</option>
+            <option value="saude">Saúde geral</option>
+            <option value="diabetes">Controle do diabetes</option>
+            <option value="hipertensao">Controle da hipertensão</option>
+            <option value="colesterol">Controle do colesterol</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">Restrições alimentares</label>
+          <select id="dietGenRestrict" class="form-select" multiple size="3">
+            <option value="nenhuma" selected>Nenhuma</option>
+            <option value="vegetariano">Vegetariano</option>
+            <option value="vegano">Vegano</option>
+            <option value="sem gluten">Sem glúten</option>
+            <option value="sem lactose">Sem lactose</option>
+            <option value="low carb">Low carb</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">Número de refeições</label>
+          <select id="dietGenMeals" class="form-select">
+            <option value="3">3 refeições</option>
+            <option value="4">4 refeições</option>
+            <option value="5" selected>5 refeições</option>
+            <option value="6">6 refeições</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:0;">
+          <label class="form-label">Dias da semana</label>
+          <select id="dietGenDays" class="form-select">
+            <option value="1">Apenas hoje</option>
+            <option value="3">3 dias</option>
+            <option value="7" selected>7 dias (semana completa)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Observações adicionais (alergia, preferências…)</label>
+        <textarea id="dietGenObs" class="form-input" rows="2" placeholder="Ex: não gosto de peixe, alergia a amendoim..."></textarea>
+      </div>
+      <div id="dietGenLoading" style="display:none;text-align:center;padding:1.5rem;">
+        <div class="pulse-ring" style="margin:0 auto 0.6rem;"></div>
+        <p style="color:var(--text-muted);font-size:0.88rem;">Gerando plano alimentar personalizado com IA…</p>
+      </div>
+      <button class="btn-primary" onclick="generateAIDiet()">
+        <i class="fa-solid fa-wand-magic-sparkles ic-star" style="color:white!important;margin-right:0.3rem;"></i> Gerar meu plano alimentar
+      </button>
+    </div>
+
+    <div id="dietGenResult" style="display:none;">
+      <div id="dietGenContent"></div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem;">
+        <button class="btn-primary" style="flex:1;" onclick="applyDietToday()">
+          <i class="fa-solid fa-book ic-diary" style="color:white!important;margin-right:0.3rem;"></i> Aplicar hoje no diário
+        </button>
+        <button onclick="printDiet()" style="flex:1;padding:0.9rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--text-muted);">
+          <i class="fa-solid fa-print ic-search"></i> Imprimir / PDF
+        </button>
+        <button onclick="dietGenNewPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--green-mid);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--green-mid);">
+          <i class="fa-solid fa-arrows-rotate"></i> Gerar novo plano
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NUTRITIONIST TYPE MODAL ══ -->
+<div class="modal-overlay" id="nutTypeModal" onclick="if(event.target===this)closeNutTypeModal()">
+  <div class="modal-box" style="max-width:480px;width:95vw;">
+    <button class="modal-close" onclick="closeNutTypeModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Minha Especialidade</div>
+    <p class="modal-sub">Selecionar sua área principal personaliza os formulários de anamnese e as métricas de acompanhamento.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+      <button class="goal-btn nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
+        🏥 Nutrição Clínica<br><small>Doenças crônicas, internação</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
+        🏋️ Nutrição Esportiva<br><small>Performance, hipertrofia</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
+        👶 Pediatria<br><small>0–18 anos</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="gestante" onclick="selectNutType(this)">
+        🤰 Gestação & Lactação<br><small>Pré-natal, amamentação</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="oncologia" onclick="selectNutType(this)">
+        🎗️ Oncologia<br><small>Pacientes oncológicos</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="renal" onclick="selectNutType(this)">
+        🫘 Nefrologia<br><small>Doenças renais</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="cardio" onclick="selectNutType(this)">
+        ❤️ Cardiologia<br><small>Risco cardiovascular</small>
+      </button>
+      <button class="goal-btn nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
+        🌿 Geral / Preventiva<br><small>Educação alimentar</small>
+      </button>
+    </div>
+    <button class="btn-primary" onclick="saveNutType()">Salvar especialidade</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- Disease-Specific Form Modal (IA-powered) -->
+<div class="modal-overlay" id="diseaseFormModal" onclick="if(event.target===this)closeDiseaseFormModal()">
+  <div class="modal-box" style="max-width:680px;width:95vw;max-height:90vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeDiseaseFormModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <div class="modal-title" id="diseaseFormTitle"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Formulário Específico</div>
+    <p class="modal-sub" id="diseaseFormSubtitle">Perguntas adicionais recomendadas pela IA para este diagnóstico</p>
+
+    <!-- Loading state -->
+    <div id="diseaseFormLoading" style="display:none;text-align:center;padding:2rem;">
+      <div class="pulse-ring" style="margin:0 auto 0.75rem;"></div>
+      <p style="color:var(--text-muted);font-size:0.88rem;">Gerando formulário personalizado com IA...</p>
+    </div>
+
+    <!-- AI-generated form content -->
+    <div id="diseaseFormContent" style="display:none;"></div>
+
+    <div id="diseaseFormActions" style="display:none;display:flex;gap:0.75rem;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn-primary" style="flex:1;min-width:140px;" onclick="saveDiseaseFormData()">
+        <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar Dados
+      </button>
+      <button onclick="closeDiseaseFormModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Fechar</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="/globals.js"></script>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
