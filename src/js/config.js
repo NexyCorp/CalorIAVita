@@ -80,5 +80,5 @@ function _storageAvailable() {
 window._db = window._createSupabaseClient(window._SUPABASE_URL, window._SUPABASE_ANON_KEY, {
   auth: { autoRefreshToken:true, persistSession:true, detectSessionInUrl:true, storageKey:'caloria-verde-auth' }
 });
-var supabase = window._db;
+window.supabase = window._db;
 
