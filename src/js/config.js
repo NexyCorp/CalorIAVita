@@ -86,5 +86,10 @@ window.supabase = window._db;
 window.updateLogos = updateLogos;
 window.LOGO_LIGHT_B64 = LOGO_LIGHT_B64;
 window.LOGO_DARK_B64 = LOGO_DARK_B64;
+window._cookieGet = _cookieGet;
+window._cookieSet = _cookieSet;
+window._cookieDel = _cookieDel;
+window._CV_COOKIE = _CV_COOKIE;
+
 
 

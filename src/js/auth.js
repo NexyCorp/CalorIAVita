@@ -465,7 +465,6 @@ window.handleRegAvatarUpload = handleRegAvatarUpload;
 window.clearRegAvatar = clearRegAvatar;
 window.updateRegInitial = updateRegInitial;
 window.doRegister = doRegister;
-window.resendConfirmEmail = resendConfirmEmail;
 window.openForgotPassword = openForgotPassword;
 window.closeForgotPassword = closeForgotPassword;
 window.sendPasswordReset = sendPasswordReset;
