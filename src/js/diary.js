@@ -611,5 +611,6 @@ window.analyzePhoto = typeof analyzePhoto !== 'undefined' ? analyzePhoto : undef
 window.addCamToDiary = addCamToDiary;
 window.addCompareFoodToDiary = addCompareFoodToDiary;
 window.compareFoods = compareFoods;
+window.updateHomePanel = updateHomePanel;
 
 

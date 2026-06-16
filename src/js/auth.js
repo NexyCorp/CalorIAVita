@@ -477,5 +477,6 @@ window.doRegister = doRegister;
 window.selectOnbGoal = selectOnbGoal;
 window.completeOnboarding = completeOnboarding;
 window.doLogout = doLogout;
+window.initApp = initApp;
 
 
