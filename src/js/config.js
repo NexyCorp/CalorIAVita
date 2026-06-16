@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 // ═══════════════════════════════════════
 // SUPABASE CONFIG
 // ═══════════════════════════════════════
@@ -47,7 +49,7 @@ const _cookieGet = k => { const m = document.cookie.match('(^|;)\\s*' + k + '=([
 const _cookieSet = (k,v,d) => { const e = new Date(Date.now()+d*864e5).toUTCString(); document.cookie = k+'='+encodeURIComponent(v)+';expires='+e+';path=/;SameSite=Strict'; };
 const _cookieDel = k => { document.cookie = k+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'; };
 
-window._createSupabaseClient = window.supabase.createClient;
+window._createSupabaseClient = createClient;
 
 // Verifica se o storage está disponível (browsers com tracking prevention bloqueiam)
 function _storageAvailable() {
