@@ -219,7 +219,7 @@ async function dismissAdminNoticePopup() {
   const id = popup.dataset.id;
   popup.classList.remove('show');
   if (id) {
-    await supabase.from('admin_notices').update({ read_at: new Date().toISOString() }).eq('id', id);
+    await supabase.from('admin_notices').delete().eq('id', id);
     delete popup.dataset.id;
   }
   setTimeout(() => checkAdminNotices(), 400);

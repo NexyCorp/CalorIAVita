@@ -214,8 +214,17 @@ async function completeOnboarding() {
   const weight = document.getElementById('onbWeight').value;
   const height = document.getElementById('onbHeight').value;
 
+  const bodyFatUnknown = document.getElementById('onbBodyFatUnknown')?.checked;
+  const body_fat_pct = bodyFatUnknown ? null : (parseFloat(document.getElementById('onbBodyFat')?.value) || null);
+
   if (window._pendingUser) {
-    await supabase.from('profiles').update({ sex, age: parseInt(age)||null, weight: parseFloat(weight)||null, height: parseFloat(height)||null }).eq('id', window._pendingUser.id);
+    await supabase.from('profiles').update({
+      sex,
+      age: parseInt(age)||null,
+      weight: parseFloat(weight)||null,
+      height: parseFloat(height)||null,
+      body_fat_pct
+    }).eq('id', window._pendingUser.id);
     // Calculate suggested goal
     if (weight && height && age) {
       const tmb = sex === 'm'
@@ -425,7 +434,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (_suppressAuthChange) return;
   if (session?.user) {
     if (session.refresh_token) _cookieSet(_CV_COOKIE, session.refresh_token, 7);
-    if (event === 'INITIAL_SESSION') {
+    if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
       if (_appInitialized && currentUser?.id === session.user.id) return;
       _appInitialized = true;
       await initApp(session.user);

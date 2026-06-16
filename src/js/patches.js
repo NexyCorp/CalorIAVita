@@ -72,67 +72,92 @@ function updateWaterDisplay() {
     bar.style.width = pct + '%';
     bar.classList.toggle('over', diaryWaterMl > diaryGoalWater * 1.5);
   }
+
+  // Update new interactive bottle view elements if they exist
+  const bVal = document.getElementById('waterBottleVal');
+  const bGoal = document.getElementById('waterBottleGoal');
+  const bPct = document.getElementById('waterBottlePct');
+  const liquid = document.getElementById('waterLiquid');
+  
+  if (bVal) bVal.textContent = diaryWaterMl;
+  if (bGoal) bGoal.textContent = diaryGoalWater;
+  
+  const pct = Math.min((diaryWaterMl / Math.max(diaryGoalWater, 1)) * 100, 100);
+  if (bPct) bPct.textContent = Math.round(pct) + '%';
+  if (liquid) {
+    liquid.style.height = pct + '%';
+  }
 }
 
-// Override updateDiaryProgress to also track sugar and update water/sugar goals display
-window.updateDiaryProgress = function() {
-  const all = [...diary.cafe, ...diary.almoco, ...diary.lanche, ...diary.jantar];
-  const totalKcal  = all.reduce((s,i) => s+i.kcal, 0);
-  const totalCarbs = all.reduce((s,i) => s+(i.carbs||0), 0);
-  const totalProt  = all.reduce((s,i) => s+(i.prot||0), 0);
-  const totalFat   = all.reduce((s,i) => s+(i.fat||0), 0);
-  const totalSugar = all.reduce((s,i) => s+(i.sugar||0), 0);
+async function addCustomWater() {
+  const input = document.getElementById('customWaterInput');
+  if (!input) return;
+  const ml = parseInt(input.value);
+  if (isNaN(ml) || ml <= 0) {
+    showToast('Insira um valor válido de água', 'error');
+    return;
+  }
+  await addWater(ml);
+  input.value = '';
+}
 
-  document.getElementById('diaryKcalConsumed').textContent = Math.round(totalKcal);
-  const rem    = diaryGoal - totalKcal;
-  const remEl  = document.getElementById('diaryRemaining');
-  if (rem >= 0) {
-    remEl.textContent = rem.toFixed(0) + ' kcal restantes para sua meta';
-    remEl.style.color = rem < diaryGoal * 0.1 ? 'var(--yellow-hot)' : '';
+function toggleRestrictionPill(btn) {
+  const val = btn.dataset.value;
+  if (val === 'nenhuma') {
+    document.querySelectorAll('#dietGenRestrictPills .pill-btn').forEach(b => {
+      if (b.dataset.value === 'nenhuma') b.classList.add('active');
+      else b.classList.remove('active');
+    });
   } else {
-    remEl.innerHTML = Math.abs(rem).toFixed(0) + ' kcal acima da meta <i class="fa-solid fa-triangle-exclamation ic-alert"></i>';
-    remEl.style.color = '#e53935';
+    const noneBtn = Array.from(document.querySelectorAll('#dietGenRestrictPills .pill-btn')).find(b => b.dataset.value === 'nenhuma');
+    if (noneBtn) noneBtn.classList.remove('active');
+    
+    btn.classList.toggle('active');
+    
+    const activePills = document.querySelectorAll('#dietGenRestrictPills .pill-btn.active');
+    if (activePills.length === 0 && noneBtn) noneBtn.classList.add('active');
   }
-  document.getElementById('diaryGoalDisplay').textContent = diaryGoal;
+}
 
-  const pct = Math.min((totalKcal / diaryGoal) * 100, 100);
-  const bar = document.getElementById('diaryProgressBar');
-  bar.style.width = pct + '%';
-  bar.classList.toggle('over', totalKcal > diaryGoal);
-
-  document.getElementById('diaryCarbsVal').textContent = totalCarbs.toFixed(0) + 'g';
-  document.getElementById('diaryProtVal').textContent  = totalProt.toFixed(0)  + 'g';
-  document.getElementById('diaryFatVal').textContent   = totalFat.toFixed(0)   + 'g';
-
-  const carbGoal = (diaryGoal * 0.50) / 4;
-  const protGoal = (diaryGoal * 0.25) / 4;
-  const fatGoal  = (diaryGoal * 0.25) / 9;
-  document.getElementById('diaryCarbsBar').style.width = Math.min((totalCarbs/carbGoal)*100, 100) + '%';
-  document.getElementById('diaryProtBar').style.width  = Math.min((totalProt/protGoal)*100, 100)  + '%';
-  document.getElementById('diaryFatBar').style.width   = Math.min((totalFat/fatGoal)*100, 100)    + '%';
-
-  // Sugar bar
-  const sugarEl  = document.getElementById('diarySugarVal');
-  const sugarBar = document.getElementById('diarySugarBar');
-  const sugarGoalEl = document.getElementById('diarySugarGoalDisplay');
-  if (sugarEl) sugarEl.textContent = totalSugar.toFixed(1) + 'g';
-  if (sugarGoalEl) sugarGoalEl.textContent = diaryGoalSugar;
-  if (sugarBar) {
-    const sp = Math.min((totalSugar / diaryGoalSugar) * 100, 100);
-    sugarBar.style.width = sp + '%';
-    sugarBar.classList.toggle('over', totalSugar > diaryGoalSugar);
+function toggleCustomRestrictionInput() {
+  const container = document.getElementById('customRestrictionContainer');
+  if (container) {
+    container.style.display = container.style.display === 'none' ? 'flex' : 'none';
   }
+}
 
-  // Water display
-  updateWaterDisplay();
-
-  // Topbar
-  document.getElementById('topbarKcalText').textContent = `${Math.round(totalKcal)} / ${diaryGoal} kcal`;
-  const topFill = document.getElementById('topbarKcalFill');
-  topFill.style.width = pct + '%';
-  topFill.classList.toggle('over', totalKcal > diaryGoal);
-
-  updateHomePanel();
+function addCustomRestrictionPill() {
+  const input = document.getElementById('dietGenRestrictCustomInput');
+  if (!input) return;
+  const val = input.value.trim().toLowerCase();
+  if (!val) return;
+  
+  const existing = Array.from(document.querySelectorAll('#dietGenRestrictPills .pill-btn')).find(b => b.dataset.value === val);
+  if (existing) {
+    if (!existing.classList.contains('active')) toggleRestrictionPill(existing);
+    input.value = '';
+    return;
+  }
+  
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'pill-btn active';
+  btn.dataset.value = val;
+  btn.textContent = input.value.trim();
+  btn.onclick = () => toggleRestrictionPill(btn);
+  
+  const customBtn = document.getElementById('pillBtnCustom');
+  if (customBtn) {
+    customBtn.parentNode.insertBefore(btn, customBtn);
+  } else {
+    document.getElementById('dietGenRestrictPills').appendChild(btn);
+  }
+  
+  const noneBtn = Array.from(document.querySelectorAll('#dietGenRestrictPills .pill-btn')).find(b => b.dataset.value === 'nenhuma');
+  if (noneBtn) noneBtn.classList.remove('active');
+  
+  input.value = '';
+  document.getElementById('customRestrictionContainer').style.display = 'none';
 }
 
 // Override saveGoal to also save sugar/water goals
@@ -156,9 +181,20 @@ async function calcCalories() {
   const height   = parseFloat(document.getElementById('calcHeight').value);
   const activity = parseFloat(document.getElementById('calcActivity').value);
 
-  let tmb = sex === 'm'
-    ? 88.362 + (13.397*weight) + (4.799*height) - (5.677*age)
-    : 447.593 + (9.247*weight) + (3.098*height) - (4.330*age);
+  const bodyFatEl = document.getElementById('calcBodyFat');
+  const bodyFatUnknown = document.getElementById('calcBodyFatUnknown')?.checked;
+  const bodyFatVal = (bodyFatEl && !bodyFatUnknown && bodyFatEl.value) ? parseFloat(bodyFatEl.value) : null;
+
+  let tmb;
+  if (bodyFatVal !== null && !isNaN(bodyFatVal)) {
+    const lbm = weight * (1 - (bodyFatVal / 100));
+    tmb = 370 + (21.6 * lbm);
+  } else {
+    tmb = sex === 'm'
+      ? 88.362 + (13.397*weight) + (4.799*height) - (5.677*age)
+      : 447.593 + (9.247*weight) + (3.098*height) - (4.330*age);
+  }
+
   const tdee  = Math.round(tmb * activity);
   const goal  = tdee + currentGoalDelta;
   const carbs = Math.round((goal*0.50)/4);
@@ -200,8 +236,8 @@ async function calcCalories() {
   await saveGoalToDB(goal);
 
   try {
-    await supabase.from('profiles').update({ sex, age, weight, height }).eq('id', currentUser.id);
-    currentProfile = { ...currentProfile, sex, age, weight, height };
+    await supabase.from('profiles').update({ sex, age, weight, height, body_fat_pct: bodyFatVal }).eq('id', currentUser.id);
+    currentProfile = { ...currentProfile, sex, age, weight, height, body_fat_pct: bodyFatVal };
   } catch(e) { console.warn('[CalorIA] sync profile:', e); }
 
   showToast(`<i class="fa-solid fa-bullseye ic-goal"></i> Meta: ${goal} kcal · açúcar máx. ${diaryGoalSugar}g · água ${diaryGoalWater}ml`);
@@ -588,33 +624,7 @@ setupRoleUI = function() {
 // 5. Gerador de dieta por IA com anamnese completa (incluindo nutricionista→paciente)
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ───────────────────────────────────────────────────────────────────────────
-// PATCH 1 — Corrige updateDiaryProgress para incluir açúcar + mostra na UI
-// ───────────────────────────────────────────────────────────────────────────
-const _p2_origUpdateDiaryProgress = updateDiaryProgress;
-updateDiaryProgress = function() {
-  _p2_origUpdateDiaryProgress();
 
-  // Sugar total from diary
-  const all = [...diary.cafe, ...diary.almoco, ...diary.lanche, ...diary.jantar];
-  const totalSugar = all.reduce((s, i) => s + (i.sugar || 0), 0);
-
-  // Update sugar bar
-  const sugarGoalEl = document.getElementById('diarySugarGoalDisplay');
-  const sugarValEl  = document.getElementById('diarySugarVal');
-  const sugarBar    = document.getElementById('diarySugarBar');
-  if (sugarGoalEl) sugarGoalEl.textContent = diaryGoalSugar;
-  if (sugarValEl)  sugarValEl.textContent  = totalSugar.toFixed(0) + 'g';
-  if (sugarBar) {
-    const sp = Math.min((totalSugar / Math.max(diaryGoalSugar, 1)) * 100, 100);
-    sugarBar.style.width = sp + '%';
-    sugarBar.classList.toggle('over', totalSugar > diaryGoalSugar);
-  }
-
-  // Topbar water display (if visible)
-  const waterGoalEl = document.getElementById('diaryWaterGoalDisplay');
-  if (waterGoalEl) waterGoalEl.textContent = diaryGoalWater;
-}
 
 // Patch savePatientGoals to also save sugar/water goals
 const _p2_origSavePatientGoals = savePatientGoals;
@@ -1001,6 +1011,7 @@ window.generateAIDiet = async function() {
     profile.sex    ? `sexo: ${profile.sex === 'm' ? 'masculino' : 'feminino'}` : '',
     profile.weight ? `peso: ${profile.weight}kg`     : '',
     profile.height ? `altura: ${profile.height}cm`   : '',
+    profile.body_fat_pct ? `percentual de gordura: ${profile.body_fat_pct}%` : '',
   ].filter(Boolean).join(', ');
 
   // Load anamnese from patient or current user
@@ -1213,4 +1224,9 @@ window.closeDietGenModal = typeof closeDietGenModal !== 'undefined' ? closeDietG
 window.selectNutType = typeof selectNutType !== 'undefined' ? selectNutType : undefined;
 window.saveNutType = typeof saveNutType !== 'undefined' ? saveNutType : undefined;
 window.closeNutTypeModal = typeof closeNutTypeModal !== 'undefined' ? closeNutTypeModal : undefined;
+window.addCustomWater = addCustomWater;
+window.calcCalories = calcCalories;
+window.toggleRestrictionPill = toggleRestrictionPill;
+window.toggleCustomRestrictionInput = toggleCustomRestrictionInput;
+window.addCustomRestrictionPill = addCustomRestrictionPill;
 

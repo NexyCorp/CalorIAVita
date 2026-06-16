@@ -172,6 +172,20 @@ function fillCalcFromProfile() {
   if (currentProfile.age)    document.getElementById('calcAge').value = currentProfile.age;
   if (currentProfile.weight) document.getElementById('calcWeight').value = currentProfile.weight;
   if (currentProfile.height) document.getElementById('calcHeight').value = currentProfile.height;
+  
+  const bfInput = document.getElementById('calcBodyFat');
+  const bfUnknown = document.getElementById('calcBodyFatUnknown');
+  if (bfInput && bfUnknown) {
+    if (currentProfile.body_fat_pct !== undefined && currentProfile.body_fat_pct !== null) {
+      bfInput.value = currentProfile.body_fat_pct;
+      bfInput.disabled = false;
+      bfUnknown.checked = false;
+    } else {
+      bfInput.value = '';
+      bfInput.disabled = true;
+      bfUnknown.checked = true;
+    }
+  }
 }
 
 function renderSidebarUser() {

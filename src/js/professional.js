@@ -64,40 +64,59 @@ async function pdRender() {
 
 async function pdRenderDay() {
   const content = document.getElementById('patientDiaryContent');
-  content.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1rem;">Carregando...</p>';
+  if (content) content.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1rem;">Carregando...</p>';
 
-  const { data } = await supabase.from('diary_entries').select('*').eq('user_id', pdState.patientId).eq('date', pdState.date).order('created_at');
+  let entries = [];
+  try {
+    const { data } = await supabase.from('diary_entries').select('*').eq('user_id', pdState.patientId).eq('date', pdState.date).order('created_at');
+    if (data) entries = data;
+  } catch(e) {}
 
-  if (!data || data.length === 0) {
-    content.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem;">Nenhum registro neste dia.</p>';
+  let waterMl = 0;
+  try {
+    const { data: wData } = await supabase.from('diary_water').select('ml').eq('user_id', pdState.patientId).eq('date', pdState.date).maybeSingle();
+    waterMl = wData?.ml || 0;
+  } catch(e) {}
+
+  if (entries.length === 0 && waterMl === 0) {
+    if (content) content.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:1.5rem;">Nenhum registro neste dia.</p>';
     return;
   }
 
-  const totalKcal = data.reduce((s,e) => s+e.kcal, 0);
+  const totalKcal = entries.reduce((s,e) => s+e.kcal, 0);
   const meals = { cafe:[], almoco:[], lanche:[], jantar:[] };
-  data.forEach(e => { if (meals[e.meal]) meals[e.meal].push(e); });
+  entries.forEach(e => { if (meals[e.meal]) meals[e.meal].push(e); });
   const mealLabels = { cafe:'🌅 Café', almoco:'<i class="fa-solid fa-sun ic-sun"></i> Almoço', lanche:'🍵 Lanche', jantar:'<i class="fa-solid fa-moon ic-moon"></i> Jantar' };
   const goalPct = pdState.goal ? Math.round((totalKcal/pdState.goal)*100) : 0;
   const overGoal = totalKcal > pdState.goal;
 
-  content.innerHTML = `
-    <div style="background:var(--green-pale);border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:center;">
-      <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:${overGoal?'#ef5350':'var(--green-deep)'};">${totalKcal}</div>
-      <div style="font-size:0.8rem;color:var(--text-muted);">kcal • meta: ${pdState.goal} kcal (${goalPct}%)</div>
-    </div>
-    ${Object.entries(meals).map(([key, items]) => items.length===0?'':`
-      <div style="margin-bottom:0.75rem;">
-        <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.4rem;">${mealLabels[key]}</p>
-        ${items.map(e=>`
-          <div class="pd-item-row">
-            ${e.photo_url
-              ? `<img src="${e.photo_url}" alt="${e.food_name}" class="pd-item-photo" onclick="openPhotoLightbox('${e.photo_url}')">`
-              : `<div class="pd-item-photo-placeholder"><i class="fa-solid fa-utensils ic-recipes"></i></div>`}
-            <span class="pd-item-name">${e.food_name}</span>
-            <span class="pd-item-kcal">${e.kcal} kcal</span>
-          </div>`).join('')}
-      </div>`).join('')}
-  `;
+  if (content) {
+    content.innerHTML = `
+      <div style="background:var(--green-pale);border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:center;display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:1rem;">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:${overGoal?'#ef5350':'var(--green-deep)'};">${totalKcal}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">kcal • meta: ${pdState.goal} kcal (${goalPct}%)</div>
+        </div>
+        <div style="border-left:1px solid var(--border-color);height:40px;opacity:0.3;"></div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:#29b6f6;">${waterMl}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água consumidos</div>
+        </div>
+      </div>
+      ${Object.entries(meals).map(([key, items]) => items.length===0?'':`
+        <div style="margin-bottom:0.75rem;">
+          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.4rem;">${mealLabels[key]}</p>
+          ${items.map(e=>`
+            <div class="pd-item-row">
+              ${e.photo_url
+                ? `<img src="${e.photo_url}" alt="${e.food_name}" class="pd-item-photo" onclick="openPhotoLightbox('${e.photo_url}')">`
+                : `<div class="pd-item-photo-placeholder"><i class="fa-solid fa-utensils ic-recipes"></i></div>`}
+              <span class="pd-item-name">${e.food_name}</span>
+              <span class="pd-item-kcal">${e.kcal} kcal</span>
+            </div>`).join('')}
+        </div>`).join('')}
+    `;
+  }
 }
 
 async function pdRenderChart() {
@@ -478,6 +497,104 @@ function buildRecordHtml({ profile, dailyGoal, days, totalsByDay, allEntries, av
     a.click();
   }
   setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
+
+async function loadPatients() {
+  const listEl = document.getElementById('patientsList');
+  if (!listEl) return;
+  listEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Carregando...</p>';
+
+  if (!currentUser) return;
+
+  try {
+    const { data: links, error: linkErr } = await supabase
+      .from('professional_patients')
+      .select('patient_id')
+      .eq('professional_id', currentUser.id);
+
+    if (linkErr) throw linkErr;
+
+    if (!links || links.length === 0) {
+      document.getElementById('patientCount').textContent = '0';
+      listEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum paciente cadastrado.</p>';
+      const infoEl = document.getElementById('patientLimitInfo');
+      if (infoEl) {
+        const plan = getUserPlan() || 'free';
+        const planLimits = window.PLAN_LIMITS ? window.PLAN_LIMITS[plan] : { patients: 0 };
+        infoEl.textContent = planLimits.patients >= 999 ? 'Limite: Ilimitado' : `Limite: 0 / ${planLimits.patients} pacientes`;
+      }
+      return;
+    }
+
+    const patientIds = links.map(l => l.patient_id);
+
+    const { data: profiles, error: profErr } = await supabase
+      .from('profiles')
+      .select('id, name, email, sex, age, weight, height, body_fat_pct, avatar_url')
+      .in('id', patientIds);
+
+    if (profErr) throw profErr;
+
+    const { data: anamneses, error: anErr } = await supabase
+      .from('patient_anamnese')
+      .select('patient_id, diseases_general, diseases_chronic_auto, diseases_other')
+      .in('patient_id', patientIds);
+
+    const anamneseMap = {};
+    if (anamneses) {
+      anamneses.forEach(a => {
+        anamneseMap[a.patient_id] = [
+          ...(a.diseases_general || []),
+          ...(a.diseases_chronic_auto || [])
+        ];
+        if (a.diseases_other) {
+          anamneseMap[a.patient_id].push(a.diseases_other);
+        }
+      });
+    }
+
+    const count = profiles.length;
+    document.getElementById('patientCount').textContent = count;
+    const infoEl = document.getElementById('patientLimitInfo');
+    if (infoEl) {
+      const plan = getUserPlan() || 'free';
+      const planLimits = window.PLAN_LIMITS ? window.PLAN_LIMITS[plan] : { patients: 0 };
+      infoEl.textContent = planLimits.patients >= 999 ? 'Limite: Ilimitado' : `Limite: ${count} / ${planLimits.patients} pacientes`;
+    }
+
+    listEl.innerHTML = profiles.map(p => {
+      const initials = p.name ? p.name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() : '?';
+      const diseases = anamneseMap[p.id] || [];
+      return `
+        <div class="patient-row" data-patient-id="${p.id}" data-patient-name="${p.name || p.email}" data-diseases='${JSON.stringify(diseases)}'>
+          <div class="patient-avatar">
+            ${p.avatar_url ? `<img src="${p.avatar_url}">` : initials}
+          </div>
+          <div class="patient-info">
+            <div class="patient-name">${p.name || p.email}</div>
+            <div class="patient-sub">
+              <span>${p.email}</span>
+              ${p.weight ? `<span>• ${p.weight}kg</span>` : ''}
+              ${p.height ? `<span>• ${p.height}cm</span>` : ''}
+              ${p.body_fat_pct ? `<span>• %G: ${p.body_fat_pct}%</span>` : ''}
+            </div>
+          </div>
+          <div class="patient-actions" style="display:flex;gap:0.4rem;align-items:center;">
+            <button class="btn-view-diary" onclick="viewPatientDiary('${p.id}', '${p.name || p.email}')">
+              <i class="fa-solid fa-book"></i> Diário
+            </button>
+            <button class="btn-view-diary" onclick="openRecordModal('${p.id}', '${p.name || p.email}')" style="background:var(--yellow-pale);color:var(--orange-hot);">
+              <i class="fa-solid fa-file-invoice"></i> Prontuário
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error('[loadPatients] erro:', err);
+    listEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Erro ao carregar pacientes.</p>';
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1220,5 +1337,6 @@ window.sendChatMessage = sendChatMessage;
 window.uploadChatPdf = uploadChatPdf;
 window.uploadChatPhoto = uploadChatPhoto;
 window.subscribeChat = subscribeChat;
+window.loadPatients = loadPatients;
 
 

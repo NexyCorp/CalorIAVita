@@ -271,7 +271,8 @@ const panelTitles = {
   home: 'Início', search: () => t('search_title'), diary: () => t('nav_diary'),
   goal: () => t('nav_goal'), camera: () => t('camera_title'),
   compare: () => t('compare_title'), recipes: () => t('recipes_title'),
-  prof: () => t('patients_title'), admin: 'Admin', profile: () => t('profile_title')
+  prof: () => t('patients_title'), admin: 'Admin', profile: () => t('profile_title'),
+  water: 'Água'
 };
 
 function showPanel(name, navEl) {
@@ -291,6 +292,12 @@ function showPanel(name, navEl) {
   if (name === 'home') updateHomePanel();
   if (name === 'goal') fillCalcFromProfile();
   if (name === 'profile') fillProfilePanel();
+  if (name === 'prof') {
+    if (typeof loadPatients === 'function') loadPatients();
+  }
+  if (name === 'water') {
+    if (typeof updateWaterDisplay === 'function') updateWaterDisplay();
+  }
 
   // Update topbar title
   const title = panelTitles[name];

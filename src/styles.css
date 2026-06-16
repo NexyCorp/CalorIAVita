@@ -1679,3 +1679,185 @@ i.fa-hourglass-half { color: #ffb74d; }
 .fa-comments { color: #80cbc4 !important; }
 .fa-file-pdf  { color: #ef9a9a !important; }
 .fa-paper-plane { color: white !important; }
+
+/* ═══ WATER BOTTLE ANIMATED TRACKER ═══ */
+.water-bottle-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem auto;
+}
+
+.water-bottle {
+  width: 150px;
+  height: 260px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottle-neck {
+  width: 36px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 4px solid rgba(25, 118, 210, 0.3);
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+[data-theme="dark"] .bottle-neck {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(66, 165, 245, 0.3);
+}
+
+.bottle-body {
+  width: 100%;
+  flex: 1;
+  background: rgba(25, 118, 210, 0.03);
+  border: 5px solid rgba(25, 118, 210, 0.2);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .bottle-body {
+  background: rgba(66, 165, 245, 0.03);
+  border-color: rgba(66, 165, 245, 0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.water-liquid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0%;
+  background: linear-gradient(180deg, #29b6f6 0%, #0288d1 100%);
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.water-wave {
+  position: absolute;
+  width: 200%;
+  height: 16px;
+  top: -8px;
+  background: transparent;
+}
+
+.wave-front {
+  left: 0;
+  background-image: radial-gradient(circle at 50% 100%, transparent 40%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.4) 60%, transparent 60%);
+  background-size: 30px 16px;
+  background-repeat: repeat-x;
+  animation: waveAnim 2.5s linear infinite;
+}
+
+.wave-back {
+  left: -50%;
+  background-image: radial-gradient(circle at 50% 100%, transparent 40%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.2) 60%, transparent 60%);
+  background-size: 30px 16px;
+  background-repeat: repeat-x;
+  animation: waveAnimBack 3.5s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes waveAnim {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-60px); }
+}
+
+@keyframes waveAnimBack {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(60px); }
+}
+
+.water-bottle-text {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  font-family: 'Syne', sans-serif;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .water-bottle-text {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.water-pct-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0277bd;
+  mix-blend-mode: multiply;
+}
+
+[data-theme="dark"] .water-pct-num {
+  color: #e3f2fd;
+  mix-blend-mode: difference;
+}
+
+.water-vol-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(2, 119, 189, 0.85);
+}
+
+[data-theme="dark"] .water-vol-text {
+  color: rgba(227, 242, 253, 0.85);
+}
+
+/* ═══ DIETARY RESTRICTION PILLS ═══ */
+.restriction-pills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.pill-btn {
+  background: var(--green-pale, #e8f5e9);
+  color: var(--green-deep, #1b5e20);
+  border: 1px solid var(--green-light, #c8e6c9);
+  border-radius: 50px;
+  padding: 0.35rem 0.8rem;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pill-btn:hover {
+  background: var(--green-light, #c8e6c9);
+}
+
+.pill-btn.active {
+  background: var(--green-mid, #4caf50);
+  color: white;
+  border-color: var(--green-mid, #4caf50);
+}
+
+[data-theme="dark"] .pill-btn {
+  background: #1e3322;
+  color: #a5d6a7;
+  border-color: #388e3c;
+}
+
+[data-theme="dark"] .pill-btn:hover {
+  background: #2e4c32;
+}
+
+[data-theme="dark"] .pill-btn.active {
+  background: var(--green-mid, #4caf50);
+  color: white;
+}

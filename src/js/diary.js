@@ -115,40 +115,88 @@ function updateDiaryProgress() {
   const totalCarbs = all.reduce((s,i) => s+(i.carbs||0), 0);
   const totalProt = all.reduce((s,i) => s+(i.prot||0), 0);
   const totalFat = all.reduce((s,i) => s+(i.fat||0), 0);
+  const totalSugar = all.reduce((s,i) => s+(i.sugar||0), 0);
 
-  document.getElementById('diaryKcalConsumed').textContent = Math.round(totalKcal);
+  const consumedEl = document.getElementById('diaryKcalConsumed');
+  if (consumedEl) consumedEl.textContent = Math.round(totalKcal);
+
   const rem = diaryGoal - totalKcal;
   const remEl = document.getElementById('diaryRemaining');
-  if (rem >= 0) {
-    remEl.textContent = rem.toFixed(0) + ' kcal restantes para sua meta';
-    remEl.style.color = rem < diaryGoal * 0.1 ? 'var(--yellow-hot)' : '';
-  } else {
-    remEl.innerHTML = Math.abs(rem).toFixed(0) + ' kcal acima da meta <i class="fa-solid fa-triangle-exclamation ic-alert"></i>';
-    remEl.style.color = '#e53935';
+  if (remEl) {
+    if (rem >= 0) {
+      remEl.textContent = rem.toFixed(0) + ' kcal restantes para sua meta';
+      remEl.style.color = rem < diaryGoal * 0.1 ? 'var(--yellow-hot)' : '';
+    } else {
+      remEl.innerHTML = Math.abs(rem).toFixed(0) + ' kcal acima da meta <i class="fa-solid fa-triangle-exclamation ic-alert"></i>';
+      remEl.style.color = '#e53935';
+    }
   }
-  document.getElementById('diaryGoalDisplay').textContent = diaryGoal;
+
+  const goalDisp = document.getElementById('diaryGoalDisplay');
+  if (goalDisp) goalDisp.textContent = diaryGoal;
 
   const pct = Math.min((totalKcal / diaryGoal) * 100, 100);
   const bar = document.getElementById('diaryProgressBar');
-  bar.style.width = pct + '%';
-  bar.classList.toggle('over', totalKcal > diaryGoal);
+  if (bar) {
+    bar.style.width = pct + '%';
+    bar.classList.toggle('over', totalKcal > diaryGoal);
+  }
 
-  document.getElementById('diaryCarbsVal').textContent = totalCarbs.toFixed(0) + 'g';
-  document.getElementById('diaryProtVal').textContent = totalProt.toFixed(0) + 'g';
-  document.getElementById('diaryFatVal').textContent = totalFat.toFixed(0) + 'g';
+  const carbsVal = document.getElementById('diaryCarbsVal');
+  if (carbsVal) carbsVal.textContent = totalCarbs.toFixed(0) + 'g';
+  const protVal = document.getElementById('diaryProtVal');
+  if (protVal) protVal.textContent = totalProt.toFixed(0) + 'g';
+  const fatVal = document.getElementById('diaryFatVal');
+  if (fatVal) fatVal.textContent = totalFat.toFixed(0) + 'g';
 
   const carbGoal = (diaryGoal * 0.50) / 4;
   const protGoal = (diaryGoal * 0.25) / 4;
   const fatGoal = (diaryGoal * 0.25) / 9;
-  document.getElementById('diaryCarbsBar').style.width = Math.min((totalCarbs/carbGoal)*100, 100) + '%';
-  document.getElementById('diaryProtBar').style.width = Math.min((totalProt/protGoal)*100, 100) + '%';
-  document.getElementById('diaryFatBar').style.width = Math.min((totalFat/fatGoal)*100, 100) + '%';
+
+  const carbsBar = document.getElementById('diaryCarbsBar');
+  if (carbsBar) carbsBar.style.width = Math.min((totalCarbs/carbGoal)*100, 100) + '%';
+  const protBar = document.getElementById('diaryProtBar');
+  if (protBar) protBar.style.width = Math.min((totalProt/protGoal)*100, 100) + '%';
+  const fatBar = document.getElementById('diaryFatBar');
+  if (fatBar) fatBar.style.width = Math.min((totalFat/fatGoal)*100, 100) + '%';
+
+  // Sugar bar
+  const sugarEl = document.getElementById('diarySugarVal');
+  const sugarBar = document.getElementById('diarySugarBar');
+  const sugarGoalEl = document.getElementById('diarySugarGoalDisplay');
+  if (sugarEl) sugarEl.textContent = totalSugar.toFixed(1) + 'g';
+  if (sugarGoalEl) sugarGoalEl.textContent = diaryGoalSugar;
+  if (sugarBar) {
+    const sp = Math.min((totalSugar / Math.max(diaryGoalSugar, 1)) * 100, 100);
+    sugarBar.style.width = sp + '%';
+    sugarBar.classList.toggle('over', totalSugar > diaryGoalSugar);
+  }
+
+  // Water display
+  if (typeof updateWaterDisplay === 'function') {
+    updateWaterDisplay();
+  } else {
+    const wVal = document.getElementById('diaryWaterVal');
+    const wGoal = document.getElementById('diaryWaterGoalDisplay');
+    const wBar = document.getElementById('diaryWaterBar');
+    if (wVal) wVal.textContent = diaryWaterMl;
+    if (wGoal) wGoal.textContent = diaryGoalWater;
+    if (wBar) {
+      const wp = Math.min((diaryWaterMl / Math.max(diaryGoalWater, 1)) * 100, 100);
+      wBar.style.width = wp + '%';
+      wBar.classList.toggle('over', diaryWaterMl > diaryGoalWater * 1.5);
+    }
+  }
 
   // Topbar mini progress
-  document.getElementById('topbarKcalText').textContent = `${Math.round(totalKcal)} / ${diaryGoal} kcal`;
+  const topText = document.getElementById('topbarKcalText');
+  if (topText) topText.textContent = `${Math.round(totalKcal)} / ${diaryGoal} kcal`;
   const topFill = document.getElementById('topbarKcalFill');
-  topFill.style.width = pct + '%';
-  topFill.classList.toggle('over', totalKcal > diaryGoal);
+  if (topFill) {
+    topFill.style.width = pct + '%';
+    topFill.classList.toggle('over', totalKcal > diaryGoal);
+  }
+
   updateHomePanel();
 }
 
@@ -454,37 +502,81 @@ async function compareFoods() {
   document.getElementById('cmpSummary').style.display = 'none';
   document.getElementById('cmpMealSelectRow').style.display = 'none';
 
+  // Build user profile + anamnese context for recommendation
+  const p = currentProfile || {};
+  let diseaseCtx = '';
   try {
-    const data = await askClaude(
-      `Compare "${f1}" e "${f2}" por 100g. JSON com food1 e food2 (cada: name,calories,carbs,protein,fat,fiber,sodium) + summary (string PT 2-3 frases).`,
-      'Retorne SOMENTE JSON válido.'
-    );
+    if (currentUser?.id) {
+      const { data: an } = await supabase.from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other').eq('patient_id', currentUser.id).maybeSingle();
+      if (an) {
+        const diseases = [...(an.diseases_general||[]), ...(an.diseases_chronic_auto||[])].filter(Boolean);
+        if (diseases.length) diseaseCtx += ` Doenças: ${diseases.join(', ')}.`;
+        if (an.diseases_other) diseaseCtx += ` Outras condições: ${an.diseases_other}.`;
+      }
+    }
+  } catch(e) {}
+
+  const userProfileCtx = [
+    p.sex ? `Sexo: ${p.sex === 'm' ? 'masculino' : 'feminino'}` : '',
+    p.age ? `Idade: ${p.age} anos` : '',
+    p.weight ? `Peso: ${p.weight}kg` : '',
+    p.height ? `Altura: ${p.height}cm` : '',
+    p.body_fat_pct ? `Percentual de gordura: ${p.body_fat_pct}%` : '',
+    diseaseCtx
+  ].filter(Boolean).join('. ');
+
+  const prompt = `Compare "${f1}" e "${f2}" por 100g.
+DADOS DE SAÚDE E PERFIL DO USUÁRIO:
+${userProfileCtx || 'Nenhum dado informado.'}
+
+Escolha qual o alimento mais recomendado especificamente para este usuário com base no perfil de saúde dele (e.g., se for diabético, muito provavelmente alimentos com açúcar não seriam recomendados; se tiver alto percentual de gordura, alimentos menos gordurosos ou com menor carga glicêmica; se quiser ganhar massa, alimentos com maior teor proteico, etc.).
+
+Retorne JSON com esta estrutura exata:
+{
+  "food1": { "name": string, "calories": number, "carbs": number, "protein": number, "fat": number, "fiber": number, "sodium": number },
+  "food2": { "name": string, "calories": number, "carbs": number, "protein": number, "fat": number, "fiber": number, "sodium": number },
+  "winner": 1 or 2,
+  "summary": string
+}`;
+
+  try {
+    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido.');
     const d1 = data.food1, d2 = data.food2;
-    const w1 = d1.calories <= d2.calories;
+    const w1 = data.winner === 1;
 
     function renderCompCard(d, cardId, nameId, kcalId, statsId, badgeId, isWinner) {
       const card = document.getElementById(cardId);
+      if (!card) return;
       card.classList.add('show');
       card.classList.toggle('winner', isWinner);
-      document.getElementById(badgeId).style.display = isWinner ? 'block' : 'none';
+      const badge = document.getElementById(badgeId);
+      if (badge) {
+        badge.innerHTML = '<i class="fa-solid fa-star"></i> Recomendado';
+        badge.style.display = isWinner ? 'block' : 'none';
+      }
       document.getElementById(nameId).textContent = d.name;
       document.getElementById(kcalId).textContent = Math.round(d.calories) + ' kcal';
-      document.getElementById(statsId).innerHTML = [
-        ['<i class="fa-solid fa-wheat-awn ic-carb"></i> Carboidratos', (d.carbs||0).toFixed(1)+'g'],
-        ['<i class="fa-solid fa-dumbbell ic-fire"></i> Proteínas', (d.protein||0).toFixed(1)+'g'],
-        ['<i class="fa-solid fa-droplet ic-water"></i> Gorduras', (d.fat||0).toFixed(1)+'g'],
-        ['🥦 Fibras', (d.fiber||0).toFixed(1)+'g'],
-        ['🧂 Sódio', Math.round(d.sodium||0)+'mg'],
-      ].map(([l,v]) => `<div class="compare-stat-row"><span class="compare-stat-label">${l}</span><span class="compare-stat-val">${v}</span></div>`).join('') +
-      `<button onclick="addCompareFoodToDiary('${String(d.name||'').replace(/'/g,"\\'")}',${Math.round(d.calories||0)},${(d.carbs||0).toFixed(1)},${(d.protein||0).toFixed(1)},${(d.fat||0).toFixed(1)})" style="margin-top:0.8rem;width:100%;background:var(--green-mid);color:white;border:none;border-radius:50px;padding:0.6rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.4rem;"><i class="fa-solid fa-book" style="color:white!important;"></i> Adicionar ao Diario</button>`;
+      const stats = document.getElementById(statsId);
+      if (stats) {
+        stats.innerHTML = [
+          ['<i class="fa-solid fa-wheat-awn ic-carb"></i> Carboidratos', (d.carbs||0).toFixed(1)+'g'],
+          ['<i class="fa-solid fa-dumbbell ic-fire"></i> Proteínas', (d.protein||0).toFixed(1)+'g'],
+          ['<i class="fa-solid fa-droplet ic-water"></i> Gorduras', (d.fat||0).toFixed(1)+'g'],
+          ['🥦 Fibras', (d.fiber||0).toFixed(1)+'g'],
+          ['🧂 Sódio', Math.round(d.sodium||0)+'mg'],
+        ].map(([l,v]) => `<div class="compare-stat-row"><span class="compare-stat-label">${l}</span><span class="compare-stat-val">${v}</span></div>`).join('') +
+        `<button onclick="addCompareFoodToDiary('${String(d.name||'').replace(/'/g,"\\'")}',${Math.round(d.calories||0)},${(d.carbs||0).toFixed(1)},${(d.protein||0).toFixed(1)},${(d.fat||0).toFixed(1)})" style="margin-top:0.8rem;width:100%;background:var(--green-mid);color:white;border:none;border-radius:50px;padding:0.6rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.4rem;"><i class="fa-solid fa-book" style="color:white!important;"></i> Adicionar ao Diario</button>`;
+      }
     }
 
     renderCompCard(d1,'cmpCard1','cmpName1','cmpKcal1','cmpStats1','cmpBadge1',w1);
     renderCompCard(d2,'cmpCard2','cmpName2','cmpKcal2','cmpStats2','cmpBadge2',!w1);
     document.getElementById('cmpMealSelectRow').style.display = 'block';
     const sum = document.getElementById('cmpSummary');
-    sum.innerHTML = '<i class="fa-solid fa-chart-bar ic-goal"></i> ' + (data.summary || '');
-    sum.style.display = 'block';
+    if (sum) {
+      sum.innerHTML = '<i class="fa-solid fa-robot ic-chat"></i> <strong>Recomendação IA:</strong> ' + (data.summary || '');
+      sum.style.display = 'block';
+    }
   } catch(e) {
     showToast('Erro na comparação', 'error');
   } finally {

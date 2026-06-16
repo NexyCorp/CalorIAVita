@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════
 const GROQ_KEY = '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';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 function extractJSON(text) {
   let s = text.replace(/```json/g,'').replace(/```/g,'').trim();
@@ -21,7 +21,7 @@ async function callGroq(messages) {
     res = await fetch(GROQ_URL, {
       method:'POST',
       headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+GROQ_KEY },
-      body: JSON.stringify({ model:GROQ_MODEL, messages, max_tokens:1024, temperature:0.2 })
+      body: JSON.stringify({ model:GROQ_MODEL, messages, max_tokens:4096, temperature:0.2 })
     });
   } catch(netErr) {
     throw new Error('Sem conexão com a API. Verifique sua internet.');

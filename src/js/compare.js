@@ -1,26 +1,7 @@
 // ═══════════════════════════════════════
 // RECIPES
 // ═══════════════════════════════════════
-const recipesData = [
-  { id:1, icon:'<i class="fa-solid fa-utensils ic-recipes"></i>', title:'Bowl de Quinoa com Frango', kcal:380, time:'25min', prot:35, totalGrams:550, category:['almoco','highprot'], source:'private',
-    ingredients:['150g quinoa','200g peito de frango grelhado','1 xícara de folhas verdes','Tomate-cereja','Pepino','2 col. azeite','Suco de limão'],
-    steps:['Cozinhe a quinoa conforme o pacote.','Grelhe o frango e fatie em tiras.','Monte o bowl com quinoa, frango, legumes.','Regue com azeite e limão.'] },
-  { id:2, icon:'🥣', title:'Overnight Oats Tropical', kcal:290, time:'5min (+8h)', prot:12, totalGrams:350, category:['cafe'], source:'private',
-    ingredients:['50g aveia','150ml leite vegetal','1 banana','Frutas tropicais','1 col. mel','Sementes de chia'],
-    steps:['Misture aveia, leite e chia.','Refrigere por 8 horas.','Adicione frutas e mel pela manhã.'] },
-  { id:3, icon:'🍲', title:'Sopa Verde Detox', kcal:180, time:'30min', prot:8, totalGrams:400, category:['jantar','lowcal'], source:'private',
-    ingredients:['2 abobrinhas','1 maço de espinafre','1 cebola','3 dentes de alho','1L caldo de legumes','Azeite'],
-    steps:['Refogue cebola e alho.','Adicione abobrinha e caldo.','Cozinhe 15 min.','Adicione espinafre e bata.'] },
-  { id:4, icon:'🥙', title:'Wrap de Atum com Avocado', kcal:340, time:'10min', prot:28, totalGrams:280, category:['almoco','highprot'], source:'private',
-    ingredients:['1 tortilha integral','1 lata de atum','½ abacate','Folhas de alface','1 col. mostarda'],
-    steps:['Misture atum e mostarda.','Amasse o abacate.','Monte o wrap e enrole.'] },
-  { id:5, icon:'🫙', title:'Iogurte com Granola e Frutas', kcal:220, time:'5min', prot:15, totalGrams:300, category:['cafe','lanche'], source:'private',
-    ingredients:['200g iogurte grego','3 col. granola','Morango','Mirtilo','1 col. mel'],
-    steps:['Coloque iogurte no bowl.','Adicione granola e frutas.','Regue com mel.'] },
-  { id:6, icon:'🍛', title:'Curry de Grão-de-Bico', kcal:320, time:'35min', prot:14, totalGrams:480, category:['jantar','lowcal'], source:'private',
-    ingredients:['400g grão-de-bico','400ml leite de coco','1 lata de tomate','2 col. curry','Coentro'],
-    steps:['Refogue cebola e gengibre.','Adicione curry e tomate.','Acrescente grão-de-bico e leite de coco.','Cozinhe 15 min.'] },
-];
+const recipesData = [];
 
 let userRecipes = [];
 let _sendRecipeId = null;
@@ -178,11 +159,23 @@ async function generateAiRecipe() {
   document.getElementById('aiRecipeLoading').style.display = 'block';
   document.getElementById('aiRecipeResult').style.display = 'none';
 
+  // Build user profile + body fat context
+  const p = currentProfile || {};
+  const userCtx = [
+    p.age ? `idade: ${p.age} anos` : '',
+    p.sex ? `sexo: ${p.sex === 'm' ? 'masculino' : 'feminino'}` : '',
+    p.weight ? `peso: ${p.weight}kg` : '',
+    p.height ? `altura: ${p.height}cm` : '',
+    p.body_fat_pct ? `percentual de gordura corporal: ${p.body_fat_pct}%` : ''
+  ].filter(Boolean).join(', ');
+
+  const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
+DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
+Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
+Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array), steps (array) }`;
+
   try {
-    const data = await askClaude(
-      `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína. Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array), steps (array) }`,
-      'Retorne SOMENTE JSON válido sem texto adicional.'
-    );
+    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional.');
 
     const el = document.getElementById('aiRecipeResult');
     el.style.display = 'block';
@@ -341,10 +334,15 @@ function filterPayload(obj, knownCols) {
   return out;
 }
 
-// Extrai o nome da coluna problemática do erro PGRST204
+// Extrai o nome da coluna problemática do erro PGRST204 e outros erros de coluna inexistente do Postgres
 function extractBadColumn(errMsg) {
-  const m = errMsg.match(/find the '([^']+)' column/);
-  return m ? m[1] : null;
+  let m = errMsg.match(/find the '([^']+)' column/);
+  if (m) return m[1];
+  m = errMsg.match(/column "([^"]+)"/);
+  if (m) return m[1];
+  m = errMsg.match(/column '([^']+)'/);
+  if (m) return m[1];
+  return null;
 }
 
 // ── Verificação por IA (somente pacientes/standard) ──────────────────────
@@ -364,16 +362,8 @@ ou
 
 Rejeite APENAS se contiver ingredientes claramente perigosos, quantidades absurdas de substâncias nocivas, ou conteúdo que não seja comida de verdade. Receitas normais devem ser aprovadas.`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 200,
-        messages: [{ role: 'user', content: prompt }] })
-    });
-    const json = await res.json();
-    const text = (json.content?.[0]?.text || '').replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(text);
-    return { approved: !!parsed.aprovado, reason: parsed.motivo || '' };
+    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem markdown.');
+    return { approved: !!data.aprovado, reason: data.motivo || '' };
   } catch(e) {
     console.warn('[submitRecipe] Falha na checagem IA, aprovando por padrão:', e);
     return { approved: true, reason: '' }; // fail-open
@@ -393,8 +383,6 @@ async function submitRecipe() {
   const ingredients = ingText.split('\n').filter(Boolean);
   const steps = stepsText.split('\n').filter(Boolean);
   const patientId = newRecipeVisibility === 'patient' ? document.getElementById('recipePatientSelect').value : null;
-  // DB check constraint only accepts 'public', 'private', 'patient'
-  // 'all_patients' is stored as 'public' in the DB (visible to all linked patients)
   const dbVisibility = newRecipeVisibility === 'all_patients' ? 'public'
     : newRecipeVisibility === 'patient' ? 'patient'
     : 'private';
@@ -427,17 +415,24 @@ async function submitRecipe() {
 
   // Payload completo (com TODOS os possíveis nomes de colunas)
   const fullPayload = {
-    // nomes canônicos esperados pelo SQL que enviamos
     title: name, kcal, prot, total_grams: totalGrams, category: cat,
-    ingredients: JSON.stringify(ingredients), steps: JSON.stringify(steps),
+    ingredients: ingredients,
+    steps: steps,
     visibility: dbVisibility,
     user_id: currentUser.id, author_id: currentUser.id,
     patient_id: patientId, approved: true, pending: false,
     created_at: new Date().toISOString()
   };
 
-  // Tentativas: vai removendo colunas que causam erro PGRST204
-  let payload = { ...fullPayload };
+  // Fetch schema columns cache to filter payload proactively
+  const knownCols = await getRecipesColumns();
+  let payload = {};
+  if (knownCols) {
+    payload = filterPayload(fullPayload, knownCols);
+  } else {
+    payload = { ...fullPayload };
+  }
+
   let savedRecipe = null, saveErr = null;
 
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -447,12 +442,22 @@ async function submitRecipe() {
     saveErr = error;
     const msg = error.message || '';
     const code = error.code || '';
+    const isArrayTypeMismatch = msg.includes('array') || msg.includes('text[]') || msg.includes('jsonb') || msg.includes('invalid input format');
     const isSchemaErr = msg.includes('column') || msg.includes('does not exist') || code === 'PGRST204' || code === '42703';
     const isRlsErr = msg.includes('policy') || msg.includes('row-level') || code === '42501' || code === 'PGRST301';
 
     console.warn(`[submitRecipe] Tentativa ${attempt+1} falhou (${code}):`, msg);
 
     if (isRlsErr) break; // RLS — não adianta remover campos
+    
+    if (isArrayTypeMismatch) {
+      if (typeof payload.ingredients !== 'string') {
+        payload.ingredients = JSON.stringify(ingredients);
+        payload.steps = JSON.stringify(steps);
+        continue;
+      }
+    }
+
     if (!isSchemaErr) break; // Erro desconhecido — para
 
     // Remove APENAS a coluna específica que causou o erro
