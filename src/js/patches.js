@@ -661,48 +661,55 @@ async function savePatientGoals() {
 }
 
 // Patch openPatientGoalsModal to also load and show sugar/water fields
-const _p2_origOpenPatientGoalsModal = openPatientGoalsModal;
-openPatientGoalsModal = async function(patientId, patientName) {
-  // Add sugar/water inputs if not present
-  const grid = document.querySelector('#patientGoalsModal .modal-box > div[style*="grid"]');
-  if (grid && !document.getElementById('pgSugar')) {
-    const sugarDiv = document.createElement('div');
-    sugarDiv.className = 'form-field';
-    sugarDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> Açúcar máx. (g/dia)</label><input type="number" id="pgSugar" class="form-input" placeholder="25">';
-    const waterDiv = document.createElement('div');
-    waterDiv.className = 'form-field';
-    waterDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> Água mínima (ml/dia)</label><input type="number" id="pgWater" class="form-input" placeholder="2000">';
-    grid.appendChild(sugarDiv);
-    grid.appendChild(waterDiv);
-  }
-
-  document.getElementById('patientGoalsPatientId').value = patientId;
-  document.getElementById('patientGoalsDesc').textContent = 'Definir metas nutricionais para ' + patientName;
-  try {
-    const { data } = await supabase.from('user_goals').select('*').eq('user_id', patientId).maybeSingle();
-    if (data) {
-      document.getElementById('pgKcal').value  = data.daily_kcal  || '';
-      document.getElementById('pgProt').value  = data.daily_prot  || '';
-      document.getElementById('pgCarbs').value = data.daily_carbs || '';
-      document.getElementById('pgFat').value   = data.daily_fat   || '';
-      const pgS = document.getElementById('pgSugar');
-      const pgW = document.getElementById('pgWater');
-      if (pgS) pgS.value = data.daily_sugar || '';
-      if (pgW) pgW.value = data.daily_water || '';
+// Applied via window reference after all modules load to avoid cross-module ReferenceError
+function _p2_applyPatientGoalsModalPatch() {
+  if (typeof window.openPatientGoalsModal !== 'function') return;
+  const _orig = window.openPatientGoalsModal;
+  window.openPatientGoalsModal = async function(patientId, patientName) {
+    // Add sugar/water inputs if not present
+    const grid = document.querySelector('#patientGoalsModal .modal-box > div[style*="grid"]');
+    if (grid && !document.getElementById('pgSugar')) {
+      const sugarDiv = document.createElement('div');
+      sugarDiv.className = 'form-field';
+      sugarDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> Açúcar máx. (g/dia)</label><input type="number" id="pgSugar" class="form-input" placeholder="25">';
+      const waterDiv = document.createElement('div');
+      waterDiv.className = 'form-field';
+      waterDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> Água mínima (ml/dia)</label><input type="number" id="pgWater" class="form-input" placeholder="2000">';
+      grid.appendChild(sugarDiv);
+      grid.appendChild(waterDiv);
     }
-  } catch(e) {}
-  document.getElementById('patientGoalsModal').classList.add('show');
+    document.getElementById('patientGoalsPatientId').value = patientId;
+    document.getElementById('patientGoalsDesc').textContent = 'Definir metas nutricionais para ' + patientName;
+    try {
+      const { data } = await supabase.from('user_goals').select('*').eq('user_id', patientId).maybeSingle();
+      if (data) {
+        document.getElementById('pgKcal').value  = data.daily_kcal  || '';
+        document.getElementById('pgProt').value  = data.daily_prot  || '';
+        document.getElementById('pgCarbs').value = data.daily_carbs || '';
+        document.getElementById('pgFat').value   = data.daily_fat   || '';
+        const pgS = document.getElementById('pgSugar');
+        const pgW = document.getElementById('pgWater');
+        if (pgS) pgS.value = data.daily_sugar || '';
+        if (pgW) pgW.value = data.daily_water || '';
+      }
+    } catch(e) {}
+    document.getElementById('patientGoalsModal').classList.add('show');
+  };
 }
 
 // ───────────────────────────────────────────────────────────────────────────
 // PATCH 2 — Formulário de doença específica acessível do painel de pacientes
 // Adiciona botão "Formulário Específico" no cartão do paciente
+// Applied via window reference to avoid cross-module ReferenceError
 // ───────────────────────────────────────────────────────────────────────────
-const _p2_origLoadPatients = loadPatients;
-async function loadPatients() {
-  await _p2_origLoadPatients();
-  // After patients load, inject disease form buttons into each patient row
-  setTimeout(_p2_injectDiseaseButtons, 400);
+function _p2_applyLoadPatientsPatch() {
+  if (typeof window.loadPatients !== 'function') return;
+  const _orig = window.loadPatients;
+  window.loadPatients = async function() {
+    await _orig();
+    // After patients load, inject disease form buttons into each patient row
+    setTimeout(_p2_injectDiseaseButtons, 400);
+  };
 }
 
 function _p2_injectDiseaseButtons() {
@@ -1202,9 +1209,13 @@ if (profPanel) _p2_moPatientsObs.observe(profPanel, { childList: true, subtree: 
   document.head.appendChild(style);
 })();
 
-// Apply unit select patch after init
+// Apply patches that need window globals from other modules (deferred after all modules load)
 // ───────────────────────────────────────────────────────────────────────────
-setTimeout(_p2_patchUnitSelects, 1500);
+setTimeout(() => {
+  _p2_patchUnitSelects();
+  _p2_applyPatientGoalsModalPatch();
+  _p2_applyLoadPatientsPatch();
+}, 1500);
 
 console.log('[CalorIA Patch v2] Todas as melhorias carregadas: açúcar/água no diário, formulários por doença, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
 
