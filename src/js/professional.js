@@ -736,12 +736,9 @@ function renderAdminTable(users) {
       <td><div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
         <select class="plan-select" id="planSel-${u.id}">
           <option value="free" ${safePlan==='free'?'selected':''}>Gratuito</option>
-          <option value="standard_pro" ${safePlan==='standard_pro'?'selected':''}>Padrão Pro</option>
           <option value="patient_pro" ${safePlan==='patient_pro'?'selected':''}>Paciente+</option>
           <option value="patient_clinic" ${safePlan==='patient_clinic'?'selected':''}>Paciente Clínica</option>
-          <option value="nutritionist_pro" ${safePlan==='nutritionist_pro'?'selected':''}>Nutricionista Pro</option>
-          <option value="nutritionist_clinic" ${safePlan==='nutritionist_clinic'?'selected':''}>Nutri. Clínica</option>
-          <option value="pro" ${safePlan==='pro'?'selected':''}>Pro (Legado)</option>
+          <option value="pro" ${safePlan==='pro'?'selected':''}>Pro</option>
           <option value="clinic" ${safePlan==='clinic'?'selected':''}>Clínica</option>
           <option value="admin" ${safePlan==='admin'?'selected':''}>Admin</option>
         </select>
