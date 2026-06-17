@@ -810,10 +810,10 @@ async function loadUpgradeRequests() {
     return `
       <div class="queue-item">
         <div class="queue-info">
-          <strong>${escapeHtml(req.user_name || 'Usuario sem nome')}</strong>
-          <p>${escapeHtml(req.user_email || '')}</p>
-          <p><strong>Plano atual:</strong> ${escapeHtml(req.current_plan || 'free')} | <strong>Solicitado:</strong> ${escapeHtml(planLabels[req.requested_plan] || req.requested_plan)}</p>
-          ${benefits.length ? `<p><strong>Beneficios:</strong> ${benefits.map(escapeHtml).join(', ')}</p>` : ''}
+          <strong>${window.escapeHtml(req.user_name || 'Usuario sem nome')}</strong>
+          <p>${window.escapeHtml(req.user_email || '')}</p>
+          <p><strong>Plano atual:</strong> ${window.escapeHtml(req.current_plan || 'free')} | <strong>Solicitado:</strong> ${window.escapeHtml(planLabels[req.requested_plan] || req.requested_plan)}</p>
+          ${benefits.length ? `<p><strong>Beneficios:</strong> ${benefits.map(window.escapeHtml).join(', ')}</p>` : ''}
           <p style="font-size:0.75rem;color:var(--text-muted);">Enviado em ${created}</p>
           <textarea id="upgradeRejectReason-${req.id}" class="form-input" rows="2" placeholder="Motivo se negar" style="margin-top:0.6rem;"></textarea>
         </div>
@@ -905,11 +905,11 @@ async function loadNutritionistRequests() {
     return `
       <div class="queue-item">
         <div class="queue-info">
-          <strong>${escapeHtml(req.user_name || 'Usuario sem nome')}</strong>
-          <p>${escapeHtml(req.user_email || '')}</p>
-          <p><strong>CRN:</strong> ${escapeHtml(req.crn || '—')} | <strong>Especialidade:</strong> ${escapeHtml(req.specialty || '—')}</p>
-          <p><strong>Instituicao:</strong> ${escapeHtml(req.institution || '—')}</p>
-          ${req.message ? `<p><strong>Mensagem:</strong> ${escapeHtml(req.message)}</p>` : ''}
+          <strong>${window.escapeHtml(req.user_name || 'Usuario sem nome')}</strong>
+          <p>${window.escapeHtml(req.user_email || '')}</p>
+          <p><strong>CRN:</strong> ${window.escapeHtml(req.crn || '—')} | <strong>Especialidade:</strong> ${window.escapeHtml(req.specialty || '—')}</p>
+          <p><strong>Instituicao:</strong> ${window.escapeHtml(req.institution || '—')}</p>
+          ${req.message ? `<p><strong>Mensagem:</strong> ${window.escapeHtml(req.message)}</p>` : ''}
           <p style="font-size:0.75rem;color:var(--text-muted);">Enviado em ${created}</p>
           <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
             <select id="${fieldsId}" class="form-select" multiple size="4" style="min-height:92px;">

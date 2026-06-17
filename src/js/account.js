@@ -23,7 +23,7 @@ async function loadMyNutritionistRequestStatus() {
   window._myNutReq = data;
   const statusLabels = { pending:'Em análise', approved:'Aprovado', rejected:'Negado' };
   const fields = Array.isArray(data.rejection_fields) && data.rejection_fields.length ? '<br>Dados marcados: ' + data.rejection_fields.join(', ') : '';
-  const reason = data.status === 'rejected' ? '<br>Motivo: ' + escapeHtml(data.rejection_reason || 'Não informado') + fields : '';
+  const reason = data.status === 'rejected' ? '<br>Motivo: ' + window.escapeHtml(data.rejection_reason || 'Não informado') + fields : '';
   statusEl.innerHTML = '<strong>Status da solicitação:</strong> ' + (statusLabels[data.status] || data.status) + reason;
   statusEl.style.display = 'block';
   
