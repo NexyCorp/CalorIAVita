@@ -705,7 +705,7 @@ async function refreshAdminUsers() {
 function renderAdminTable(users) {
   const roleLabels = { standard:'Padrão', patient:'Paciente', nutricionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
   const planLabels = { 
-    free:'Gratuito', pro:'Padrão Pro', clinic:'Clínica', admin:'Admin',
+    free:'Gratuito', pro:'Pro', clinic:'Clínica', admin:'Admin',
     patient_pro: 'Paciente+', patient_clinic: 'Paciente Clínica'
   };
   const planBadge = { 
