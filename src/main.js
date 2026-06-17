@@ -1,7 +1,3 @@
-// Importa a biblioteca do Supabase local e anexa ao window
-import { createClient } from '@supabase/supabase-js';
-window.supabase = { createClient };
-
 // Importa a folha de estilo para ser empacotada pelo Vite
 import './styles.css';
 

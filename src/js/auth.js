@@ -23,8 +23,13 @@ async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   if (!email || !password) { showAuthError('Preencha e-mail e senha.'); return; }
+  const sb = window.getSupabase?.() || window._db || window.supabase;
+  if (!sb?.auth) {
+    showAuthError('Erro ao conectar ao servidor. Recarregue a página.');
+    return;
+  }
   setAuthLoading(true);
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
     setAuthLoading(false);
     if (error.message?.toLowerCase().includes('email not confirmed')) showAuthError('Confirme seu e-mail antes de entrar.');
@@ -140,7 +145,8 @@ async function doRegister() {
   const inviteToken = urlParams.get('invite');
   const nutritionistId = urlParams.get('nid');
 
-  const { data, error } = await supabase.auth.signUp({
+  const sb = window.getSupabase?.() || window._db || window.supabase;
+  const { data, error } = await sb.auth.signUp({
     email, password,
     options: { data: { name, role: 'standard' } }
   });
@@ -254,7 +260,7 @@ async function completeOnboarding() {
 
 async function doLogout() {
   _appInitialized = false; _initAppRunning = false;
-  try { await supabase.auth.signOut({ scope:'global' }); } catch(e) {}
+  try { await (window.getSupabase?.() || window._db).auth.signOut({ scope:'global' }); } catch(e) {}
   try { Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-') || k.includes('supabase') || k === 'caloria-verde-auth') localStorage.removeItem(k); }); } catch(e) {}
   _cookieDel(_CV_COOKIE);
   await new Promise(r => setTimeout(r, 200));
@@ -435,7 +441,7 @@ function applyProfileUpdate(newData) {
 // ═══════════════════════════════════════
 // AUTH STATE
 // ═══════════════════════════════════════
-supabase.auth.onAuthStateChange(async (event, session) => {
+(window.getSupabase?.() || window._db).auth.onAuthStateChange(async (event, session) => {
   if (_suppressAuthChange) return;
   if (session?.user) {
     if (session.refresh_token) _cookieSet(_CV_COOKIE, session.refresh_token, 7);

@@ -79,10 +79,23 @@ function _storageAvailable() {
   }
 })();
 
-window._db = window._createSupabaseClient(window._SUPABASE_URL, window._SUPABASE_ANON_KEY, {
+const _supabaseUrl = window._SUPABASE_URL;
+const _supabaseKey = window._SUPABASE_ANON_KEY;
+
+if (!_supabaseUrl || !_supabaseKey) {
+  console.error('[CalorIA] VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não configurados.');
+}
+
+window._db = window._createSupabaseClient(_supabaseUrl, _supabaseKey, {
   auth: { autoRefreshToken:true, persistSession:true, detectSessionInUrl:true, storageKey:'caloria-verde-auth' }
 });
 window.supabase = window._db;
+globalThis.supabase = window._db;
+
+function getSupabase() {
+  return window._db || window.supabase;
+}
+window.getSupabase = getSupabase;
 window.updateLogos = updateLogos;
 window.LOGO_LIGHT_B64 = LOGO_LIGHT_B64;
 window.LOGO_DARK_B64 = LOGO_DARK_B64;
