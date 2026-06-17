@@ -96,6 +96,7 @@ function getSupabase() {
   return window._db || window.supabase;
 }
 window.getSupabase = getSupabase;
+window.sb = getSupabase;
 window.updateLogos = updateLogos;
 window.LOGO_LIGHT_B64 = LOGO_LIGHT_B64;
 window.LOGO_DARK_B64 = LOGO_DARK_B64;

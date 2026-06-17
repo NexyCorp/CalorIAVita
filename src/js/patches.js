@@ -6,7 +6,8 @@
 
 async function loadGoalFromDB() {
   if (!currentUser) return;
-  const { data } = await supabase.from('user_goals').select('daily_kcal,daily_sugar,daily_water').eq('user_id',currentUser.id).maybeSingle();
+  const sb = window.getSupabase?.() || window._db;
+  const { data } = await sb.from('user_goals').select('daily_kcal,daily_sugar,daily_water').eq('user_id',currentUser.id).maybeSingle();
   if (data) {
     diaryGoal      = data.daily_kcal  || 2000;
     diaryGoalSugar = data.daily_sugar || 25;
@@ -587,7 +588,8 @@ const _origInitApp = initApp;
 loadDiaryForDate = async function(date) {
   diary = { cafe:[], almoco:[], lanche:[], jantar:[] };
   if (!currentUser) return;
-  const { data } = await supabase.from('diary_entries').select('*').eq('user_id', currentUser.id).eq('date', date);
+  const sb = window.getSupabase?.() || window._db;
+  const { data } = await sb.from('diary_entries').select('*').eq('user_id', currentUser.id).eq('date', date);
   (data||[]).forEach(entry => {
     const meal = entry.meal;
     if (diary[meal]) diary[meal].push({

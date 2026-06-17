@@ -19,6 +19,15 @@ function setAuthLoading(on) {
   btns.forEach(b => b.disabled = on);
 }
 
+let _loginInProgress = false;
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label || 'timeout')), ms))
+  ]);
+}
+
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
@@ -29,40 +38,29 @@ async function doLogin() {
     return;
   }
   setAuthLoading(true);
+  _loginInProgress = true;
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    const { data, error } = await withTimeout(
+      sb.auth.signInWithPassword({ email, password }),
+      20000,
+      'login timeout'
+    );
     if (error) {
       if (error.message?.toLowerCase().includes('email not confirmed')) showAuthError('Confirme seu e-mail antes de entrar.');
       else showAuthError('E-mail ou senha incorretos.');
       return;
     }
-    if (data?.user) {
-      // onAuthStateChange (SIGNED_IN) também chama initApp — aguarda conclusão
-      await waitForAppInit(data.user.id, 25000);
-    }
+    if (data?.user) await initApp(data.user);
+    else showAuthError('Erro ao entrar. Tente novamente.');
   } catch(e) {
     console.error('[CalorIA] doLogin:', e);
-    showAuthError('Erro ao entrar. Tente novamente.');
+    showAuthError(e.message?.includes('timeout')
+      ? 'Servidor demorou para responder. Verifique sua conexão e tente novamente.'
+      : 'Erro ao entrar. Tente novamente.');
   } finally {
+    _loginInProgress = false;
     setAuthLoading(false);
   }
-}
-
-async function waitForAppInit(userId, timeoutMs = 25000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (_appInitialized && currentUser?.id === userId) return;
-    if (!_initAppRunning && !_appInitialized) {
-      const sb = window.getSupabase?.() || window._db;
-      const { data: { session } } = await sb.auth.getSession();
-      if (session?.user?.id === userId) {
-        await initApp(session.user);
-        if (_appInitialized) return;
-      }
-    }
-    await new Promise(r => setTimeout(r, 100));
-  }
-  if (!_appInitialized) throw new Error('init timeout');
 }
 
 // ─── Register avatar logic ───────────────────────────────────────────────────
@@ -296,37 +294,76 @@ async function doLogout() {
 // ═══════════════════════════════════════
 // INIT APP
 // ═══════════════════════════════════════
-async function fetchUserProfile(user) {
-  const sb = window.getSupabase?.() || window._db;
+function _profileFallback(user) {
   const metaName = user.user_metadata?.name || user.user_metadata?.full_name || '';
-  for (let attempt = 0; attempt < 4; attempt++) {
-    try {
-      const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      if (data) return data;
-      if (attempt === 0) {
-        await sb.from('profiles').upsert({
-          id: user.id, email: user.email, name: metaName || null,
-          role: 'standard', plan: 'free', updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-      }
-    } catch(e) { console.warn('[CalorIA] fetchUserProfile attempt', attempt, e); }
-    if (attempt < 3) await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
-  }
-  if (window._pendingFreshProfile) {
-    const fresh = window._pendingFreshProfile;
-    window._pendingFreshProfile = null;
-    return fresh;
-  }
   return {
     id: user.id, email: user.email, role: 'standard', plan: 'free',
     name: metaName || user.email?.split('@')[0] || ''
   };
 }
 
+async function fetchUserProfile(user) {
+  const sb = window.getSupabase?.() || window._db;
+  const metaName = user.user_metadata?.name || user.user_metadata?.full_name || '';
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const { data } = await withTimeout(
+        sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        5000,
+        'profile timeout'
+      );
+      if (data) return data;
+      if (attempt === 0) {
+        await withTimeout(
+          sb.from('profiles').upsert({
+            id: user.id, email: user.email, name: metaName || null,
+            role: 'standard', plan: 'free', updated_at: new Date().toISOString()
+          }, { onConflict: 'id' }),
+          5000,
+          'profile upsert timeout'
+        );
+      }
+    }
+  } catch(e) { console.warn('[CalorIA] fetchUserProfile:', e); }
+  if (window._pendingFreshProfile) {
+    const fresh = window._pendingFreshProfile;
+    window._pendingFreshProfile = null;
+    return fresh;
+  }
+  return _profileFallback(user);
+}
+
+function _loadAppDataInBackground() {
+  Promise.allSettled([
+    window.loadGoalFromDB?.(),
+    window.loadDiaryForDate?.(diaryDate),
+    (async () => {
+      try {
+        if (typeof loadRecipesFromDB === 'function') await loadRecipesFromDB();
+        if (typeof renderRecipes === 'function') renderRecipes('all');
+      } catch(e) {}
+    })(),
+    (async () => { if (isProfessional()) try { await loadPatients(); } catch(e) {} })(),
+    (async () => { if (isAdmin()) try { await loadAdminPanel(); } catch(e) {} })(),
+    (async () => { if (isProfessional()) try { await checkPatientNotifications(); } catch(e) {} })(),
+  ]).then(() => {
+    try {
+      renderSidebarUser();
+      if (typeof window.updateHomePanel === 'function') window.updateHomePanel();
+    } catch(e) {}
+  });
+
+  if (currentProfile?.nutritionist_id) loadLinkedNutritionist();
+  if (isPatient()) setTimeout(() => checkAnnouncements(), 1000);
+  setTimeout(() => checkAdminNotices(), 1500);
+}
+
 async function initApp(user) {
   if (_initAppRunning) {
-    try { await waitForAppInit(user.id, 30000); } catch(e) { console.warn('[CalorIA] initApp wait:', e); }
-    return;
+    let i = 0;
+    while (_initAppRunning && i++ < 80) await new Promise(r => setTimeout(r, 50));
+    if (_appInitialized && currentUser?.id === user.id) { setAuthLoading(false); return; }
+    if (_initAppRunning) return;
   }
   if (_appInitialized && currentUser?.id === user.id) {
     setAuthLoading(false);
@@ -344,54 +381,31 @@ async function initApp(user) {
       window._pendingFreshProfile = null;
     }
 
-    setAuthLoading(false);
     showApp(user);
-
     setupRoleUI();
     applyPlanRestrictions();
     renderSidebarUser();
-
-    try { if (window.loadGoalFromDB) await window.loadGoalFromDB(); } catch(e) { console.warn('[CalorIA] loadGoal:', e); }
-    try { if (window.loadDiaryForDate) await window.loadDiaryForDate(diaryDate); } catch(e) { console.warn('[CalorIA] loadDiary:', e); }
     initDiaryDate();
-    renderRecipes('all');
-    try { await loadRecipesFromDB(); } catch(e) {}
     showPanel('home', document.getElementById('nav-home'));
+    applyLanguage();
+    _appInitialized = true;
+    setAuthLoading(false);
 
-    // Check if patient needs to change password on first login
-    // NUNCA mostra para nutricionistas/admins/professionals — só para pacientes
     const isPatientRole = currentProfile?.role === 'patient';
     const mustChange = currentUser?.user_metadata?.must_change_password === true;
     if (isPatientRole && mustChange) {
       setTimeout(() => openChangePasswordModal(), 800);
     }
 
-    // Check if patient — show nutritionist info
-    if (currentProfile.nutritionist_id) loadLinkedNutritionist();
-
-    // Show pending announcements for patients
-    if (isPatient()) setTimeout(() => checkAnnouncements(), 1000);
-    // Show pending admin notices for any user (admin broadcasts)
-    setTimeout(() => checkAdminNotices(), 1500);
-
-    // Load patients if professional
-    if (isProfessional()) loadPatients();
-
-    // Load admin
-    if (isAdmin()) loadAdminPanel();
-
-    // Notifications for professionals
-    if (isProfessional()) checkPatientNotifications();
-
-    applyLanguage();
-    renderSidebarUser();
-    if (typeof window.updateHomePanel === 'function') window.updateHomePanel();
-    _appInitialized = true;
+    _loadAppDataInBackground();
   } catch(e) {
     console.error('[CalorIA] initApp error:', e);
-    setAuthLoading(false);
+    currentUser = user;
+    currentProfile = currentProfile || _profileFallback(user);
     showApp(user);
     _appInitialized = true;
+    setAuthLoading(false);
+    _loadAppDataInBackground();
   } finally {
     _initAppRunning = false;
   }
@@ -478,6 +492,7 @@ function applyProfileUpdate(newData) {
   if (session?.user) {
     if (session.refresh_token) _cookieSet(_CV_COOKIE, session.refresh_token, 7);
     if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+      if (_loginInProgress) return;
       if (_appInitialized && currentUser?.id === session.user.id) {
         setAuthLoading(false);
         return;
