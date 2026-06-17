@@ -1861,3 +1861,33 @@ i.fa-hourglass-half { color: #ffb74d; }
   background: var(--green-mid, #4caf50);
   color: white;
 }
+
+.pill-btn-custom {
+  border-style: dashed !important;
+  background: transparent !important;
+}
+
+.pill-btn-custom:hover {
+  background: var(--green-pale, #e8f5e9) !important;
+}
+
+#customRestrictionContainer {
+  display: none;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .restriction-pills {
+    gap: 0.35rem;
+  }
+  .pill-btn {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.75rem;
+  }
+  .home-diet-card {
+    display: none !important;
+  }
+  #bnav-diet, #bnav-recipes, #bnav-goal {
+    display: none !important;
+  }
+}

@@ -36,15 +36,16 @@ async function saveGoalToDB(kcal) {
 async function addWater(ml) {
   diaryWaterMl = Math.max(0, diaryWaterMl + ml);
   if (currentUser) {
-    try {
-      await supabase.from('diary_water').upsert({
-        user_id: currentUser.id,
-        date: diaryDate,
-        ml: diaryWaterMl,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,date' });
-    } catch(e) {
-      console.warn('[CalorIA] diary_water: erro ao salvar água:', e);
+    const { error } = await supabase.from('diary_water').upsert({
+      user_id: currentUser.id,
+      date: diaryDate,
+      ml: diaryWaterMl,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,date' });
+    if (error) {
+      console.warn('[CalorIA] diary_water: erro ao salvar água:', error);
+      showToast('Erro ao salvar água. Tabela diary_water pode não existir no banco.', 'error');
+      return;
     }
   }
   updateWaterDisplay();
@@ -122,7 +123,9 @@ function toggleRestrictionPill(btn) {
 function toggleCustomRestrictionInput() {
   const container = document.getElementById('customRestrictionContainer');
   if (container) {
-    container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+    const show = container.style.display === 'none' || !container.style.display;
+    container.style.display = show ? 'flex' : 'none';
+    if (show) document.getElementById('dietGenRestrictCustomInput')?.focus();
   }
 }
 
@@ -350,6 +353,11 @@ function openDietGenModal() {
   document.getElementById('dietGenResult').style.display = 'none';
   document.getElementById('dietGenForm').style.display = 'block';
   document.getElementById('dietGenLoading').style.display = 'none';
+  document.querySelectorAll('#dietGenRestrictPills .pill-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.value === 'nenhuma');
+  });
+  const customContainer = document.getElementById('customRestrictionContainer');
+  if (customContainer) customContainer.style.display = 'none';
   document.getElementById('dietGenModal').classList.add('show');
 }
 function closeDietGenModal() { document.getElementById('dietGenModal').classList.remove('show'); }
@@ -358,9 +366,16 @@ function dietGenNewPlan() {
   document.getElementById('dietGenForm').style.display = 'block';
 }
 
+function getSelectedRestrictions() {
+  const values = Array.from(document.querySelectorAll('#dietGenRestrictPills .pill-btn.active'))
+    .map(b => b.dataset.value)
+    .filter(v => v && v !== 'nenhuma');
+  return values.length ? values.join(', ') : 'nenhuma';
+}
+
 async function generateAIDiet() {
   const goalSel  = document.getElementById('dietGenGoal').value;
-  const restrict = Array.from(document.getElementById('dietGenRestrict').selectedOptions).map(o=>o.value).filter(v=>v!=='nenhuma').join(', ') || 'nenhuma';
+  const restrict = getSelectedRestrictions();
   const numMeals = document.getElementById('dietGenMeals').value;
   const numDays  = document.getElementById('dietGenDays').value;
   const obs      = document.getElementById('dietGenObs').value.trim();
@@ -433,7 +448,10 @@ Retorne SOMENTE um JSON válido com esta estrutura:
     _lastGeneratedDiet = data;
     renderDietResult(data);
   } catch(e) {
-    showToast('Erro ao gerar dieta: ' + e.message, 'error');
+    const msg = e.message?.includes('429')
+      ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
+      : 'Erro ao gerar dieta: ' + e.message;
+    showToast(msg, 'error');
   } finally {
     document.getElementById('dietGenLoading').style.display = 'none';
     const btn = document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]');
@@ -561,7 +579,6 @@ function printDiet() {
 // Hook into initApp to load new features
 const _origInitApp = initApp;
 // Patch loadDiaryForDate to also load water
-const _origLoadDiary = loadDiaryForDate;
 loadDiaryForDate = async function(date) {
   diary = { cafe:[], almoco:[], lanche:[], jantar:[] };
   if (!currentUser) return;
@@ -575,13 +592,13 @@ loadDiaryForDate = async function(date) {
       qty: entry.qty||100, unit: entry.unit||'g', photoUrl: entry.photo_url||null
     });
   });
-  ['cafe','almoco','lanche','jantar'].forEach(m => renderMeal(m));
-  updateDiaryProgress();
+  ['cafe','almoco','lanche','jantar'].forEach(m => window.renderMeal?.(m));
+  window.updateDiaryProgress?.();
   await loadWaterForDate(date);
-}
+};
 
 // Patch saveDiaryToDB to also save sugar
-async function saveDiaryToDB(mealKey, item) {
+saveDiaryToDB = async function(mealKey, item) {
   if (!currentUser) return;
   const payload = {
     user_id: currentUser.id, date: diaryDate, meal: mealKey,
@@ -996,7 +1013,7 @@ function _p2_ensureDietPatientBadge(patientName) {
 const _p2_origGenerateAIDiet = generateAIDiet;
 window.generateAIDiet = async function() {
   const goalSel  = document.getElementById('dietGenGoal').value;
-  const restrict = Array.from(document.getElementById('dietGenRestrict').selectedOptions).map(o=>o.value).filter(v=>v!=='nenhuma').join(', ') || 'nenhuma';
+  const restrict = getSelectedRestrictions();
   const numMeals = document.getElementById('dietGenMeals').value;
   const numDays  = document.getElementById('dietGenDays').value;
   const obs      = document.getElementById('dietGenObs').value.trim();
@@ -1114,7 +1131,10 @@ Retorne SOMENTE um JSON válido com esta estrutura:
     _lastGeneratedDiet._forPatient = _p2_dietPatientName || null;
     renderDietResult(data);
   } catch(e) {
-    showToast('Erro ao gerar dieta: ' + e.message, 'error');
+    const msg = e.message?.includes('429')
+      ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
+      : 'Erro ao gerar dieta: ' + e.message;
+    showToast(msg, 'error');
   } finally {
     document.getElementById('dietGenLoading').style.display = 'none';
     if (genBtn) genBtn.disabled = false;
@@ -1219,25 +1239,28 @@ setTimeout(() => {
 
 console.log('[CalorIA Patch v2] Todas as melhorias carregadas: açúcar/água no diário, formulários por doença, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
 
-// Expor funções para o escopo global
-window.loadGoalFromDB = typeof loadGoalFromDB !== 'undefined' ? loadGoalFromDB : undefined;
-window.saveGoalToDB = typeof saveGoalToDB !== 'undefined' ? saveGoalToDB : undefined;
-window.addWater = typeof addWater !== 'undefined' ? addWater : undefined;
-window.loadWaterForDate = typeof loadWaterForDate !== 'undefined' ? loadWaterForDate : undefined;
-window.updateWaterDisplay = typeof updateWaterDisplay !== 'undefined' ? updateWaterDisplay : undefined;
-window.saveDiseaseFormData = typeof saveDiseaseFormData !== 'undefined' ? saveDiseaseFormData : undefined;
-window.closeDiseaseFormModal = typeof closeDiseaseFormModal !== 'undefined' ? closeDiseaseFormModal : undefined;
-window.generateAIDiet = typeof generateAIDiet !== 'undefined' ? generateAIDiet : undefined;
-window.applyDietToday = typeof applyDietToday !== 'undefined' ? applyDietToday : undefined;
-window.printDiet = typeof printDiet !== 'undefined' ? printDiet : undefined;
-window.dietGenNewPlan = typeof dietGenNewPlan !== 'undefined' ? dietGenNewPlan : undefined;
-window.closeDietGenModal = typeof closeDietGenModal !== 'undefined' ? closeDietGenModal : undefined;
-window.selectNutType = typeof selectNutType !== 'undefined' ? selectNutType : undefined;
-window.saveNutType = typeof saveNutType !== 'undefined' ? saveNutType : undefined;
-window.closeNutTypeModal = typeof closeNutTypeModal !== 'undefined' ? closeNutTypeModal : undefined;
-window.addCustomWater = addCustomWater;
+// Expor funções para o escopo global (sobrescreve versões do diary.js)
+window.loadGoalFromDB = loadGoalFromDB;
+window.saveGoalToDB = saveGoalToDB;
+window.loadDiaryForDate = loadDiaryForDate;
+window.saveDiaryToDB = saveDiaryToDB;
+window.saveGoal = saveGoal;
 window.calcCalories = calcCalories;
+window.addWater = addWater;
+window.loadWaterForDate = loadWaterForDate;
+window.updateWaterDisplay = updateWaterDisplay;
+window.addCustomWater = addCustomWater;
+window.openDietGenModal = openDietGenModal;
+window.applyDietToday = applyDietToday;
+window.printDiet = printDiet;
+window.dietGenNewPlan = dietGenNewPlan;
+window.closeDietGenModal = closeDietGenModal;
+window.openDietGenModalForPatient = openDietGenModalForPatient;
+window.selectNutType = selectNutType;
+window.saveNutType = saveNutType;
+window.closeNutTypeModal = closeNutTypeModal;
 window.toggleRestrictionPill = toggleRestrictionPill;
 window.toggleCustomRestrictionInput = toggleCustomRestrictionInput;
 window.addCustomRestrictionPill = addCustomRestrictionPill;
+window.getSelectedRestrictions = getSelectedRestrictions;
 

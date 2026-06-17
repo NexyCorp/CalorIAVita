@@ -278,13 +278,13 @@
           <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
           <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Analisar foto do prato</div>
         </div>
-        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('goal',document.getElementById('nav-goal'))">
-          <div style="font-size:2rem;"><i class="fa-solid fa-bullseye ic-goal"></i></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Minha Meta</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Calcular calorias</div>
+        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('water',document.getElementById('nav-water'))">
+          <div style="font-size:2rem;"><i class="fa-solid fa-droplet ic-water"></i></div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Acompanhar hidratação</div>
         </div>
-        <!-- Diet Generator shortcut -->
-        <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:linear-gradient(135deg,var(--green-deep),#1a4a1f);border:none;color:white;" onclick="openDietGenModal()">
+        <!-- Diet Generator shortcut (desktop/sidebar — não aparece na barra fixa mobile) -->
+        <div class="card home-diet-card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:linear-gradient(135deg,var(--green-deep),#1a4a1f);border:none;color:white;" onclick="openDietGenModal()">
           <div style="font-size:2rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#ffd54f!important;"></i></div>
           <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
           <div style="font-size:0.75rem;opacity:0.75;margin-top:0.2rem;">Plano alimentar personalizado baseado na sua anamnese</div>
@@ -523,7 +523,7 @@
           <div class="macro-bar-item" id="diaryWaterRow">
             <div class="macro-bar-label" style="display:flex;justify-content:space-between;align-items:center;">
               <span><i class="fa-solid fa-droplet ic-water"></i> Água: <span id="diaryWaterVal">0</span> ml</span>
-              <span style="font-size:0.72rem;color:var(--text-muted);">meta: <span id="diaryWaterGoalDisplay">2000</span> ml</span>
+              <span style="font-size:0.72rem;color:var(--text-muted);">meta: <span id="diaryWaterGoalDisplay">2000</span> ml · <button type="button" onclick="showPanel('water',document.getElementById('nav-water'));setBottomNav('more')" style="background:none;border:none;color:var(--green-mid);font-size:0.72rem;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;">Ver garrafa</button></span>
             </div>
             <div class="macro-bar-bg"><div class="macro-bar-inner water" id="diaryWaterBar" style="width:0%"></div></div>
             <div class="water-btn-row">
@@ -1135,7 +1135,7 @@
       </button>
       <button class="bottom-nav-item" id="bnav-search" onclick="showPanel('search',null);setBottomNav('search')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span>
-        <span class="bottom-nav-label" data-i18n="nav_search">Buscar</span>
+        <span class="bottom-nav-label">Pesquisar</span>
       </button>
       <button class="bottom-nav-item" id="bnav-diary" onclick="showPanel('diary',null);setBottomNav('diary')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-book ic-diary"></i></span>
@@ -2219,7 +2219,7 @@
           </select>
         </div>
         <div class="form-field" style="margin-bottom:0;grid-column:1/-1;">
-          <label class="form-label">Restrições alimentares</label>
+          <label class="form-label">Restrições alimentares <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">(selecione quantas quiser)</span></label>
           <div class="restriction-pills" id="dietGenRestrictPills">
             <button type="button" class="pill-btn active" data-value="nenhuma" onclick="toggleRestrictionPill(this)">Nenhuma</button>
             <button type="button" class="pill-btn" data-value="vegetariano" onclick="toggleRestrictionPill(this)">Vegetariano</button>
@@ -2227,10 +2227,15 @@
             <button type="button" class="pill-btn" data-value="sem gluten" onclick="toggleRestrictionPill(this)">Sem glúten</button>
             <button type="button" class="pill-btn" data-value="sem lactose" onclick="toggleRestrictionPill(this)">Sem lactose</button>
             <button type="button" class="pill-btn" data-value="low carb" onclick="toggleRestrictionPill(this)">Low carb</button>
-            <button type="button" class="pill-btn" id="pillBtnCustom" onclick="toggleCustomRestrictionInput()">+ Outra</button>
+            <button type="button" class="pill-btn" data-value="sem acucar" onclick="toggleRestrictionPill(this)">Sem açúcar</button>
+            <button type="button" class="pill-btn" data-value="sem frutos do mar" onclick="toggleRestrictionPill(this)">Sem frutos do mar</button>
+            <button type="button" class="pill-btn" data-value="sem amendoim" onclick="toggleRestrictionPill(this)">Sem amendoim</button>
+            <button type="button" class="pill-btn" data-value="halal" onclick="toggleRestrictionPill(this)">Halal</button>
+            <button type="button" class="pill-btn" data-value="kosher" onclick="toggleRestrictionPill(this)">Kosher</button>
+            <button type="button" class="pill-btn pill-btn-custom" id="pillBtnCustom" onclick="toggleCustomRestrictionInput()">+ Outra restrição</button>
           </div>
-          <div id="customRestrictionContainer" style="display:none;margin-top:0.5rem;align-items:center;gap:0.4rem;">
-            <input type="text" id="dietGenRestrictCustomInput" class="form-input" style="margin:0;" placeholder="Digite outra restrição...">
+          <div id="customRestrictionContainer" style="display:none;margin-top:0.5rem;gap:0.4rem;flex-wrap:wrap;">
+            <input type="text" id="dietGenRestrictCustomInput" class="form-input" style="margin:0;flex:1;min-width:140px;" placeholder="Ex: intolerância à frutose..." onkeydown="if(event.key==='Enter')addCustomRestrictionPill()">
             <button type="button" class="btn-primary" style="width:auto;margin:0;padding:0.5rem 1rem;font-size:0.8rem;border-radius:50px;" onclick="addCustomRestrictionPill()">Adicionar</button>
           </div>
         </div>

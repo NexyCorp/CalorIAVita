@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════
 // PATIENT DIARY (visão do nutricionista)
 // ═══════════════════════════════════════
-const pdState = { patientId: null, patientName: null, date: null, tab: 'day', goal: 2000 };
+const pdState = { patientId: null, patientName: null, date: null, tab: 'day', goal: 2000, waterGoal: 2000 };
 
 function toLocalDateStr(d) {
   const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
@@ -19,9 +19,10 @@ async function viewPatientDiary(patientId, patientName) {
   pdState.tab = 'day';
   pdSwitchTab('day', true);
 
-  // Busca a meta calórica do paciente
-  const { data: goalData } = await supabase.from('user_goals').select('daily_kcal').eq('user_id', patientId).maybeSingle();
+  // Busca a meta calórica e água do paciente
+  const { data: goalData } = await supabase.from('user_goals').select('daily_kcal,daily_water').eq('user_id', patientId).maybeSingle();
   pdState.goal = goalData?.daily_kcal || 2000;
+  pdState.waterGoal = goalData?.daily_water || 2000;
 
   await pdRender();
 }
@@ -100,7 +101,7 @@ async function pdRenderDay() {
         <div style="border-left:1px solid var(--border-color);height:40px;opacity:0.3;"></div>
         <div>
           <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:#29b6f6;">${waterMl}</div>
-          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água consumidos</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água · meta: ${pdState.waterGoal || 2000} ml</div>
         </div>
       </div>
       ${Object.entries(meals).map(([key, items]) => items.length===0?'':`
@@ -232,9 +233,10 @@ async function generatePatientRecordPdf(withAi) {
     // 1. Perfil do paciente
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', recordState.patientId).maybeSingle();
 
-    // 2. Meta calórica
-    const { data: goalData } = await supabase.from('user_goals').select('daily_kcal').eq('user_id', recordState.patientId).maybeSingle();
+    // 2. Meta calórica e água
+    const { data: goalData } = await supabase.from('user_goals').select('daily_kcal,daily_water').eq('user_id', recordState.patientId).maybeSingle();
     const dailyGoal = goalData?.daily_kcal || 2000;
+    const dailyWaterGoal = goalData?.daily_water || 2000;
 
     // 3. Registros do período
     const days = [];
@@ -250,6 +252,17 @@ async function generatePatientRecordPdf(withAi) {
       .order('date').order('created_at');
 
     const allEntries = entries || [];
+
+    // 4. Água do período
+    const { data: waterEntries } = await supabase.from('diary_water').select('date,ml')
+      .eq('user_id', recordState.patientId)
+      .in('date', days);
+    const waterByDay = {};
+    days.forEach(d => waterByDay[d] = 0);
+    (waterEntries || []).forEach(w => { if (waterByDay[w.date] !== undefined) waterByDay[w.date] = w.ml || 0; });
+    const totalWater = Object.values(waterByDay).reduce((s, v) => s + v, 0);
+    const daysWithWater = Object.values(waterByDay).filter(v => v > 0).length;
+    const avgWater = daysWithWater ? Math.round(totalWater / daysWithWater) : 0;
 
     // Agregações
     const totalsByDay = {};
@@ -307,7 +320,7 @@ async function generatePatientRecordPdf(withAi) {
       }
     }
 
-    buildRecordHtml({ profile, dailyGoal, days, totalsByDay, allEntries, avgKcal, daysWithData, daysOverGoal, adherencePct, totalCarbs, totalProt, totalFat, totalKcal, opts, aiAnalysisHtml, withAi });
+    buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay, waterByDay, totalWater, avgWater, daysWithWater, allEntries, avgKcal, daysWithData, daysOverGoal, adherencePct, totalCarbs, totalProt, totalFat, totalKcal, opts, aiAnalysisHtml, withAi });
 
     showToast('<i class="fa-solid fa-file-pdf ic-alert"></i> Abrindo prontuário para salvar como PDF!');
     closeRecordModal();
@@ -320,7 +333,7 @@ async function generatePatientRecordPdf(withAi) {
   }
 }
 
-function buildRecordHtml({ profile, dailyGoal, days, totalsByDay, allEntries, avgKcal, daysWithData, daysOverGoal, adherencePct, totalCarbs, totalProt, totalFat, totalKcal, opts, aiAnalysisHtml, withAi }) {
+function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay, waterByDay, totalWater, avgWater, daysWithWater, allEntries, avgKcal, daysWithData, daysOverGoal, adherencePct, totalCarbs, totalProt, totalFat, totalKcal, opts, aiAnalysisHtml, withAi }) {
   const logoSvg = `<img src="${LOGO_LIGHT_B64}" width="52" height="52" style="border-radius:8px;">`;
   const periodLabel = days.length === 7 ? 'Última semana' : 'Último mês';
   const periodRange = `${new Date(days[0]+'T00:00:00').toLocaleDateString('pt-BR')} a ${new Date(days[days.length-1]+'T00:00:00').toLocaleDateString('pt-BR')}`;
@@ -360,8 +373,31 @@ function buildRecordHtml({ profile, dailyGoal, days, totalsByDay, allEntries, av
     </div>` : '';
 
   const goalHtml = opts.goal ? `
-    <h3>🎯 Meta Calórica</h3>
-    <div class="rec-goal-card"><div class="rec-goal-value">${dailyGoal} kcal/dia</div></div>` : '';
+    <h3>🎯 Metas Diárias</h3>
+    <div class="rec-grid">
+      <div class="rec-goal-card"><div class="rec-goal-value">${dailyGoal} kcal/dia</div><div style="font-size:0.75rem;opacity:0.85;margin-top:4px;">Meta calórica</div></div>
+      <div class="rec-goal-card" style="background:linear-gradient(135deg,#1565c0,#42a5f5);"><div class="rec-goal-value">${dailyWaterGoal} ml/dia</div><div style="font-size:0.75rem;opacity:0.85;margin-top:4px;">Meta de água</div></div>
+    </div>` : '';
+
+  const waterHtml = opts.summary ? `
+    <h3>💧 Hidratação no Período</h3>
+    <div class="rec-grid">
+      <div class="rec-stat"><span class="rec-stat-label">Média diária</span><span class="rec-stat-value">${avgWater} ml</span></div>
+      <div class="rec-stat"><span class="rec-stat-label">Total no período</span><span class="rec-stat-value">${totalWater} ml</span></div>
+      <div class="rec-stat"><span class="rec-stat-label">Dias com registro</span><span class="rec-stat-value">${daysWithWater}/${days.length}</span></div>
+      <div class="rec-stat"><span class="rec-stat-label">Meta diária</span><span class="rec-stat-value">${dailyWaterGoal} ml</span></div>
+    </div>
+    <div class="rec-chart-wrap" style="height:120px;margin-top:12px;">
+      <div class="rec-chart-bars">${days.map(d => {
+        const val = waterByDay[d] || 0;
+        const heightPct = Math.min((val / Math.max(dailyWaterGoal, 1)) * 100, 100);
+        const dObj = new Date(d+'T00:00:00');
+        const label = days.length === 7
+          ? dObj.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')
+          : dObj.getDate();
+        return `<div class="rec-bar-col"><div class="rec-bar" style="height:${heightPct}%;background:#42a5f5;" title="${val} ml"></div><div class="rec-bar-label">${label}</div></div>`;
+      }).join('')}</div>
+    </div>` : '';
 
   const summaryHtml = opts.summary ? `
     <h3>📊 Resumo do Período (${periodLabel})</h3>
@@ -477,6 +513,7 @@ function buildRecordHtml({ profile, dailyGoal, days, totalsByDay, allEntries, av
   ${profileHtml}
   ${goalHtml}
   ${summaryHtml}
+  ${waterHtml}
   ${chartHtml}
   ${macrosHtml}
   ${mealsHtml}

@@ -31,7 +31,7 @@ async function doLogin() {
     else showAuthError('E-mail ou senha incorretos.');
     return;
   }
-  if (data?.user) { _appInitialized = true; await initApp(data.user); }
+  if (data?.user) await initApp(data.user);
 }
 
 // ─── Register avatar logic ───────────────────────────────────────────────────
@@ -248,7 +248,6 @@ async function completeOnboarding() {
       return;
     }
 
-    _appInitialized = true;
     await initApp(window._pendingUser);
   }
 }
@@ -265,55 +264,58 @@ async function doLogout() {
 // ═══════════════════════════════════════
 // INIT APP
 // ═══════════════════════════════════════
+async function fetchUserProfile(user) {
+  const metaName = user.user_metadata?.name || user.user_metadata?.full_name || '';
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      if (data) return data;
+      if (attempt === 0) {
+        await supabase.from('profiles').upsert({
+          id: user.id, email: user.email, name: metaName || null,
+          role: 'standard', plan: 'free', updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+      }
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+  }
+  if (window._pendingFreshProfile) {
+    const fresh = window._pendingFreshProfile;
+    window._pendingFreshProfile = null;
+    return fresh;
+  }
+  return {
+    id: user.id, email: user.email, role: 'standard', plan: 'free',
+    name: metaName || user.email?.split('@')[0] || ''
+  };
+}
+
 async function initApp(user) {
   if (_initAppRunning) return;
+  if (_appInitialized && currentUser?.id === user.id) {
+    if (typeof window.renderSidebarUser === 'function') window.renderSidebarUser();
+    if (typeof window.updateHomePanel === 'function') window.updateHomePanel();
+    return;
+  }
   _initAppRunning = true;
-  const safetyTimer = setTimeout(() => {
-    _initAppRunning = false;
-    setAuthLoading(false);
-    showApp(user);
-  }, 6000);
 
   try {
     currentUser = user;
-    let profile = null;
-    try {
-      const pr = supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      const to = new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000));
-      const result = await Promise.race([pr, to]);
-      profile = result.data;
-    } catch(e) {}
-
-    if (!profile) {
-      const _metaName = user.user_metadata?.name || user.user_metadata?.full_name || '';
-      // Só cria o perfil se não existir — NUNCA sobrescreve role/plan já definidos pelo admin
-      try {
-        await supabase.from('profiles').insert({
-          id: user.id, email: user.email, name: _metaName || null,
-          role: 'standard', plan: 'free'
-        });
-      } catch(insertErr) { /* já existe — ignora */ }
-      const { data: p2 } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      currentProfile = p2;
-    } else {
-      // Use fresh profile from onboarding if available
-      currentProfile = window._pendingFreshProfile || profile;
+    currentProfile = await fetchUserProfile(user);
+    if (window._pendingFreshProfile) {
+      currentProfile = { ...currentProfile, ...window._pendingFreshProfile };
       window._pendingFreshProfile = null;
     }
-    if (!currentProfile) currentProfile = { id:user.id, email:user.email, role:'standard', plan:'free', name:'' };
 
-    clearTimeout(safetyTimer);
     setAuthLoading(false);
     showApp(user);
 
-    // Apply roles & restrictions
     setupRoleUI();
     applyPlanRestrictions();
     renderSidebarUser();
 
-    // Load data
-    try { await loadGoalFromDB(); } catch(e) {}
-    await loadDiaryForDate(diaryDate);
+    try { if (window.loadGoalFromDB) await window.loadGoalFromDB(); } catch(e) { console.warn('[CalorIA] loadGoal:', e); }
+    try { if (window.loadDiaryForDate) await window.loadDiaryForDate(diaryDate); } catch(e) { console.warn('[CalorIA] loadDiary:', e); }
     initDiaryDate();
     renderRecipes('all');
     try { await loadRecipesFromDB(); } catch(e) {}
@@ -345,11 +347,14 @@ async function initApp(user) {
     if (isProfessional()) checkPatientNotifications();
 
     applyLanguage();
+    renderSidebarUser();
+    if (typeof window.updateHomePanel === 'function') window.updateHomePanel();
+    _appInitialized = true;
   } catch(e) {
     console.error('[CalorIA] initApp error:', e);
-    clearTimeout(safetyTimer);
     setAuthLoading(false);
     showApp(user);
+    _appInitialized = true;
   } finally {
     _initAppRunning = false;
   }
@@ -435,11 +440,10 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     if (session.refresh_token) _cookieSet(_CV_COOKIE, session.refresh_token, 7);
     if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+      if (_initAppRunning) return;
       if (_appInitialized && currentUser?.id === session.user.id) return;
-      _appInitialized = true;
       await initApp(session.user);
-    } else if (event === 'TOKEN_REFRESHED' && !_appInitialized) {
-      _appInitialized = true;
+    } else if (event === 'TOKEN_REFRESHED' && !_appInitialized && !_initAppRunning) {
       await initApp(session.user);
     }
   } else {

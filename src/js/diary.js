@@ -24,14 +24,16 @@ function changeDiaryDate(delta) {
   if (d.toISOString().split('T')[0] > today) return; // can't go to future
   diaryDate = d.toISOString().split('T')[0];
   renderDiaryDate();
-  loadDiaryForDate(diaryDate);
+  if (window.loadDiaryForDate) window.loadDiaryForDate(diaryDate);
+  else loadDiaryForDate(diaryDate);
 }
 
 async function addToDiaryMeal(mealKey, item) {
   diary[mealKey].push(item);
   renderMeal(mealKey);
   updateDiaryProgress();
-  await saveDiaryToDB(mealKey, item);
+  const saveFn = window.saveDiaryToDB || saveDiaryToDB;
+  await saveFn(mealKey, item);
   showToast('<i class="fa-solid fa-circle-check ic-check"></i> ' + item.name + ' adicionado!', 'success');
 }
 
@@ -256,7 +258,10 @@ async function diaryAddFood() {
     });
     document.getElementById('diaryAddInput').value = '';
   } catch(e) {
-    showToast('Erro ao buscar alimento', 'error');
+    const msg = e.message?.includes('429')
+      ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
+      : 'Erro ao buscar alimento';
+    showToast(msg, 'error');
   } finally {
     btn.textContent = '+ ' + t('add');
     btn.disabled = false;

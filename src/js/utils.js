@@ -296,7 +296,8 @@ function showPanel(name, navEl) {
     if (typeof loadPatients === 'function') loadPatients();
   }
   if (name === 'water') {
-    if (typeof updateWaterDisplay === 'function') updateWaterDisplay();
+    if (typeof window.updateWaterDisplay === 'function') window.updateWaterDisplay();
+    if (typeof window.loadWaterForDate === 'function' && currentUser) window.loadWaterForDate(diaryDate);
   }
 
   // Update topbar title

@@ -14,28 +14,43 @@ function extractJSON(text) {
   return JSON.parse(s.substring(start, end+1));
 }
 
-async function callGroq(messages) {
+async function callGroq(messages, retries = 3) {
   if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
-  let res;
-  try {
-    res = await fetch(GROQ_URL, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+GROQ_KEY },
-      body: JSON.stringify({ model:GROQ_MODEL, messages, max_tokens:4096, temperature:0.2 })
-    });
-  } catch(netErr) {
-    throw new Error('Sem conexão com a API. Verifique sua internet.');
+  let lastErr;
+  for (let attempt = 0; attempt < retries; attempt++) {
+    let res;
+    try {
+      res = await fetch(GROQ_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+GROQ_KEY },
+        body: JSON.stringify({ model:GROQ_MODEL, messages, max_tokens:4096, temperature:0.2 })
+      });
+    } catch(netErr) {
+      throw new Error('Sem conexão com a API. Verifique sua internet.');
+    }
+    if (res.status === 401 || res.status === 403) throw new Error('401');
+    if (res.status === 429) {
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+        continue;
+      }
+      throw new Error('429');
+    }
+    if (res.status === 413) throw new Error('413');
+    if (!res.ok) {
+      const body = await res.text().catch(()=>'');
+      lastErr = new Error('Groq ' + res.status + ': ' + body.slice(0,120));
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
+      }
+      throw lastErr;
+    }
+    const data = await res.json();
+    if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
+    return extractJSON(data.choices[0].message.content);
   }
-  if (res.status === 401 || res.status === 403) throw new Error('401');
-  if (res.status === 429) throw new Error('429');
-  if (res.status === 413) throw new Error('413');
-  if (!res.ok) {
-    const body = await res.text().catch(()=>'');
-    throw new Error('Groq ' + res.status + ': ' + body.slice(0,120));
-  }
-  const data = await res.json();
-  if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
-  return extractJSON(data.choices[0].message.content);
+  throw lastErr || new Error('429');
 }
 
 async function askClaude(prompt, sys) {
