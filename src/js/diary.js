@@ -617,5 +617,8 @@ window.addCamToDiary = addCamToDiary;
 window.addCompareFoodToDiary = addCompareFoodToDiary;
 window.compareFoods = compareFoods;
 window.updateHomePanel = updateHomePanel;
-
-
+window.selectGoal = selectGoal;
+window.calcCalories = calcCalories;
+window.saveGoal = saveGoal;
+window.handleImageUpload = handleImageUpload;
+window.analyzeImage = analyzeImage;

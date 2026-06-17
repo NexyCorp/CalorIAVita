@@ -431,7 +431,7 @@ async function resendConfirmEmail() {
 }
 
 // Handle password recovery redirect
-supabase.auth.onAuthStateChange(async (event2, session2) => {
+(window.getSupabase?.() || window._db).auth.onAuthStateChange(async (event2, session2) => {
   if (event2 === 'PASSWORD_RECOVERY') {
     setTimeout(() => {
       document.getElementById('authOverlay').classList.add('hidden');
@@ -1653,13 +1653,13 @@ window.saveProfile = async function() {
   const dob = document.getElementById('profileDob')?.value || null;
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
 
-  const { error } = await supabase.from('profiles').update({
+  const { error } = await (window.getSupabase?.() || window._db).from('profiles').update({
     name, username: username || null, sex, age, weight, height, body_fat_pct, dob
   }).eq('id', currentUser.id);
   if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
 
   try {
-    await supabase.auth.updateUser({ data: { name, full_name: name } });
+    await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name } });
     if (currentUser?.user_metadata) { currentUser.user_metadata.name = name; currentUser.user_metadata.full_name = name; }
   } catch(e) { console.warn('[CalorIA] Não foi possível atualizar user_metadata:', e); }
 
@@ -1724,7 +1724,5 @@ window.sendPasswordReset = sendPasswordReset;
 window.resendConfirmEmail = resendConfirmEmail;
 window.printPatientAnamnese = printPatientAnamnese;
 window.saveDiseaseFormData = saveDiseaseFormData;
-window.saveProfile = saveProfile;
-window.renderSidebarUser = renderSidebarUser;
-
+// saveProfile and renderSidebarUser extended above — do not overwrite
 

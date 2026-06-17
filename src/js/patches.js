@@ -300,10 +300,13 @@ async function saveNutType() {
   if (!activeBtn) { showToast('Selecione uma especialidade', 'error'); return; }
   const type = activeBtn.dataset.type;
   _currentNutType = type;
-  // Save to profile
-  await supabase.from('profiles').update({ nutritionist_type: type }).eq('id', currentUser.id).catch(e => {
-    console.warn('[saveNutType] coluna nutritionist_type ausente. SQL: ALTER TABLE profiles ADD COLUMN IF NOT EXISTS nutritionist_type text;');
-  });
+  const sb = window.getSupabase?.() || window._db;
+  const { error } = await sb.from('profiles').update({ nutritionist_type: type }).eq('id', currentUser.id);
+  if (error) {
+    console.warn('[saveNutType]', error);
+    showToast('Erro ao salvar especialidade: ' + error.message, 'error');
+    return;
+  }
   currentProfile = { ...currentProfile, nutritionist_type: type };
   closeNutTypeModal();
   renderNutSpecialtyBadge();
@@ -333,12 +336,13 @@ async function loadNutSpecialty() {
   if (!isProfessional() || !currentProfile) return;
   _currentNutType = currentProfile.nutritionist_type || null;
   renderNutSpecialtyBadge();
-  // Add "Minha Especialidade" button to dropdown if professional
+  if (document.getElementById('dropdownNutSpecialtyBtn')) return;
   const dbn = document.getElementById('dropdownBecomeNut');
   if (dbn) {
     const nutSpecBtn = document.createElement('button');
+    nutSpecBtn.id = 'dropdownNutSpecialtyBtn';
     nutSpecBtn.className = 'dropdown-item';
-    nutSpecBtn.innerHTML = `<span><i class="fa-solid fa-user-doctor ic-stethoscope"></i></span><span>Minha Especialidade</span>`;
+    nutSpecBtn.innerHTML = `<span><i class="fa-solid fa-user-doctor ic-stethoscope"></i></span><span>${currentLang === 'en' ? 'My Specialty' : 'Minha Especialidade'}</span>`;
     nutSpecBtn.onclick = () => { openNutTypeModal(); closeDropdown(); };
     dbn.parentNode.insertBefore(nutSpecBtn, dbn);
   }
@@ -392,7 +396,8 @@ async function generateAIDiet() {
   // Fetch anamnese if available
   let anamneseCtx = '';
   try {
-    const { data: an } = await supabase.from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other,allergies,food_aversions,food_preferences').eq('patient_id', currentUser.id).maybeSingle();
+    const sb = window.getSupabase?.() || window._db;
+    const { data: an } = await sb.from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other,allergies,food_aversions,food_preferences').eq('patient_id', currentUser.id).maybeSingle();
     if (an) {
       const diseases = [...(an.diseases_general||[]), ...(an.diseases_chronic_auto||[])].filter(Boolean);
       if (diseases.length) anamneseCtx += ` doenças: ${diseases.join(', ')};`;
@@ -921,6 +926,7 @@ const PORCOES_CASEIRAS = [
   { value: 'fatia',             label: 'fatia' },
   { value: 'porcao',            label: 'porção' },
   { value: 'copo',              label: 'copo (200ml)' },
+  { value: 'concha',            label: 'concha' },
   { value: 'kg',                label: 'kg (quilogramas)' },
   { value: 'litro',             label: 'litro' },
 ];
@@ -1263,4 +1269,5 @@ window.toggleRestrictionPill = toggleRestrictionPill;
 window.toggleCustomRestrictionInput = toggleCustomRestrictionInput;
 window.addCustomRestrictionPill = addCustomRestrictionPill;
 window.getSelectedRestrictions = getSelectedRestrictions;
-
+window.openNutTypeModal = openNutTypeModal;
+window.loadNutSpecialty = loadNutSpecialty;

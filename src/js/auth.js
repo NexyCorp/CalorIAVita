@@ -347,7 +347,7 @@ async function initApp(user) {
     if (isProfessional()) loadPatients();
 
     // Load admin
-    if (isAdmin()) { loadAdminPanel(); loadPendingRecipes(); }
+    if (isAdmin()) loadAdminPanel();
 
     // Notifications for professionals
     if (isProfessional()) checkPatientNotifications();
@@ -453,15 +453,25 @@ function applyProfileUpdate(newData) {
       await initApp(session.user);
     }
   } else {
+    const sb = window.getSupabase?.() || window._db;
     if (event === 'INITIAL_SESSION') {
       const rt = _cookieGet(_CV_COOKIE);
       if (rt) {
         try {
-          const { data } = await supabase.auth.refreshSession({ refresh_token: rt });
-          if (data?.user) return;
-          _cookieDel(_CV_COOKIE);
-        } catch(e) { _cookieDel(_CV_COOKIE); }
+          const { data } = await sb.auth.refreshSession({ refresh_token: rt });
+          if (data?.session?.user) return;
+        } catch(e) {}
+        _cookieDel(_CV_COOKIE);
       }
+      let { data: { session: stored } } = await sb.auth.getSession();
+      if (stored?.user) return;
+      await new Promise(r => setTimeout(r, 350));
+      ({ data: { session: stored } } = await sb.auth.getSession());
+      if (stored?.user) return;
+    } else if (event === 'TOKEN_REFRESHED') {
+      return;
+    } else if (event !== 'SIGNED_OUT') {
+      return;
     }
     _cookieDel(_CV_COOKIE);
     _appInitialized = false; _initAppRunning = false;

@@ -362,6 +362,7 @@
             <option value="xícara">xícara (240ml)</option>
             <option value="colher de sopa">colher de sopa (15g)</option>
             <option value="colher de chá">colher de chá (5g)</option>
+            <option value="concha">concha</option>
             <option value="kg">kg</option>
           </select>
         </div>
@@ -546,6 +547,7 @@
           <option value="xícara">xícara (240ml)</option>
           <option value="colher de sopa">col. sopa (15g)</option>
           <option value="colher de chá">col. chá (5g)</option>
+          <option value="concha">concha</option>
           <option value="kg">kg</option>
         </select>
         <select id="diaryMealSelect" class="add-food-input" style="max-width:115px;flex:0 0 115px;">
@@ -965,7 +967,6 @@
           <div class="admin-stat"><div class="admin-stat-num" id="statPro">—</div><div class="admin-stat-label">Plano Pro</div></div>
           <div class="admin-stat"><div class="admin-stat-num" id="statClinic">—</div><div class="admin-stat-label">Clínica</div></div>
           <div class="admin-stat"><div class="admin-stat-num" id="statPatients">—</div><div class="admin-stat-label">Pacientes</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statPendingRecipes">—</div><div class="admin-stat-label">Receitas Pendentes</div></div>
           <div class="admin-stat"><div class="admin-stat-num" id="statPendingNutritionists">—</div><div class="admin-stat-label">Nutricionistas Pendentes</div></div>
           <div class="admin-stat"><div class="admin-stat-num" id="statPendingUpgrades">�</div><div class="admin-stat-label">Upgrades Pendentes</div></div>
         </div>
@@ -987,12 +988,6 @@
           <option value="all">Todas</option>
         </select>
         <div id="pendingNutritionistsList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="loading">Carregando...</p></div>
-      </div>
-
-      <!-- Pending recipes queue -->
-      <div class="card">
-        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-clipboard ic-diary"></i> Receitas Aguardando Aprovação</div>
-        <div id="pendingRecipesList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="loading">Carregando...</p></div>
       </div>
 
       <!-- Admin Notices -->

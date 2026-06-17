@@ -94,6 +94,7 @@ const i18n = {
     announcement_no_patients_error:'Nenhum paciente vinculado.',
     announcement_sent:'Aviso enviado!',
     announcement_table_missing:'Tabela de avisos nao existe. Veja o SQL no console (F12).',
+    ai_recipe_btn:'🤖 IA Cria Receita',
   },
   en: {
     nav_tools:'Tools', nav_search:'Search', nav_diary:'Diary', nav_goal:'Goal & Calc.',
@@ -205,6 +206,40 @@ function applyLanguage() {
   document.getElementById('langBtnPT').classList.toggle('active', currentLang === 'pt');
   document.getElementById('langBtnEN').classList.toggle('active', currentLang === 'en');
 
+  // Bottom nav labels
+  const bnavMap = { 'bnav-home': 'home', 'bnav-search': 'nav_search', 'bnav-diary': 'nav_diary', 'bnav-camera': 'nav_camera', 'bnav-more': 'nav_more' };
+  Object.entries(bnavMap).forEach(([id, key]) => {
+    const btn = document.getElementById(id);
+    const span = btn?.querySelector('.bottom-nav-label');
+    const label = key === 'home' ? (currentLang === 'en' ? 'Home' : 'Início') : i18n[currentLang][key];
+    if (span && label) span.textContent = label;
+  });
+
+  // Sidebar nav labels with data-i18n already handled; fix hardcoded ones
+  document.querySelectorAll('.nav-item span[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+  });
+
+  // AI recipe button
+  const aiRecipeBtn = document.getElementById('aiRecipeBtn');
+  if (aiRecipeBtn && i18n[currentLang].ai_recipe_btn) aiRecipeBtn.textContent = i18n[currentLang].ai_recipe_btn;
+
+  // Specialty dropdown button
+  const nutSpecBtn = document.getElementById('dropdownNutSpecialtyBtn');
+  if (nutSpecBtn) {
+    const label = nutSpecBtn.querySelector('span:last-child');
+    if (label) label.textContent = currentLang === 'en' ? 'My Specialty' : 'Minha Especialidade';
+  }
+
+  // Refresh topbar title for active panel
+  const activePanel = document.querySelector('.panel.active');
+  if (activePanel) {
+    const name = activePanel.id.replace('panel-', '');
+    const title = panelTitles[name];
+    if (title) document.getElementById('topbarTitle').textContent = typeof title === 'function' ? title() : title;
+  }
+
   // Translate static hardcoded strings when in English
   if (currentLang === 'en') {
     // Sidebar footer upgrade btn label (re-set based on role)
@@ -268,11 +303,13 @@ function showToast(msg, type='success', duration=2500) {
 // NAVIGATION
 // ═══════════════════════════════════════
 const panelTitles = {
-  home: 'Início', search: () => t('search_title'), diary: () => t('nav_diary'),
+  home: () => currentLang === 'en' ? 'Home' : 'Início',
+  search: () => t('search_title'), diary: () => t('nav_diary'),
   goal: () => t('nav_goal'), camera: () => t('camera_title'),
   compare: () => t('compare_title'), recipes: () => t('recipes_title'),
-  prof: () => t('patients_title'), admin: 'Admin', profile: () => t('profile_title'),
-  water: 'Água'
+  prof: () => t('patients_title'), admin: () => currentLang === 'en' ? 'Admin' : 'Admin',
+  profile: () => t('profile_title'),
+  water: () => currentLang === 'en' ? 'Water' : 'Água'
 };
 
 function showPanel(name, navEl) {

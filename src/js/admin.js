@@ -165,15 +165,62 @@ async function sendAdminNotice() {
   loadAdminNotices();
 }
 
+let _adminNoticesExpanded = false;
+let _adminNoticesCache = [];
+
+function renderAdminNoticesList() {
+  const el = document.getElementById('adminNoticesList');
+  if (!el) return;
+  if (!_adminNoticesCache.length) {
+    el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Nenhum aviso enviado ainda.</p>';
+    return;
+  }
+  const btnLabel = currentLang === 'en'
+    ? (_adminNoticesExpanded ? 'Hide previous notices' : 'View previous notices')
+    : (_adminNoticesExpanded ? 'Ocultar avisos anteriores' : 'Ver Avisos anteriores');
+  const countLabel = currentLang === 'en'
+    ? `${_adminNoticesCache.length} notice(s) sent`
+    : `${_adminNoticesCache.length} aviso(s) enviado(s)`;
+
+  if (!_adminNoticesExpanded) {
+    el.innerHTML = `
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.75rem;">${countLabel}</p>
+      <button type="button" class="btn-primary" style="width:auto;padding:0.55rem 1.1rem;" onclick="toggleAdminNoticesHistory()">
+        <i class="fa-solid fa-clock-rotate-left" style="color:white!important;margin-right:0.35rem;"></i> ${btnLabel}
+      </button>`;
+    return;
+  }
+
+  el.innerHTML = _adminNoticesCache.map(n => {
+    const to = n.profiles?.name || n.profiles?.email || n.user_id;
+    const dt = new Date(n.created_at).toLocaleString(currentLang === 'en' ? 'en-US' : 'pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return `<div style="padding:0.8rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.6rem;background:var(--bg-card);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;margin-bottom:0.3rem;">
+        <span style="font-weight:700;font-size:0.88rem;color:var(--text-main);">${n.title||'Aviso do Sistema'}</span>
+        <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${dt}</span>
+      </div>
+      <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.3rem;">${currentLang === 'en' ? 'To' : 'Para'}: <strong>${to}</strong></p>
+      <p style="font-size:0.85rem;color:var(--text-main);line-height:1.5;">${n.message}</p>
+    </div>`;
+  }).join('') + `
+    <button type="button" style="margin-top:0.5rem;background:none;border:2px solid var(--border);border-radius:50px;padding:0.55rem 1.1rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);" onclick="toggleAdminNoticesHistory()">${btnLabel}</button>`;
+}
+
+function toggleAdminNoticesHistory() {
+  _adminNoticesExpanded = !_adminNoticesExpanded;
+  renderAdminNoticesList();
+}
+
 async function loadAdminNotices() {
   if (!isAdmin()) return;
   const el = document.getElementById('adminNoticesList');
   if (!el) return;
-  const { data, error } = await supabase.from('admin_notices')
+  const sb = window.getSupabase?.() || window._db;
+  const { data, error } = await sb.from('admin_notices')
     .select('id,title,message,created_at,user_id,profiles!admin_notices_user_id_fkey(name,email)')
     .eq('admin_id', currentUser.id)
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(50);
   if (error) {
     if (error.code === '42P01' || error.message?.includes('admin_notices')) {
       el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Tabela "admin_notices" ainda não criada. Clique em "Novo Aviso" e veja o console (F12) para o SQL.</p>';
@@ -182,19 +229,9 @@ async function loadAdminNotices() {
     }
     return;
   }
-  if (!data || !data.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Nenhum aviso enviado ainda.</p>'; return; }
-  el.innerHTML = data.map(n => {
-    const to = n.profiles?.name || n.profiles?.email || n.user_id;
-    const dt = new Date(n.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-    return `<div style="padding:0.8rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.6rem;background:var(--bg-card);">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;margin-bottom:0.3rem;">
-        <span style="font-weight:700;font-size:0.88rem;color:var(--text-main);">${n.title||'Aviso do Sistema'}</span>
-        <span style="font-size:0.72rem;color:var(--text-muted);white-space:nowrap;">${dt}</span>
-      </div>
-      <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.3rem;">Para: <strong>${to}</strong></p>
-      <p style="font-size:0.85rem;color:var(--text-main);line-height:1.5;">${n.message}</p>
-    </div>`;
-  }).join('');
+  _adminNoticesCache = data || [];
+  _adminNoticesExpanded = false;
+  renderAdminNoticesList();
 }
 
 async function checkAdminNotices() {
@@ -276,6 +313,7 @@ window.filterAdminNoticeUsers = filterAdminNoticeUsers;
 window.selectAdminNoticeUser = selectAdminNoticeUser;
 window.sendAdminNotice = sendAdminNotice;
 window.loadAdminNotices = loadAdminNotices;
+window.toggleAdminNoticesHistory = toggleAdminNoticesHistory;
 window.checkAdminNotices = checkAdminNotices;
 window.dismissAdminNoticePopup = dismissAdminNoticePopup;
 window.checkAnnouncements = checkAnnouncements;

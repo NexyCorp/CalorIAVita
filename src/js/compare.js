@@ -723,3 +723,12 @@ window.printRecipePDF = typeof printRecipePDF !== 'undefined' ? printRecipePDF :
 window.closeRecipeModal = closeModal; // Expor como closeRecipeModal para evitar conflitos com outros closeModals se existirem
 window.addRecipeToDiary = addRecipeToDiary;
 window.openPatientGoalsModal = openPatientGoalsModal;
+window.toggleRecipeForm = toggleRecipeForm;
+window.openAiRecipeModal = openAiRecipeModal;
+window.closeAiRecipeModal = closeAiRecipeModal;
+window.generateAiRecipe = generateAiRecipe;
+window.saveAiRecipe = saveAiRecipe;
+window.submitRecipe = submitRecipe;
+window.setVisibility = setVisibility;
+window.previewRecipePhotos = previewRecipePhotos;
+window.closeModal = closeModal;
