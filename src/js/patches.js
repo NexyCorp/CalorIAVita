@@ -450,9 +450,16 @@ Retorne SOMENTE um JSON válido com esta estrutura:
   document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]').disabled = true;
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem markdown nem texto adicional.');
+    // Usa callGroqLarge (8192 tokens) para dietas que exigem resposta longa
+    const askFn = window.callGroqLarge || window.callGroq;
+    const msgs = [
+      { role:'system', content:'Você é nutricionista. Retorne SOMENTE JSON válido sem markdown nem texto adicional.' },
+      { role:'user', content: prompt }
+    ];
+    const data = await askFn(msgs);
     _lastGeneratedDiet = data;
     renderDietResult(data);
+
   } catch(e) {
     const msg = e.message?.includes('429')
       ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
@@ -1134,7 +1141,12 @@ Retorne SOMENTE um JSON válido com esta estrutura:
   if (genBtn) genBtn.disabled = true;
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem markdown nem texto adicional.');
+    const askFn = window.callGroqLarge || window.callGroq;
+    const msgs = [
+      { role:'system', content:'Você é nutricionista. Retorne SOMENTE JSON válido sem markdown nem texto adicional.' },
+      { role:'user', content: prompt }
+    ];
+    const data = await askFn(msgs);
     _lastGeneratedDiet = data;
     _lastGeneratedDiet._forPatient = _p2_dietPatientName || null;
     renderDietResult(data);

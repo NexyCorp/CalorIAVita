@@ -1,7 +1,11 @@
 // ═══════════════════════════════════════
 // PATIENT DIARY (visão do nutricionista)
 // ═══════════════════════════════════════
+// Helper Supabase — compatível com qualquer versão do cliente registrado em window
+const _getSb = () => (typeof window !== 'undefined' && (window._db || window.supabase)) || supabase;
+
 const pdState = { patientId: null, patientName: null, date: null, tab: 'day', goal: 2000, waterGoal: 2000 };
+
 
 function toLocalDateStr(d) {
   const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
@@ -680,12 +684,12 @@ async function loadAdminPanel() {
 async function refreshAdminUsers() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Carregando usuários...</td></tr>';
-  const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending:false });
+  const { data, error } = await _getSb().from('profiles').select('*').order('created_at', { ascending:false });
   if (error) {
     console.error('[Admin] Erro ao carregar usuários:', error);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#e53935;padding:2rem;">
       <i class="fa-solid fa-xmark ic-alert"></i> Erro ${error.code}: ${error.message}<br>
-      <small style="color:var(--text-muted);">Verifique as políticas RLS da tabela profiles no Supabase.</small>
+      <small style="color:var(--text-muted);">Verifique as políticas RLS da tabela profiles no Supabase (admin deve ter SELECT em profiles).</small>
     </td></tr>`;
     return;
   }
@@ -779,7 +783,7 @@ async function loadUpgradeRequests() {
   if (!el) return;
   el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Carregando upgrades...</p>';
 
-  const { data, error } = await supabase
+  const { data, error } = await _getSb()
     .from('upgrade_requests')
     .select('*')
     .eq('status', 'pending')
@@ -873,7 +877,7 @@ async function loadNutritionistRequests() {
   el.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Carregando solicitacoes...</p>';
 
   const statusFilter = document.getElementById('nutritionistRequestStatusFilter')?.value || 'pending';
-  let query = supabase
+  let query = _getSb()
     .from('nutritionist_requests')
     .select('*')
     .order('created_at', { ascending:false });

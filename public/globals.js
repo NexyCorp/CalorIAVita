@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════
 
 var currentUser = null;
+var supabase = null;
 var currentProfile = null;
 var diary = { cafe: [], almoco: [], lanche: [], jantar: [] };
 var diaryGoal = 2000;

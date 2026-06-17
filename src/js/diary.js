@@ -1,6 +1,9 @@
 // ═══════════════════════════════════════
 // DIARY
 // ═══════════════════════════════════════
+// Helper para sempre pegar o cliente Supabase correto (compatível com várias versões do auth.js)
+const _sb = () => (typeof window !== 'undefined' && (window._db || window.supabase)) || supabase;
+
 function initDiaryDate() {
   renderDiaryDate();
   buildWeeklyGrid();
@@ -91,7 +94,7 @@ async function saveEditItem(mealKey, idx) {
 
   const updated = { ...item, name:newName, qty:newQty, unit:newUnit, kcal, carbs, prot, fat };
   if (item.id) {
-    await supabase.from('diary_entries').update({
+    await _sb().from('diary_entries').update({
       food_name:newName, kcal, carbs, protein:prot, fat, qty:newQty, unit:newUnit
     }).eq('id', item.id);
   }
@@ -104,7 +107,7 @@ async function saveEditItem(mealKey, idx) {
 
 async function removeDiaryItem(mealKey, idx) {
   const item = diary[mealKey][idx];
-  if (item?.id) await supabase.from('diary_entries').delete().eq('id', item.id);
+  if (item?.id) await _sb().from('diary_entries').delete().eq('id', item.id);
   diary[mealKey].splice(idx, 1);
   renderMeal(mealKey);
   updateDiaryProgress();
@@ -276,7 +279,7 @@ function toggleMeal(key) {
 async function clearDiary() {
   if (!confirm('Limpar todo o diário deste dia?')) return;
   if (currentUser) {
-    await supabase.from('diary_entries').delete().eq('user_id', currentUser.id).eq('date', diaryDate);
+    await _sb().from('diary_entries').delete().eq('user_id', currentUser.id).eq('date', diaryDate);
   }
   diary = { cafe:[], almoco:[], lanche:[], jantar:[] };
   ['cafe','almoco','lanche','jantar'].forEach(k => renderMeal(k));
@@ -286,20 +289,23 @@ async function clearDiary() {
 
 async function saveDiaryToDB(mealKey, item) {
   if (!currentUser) return;
-  const { data } = await supabase.from('diary_entries').insert({
-    user_id: currentUser.id, date: diaryDate, meal: mealKey,
-    food_name: item.name, kcal: item.kcal,
-    carbs: item.carbs||0, protein: item.prot||0, fat: item.fat||0,
-    qty: item.qty||100, unit: item.unit||'g',
-    photo_url: item.photoUrl || null
-  }).select().single();
-  if (data) item.id = data.id;
+  try {
+    const { data, error } = await _sb().from('diary_entries').insert({
+      user_id: currentUser.id, date: diaryDate, meal: mealKey,
+      food_name: item.name, kcal: item.kcal,
+      carbs: item.carbs||0, protein: item.prot||0, fat: item.fat||0,
+      qty: item.qty||100, unit: item.unit||'g',
+      photo_url: item.photoUrl || null
+    }).select().maybeSingle();
+    if (error) { console.warn('[saveDiaryToDB]', error.code, error.message); return; }
+    if (data) item.id = data.id;
+  } catch(e) { console.warn('[saveDiaryToDB] exception:', e); }
 }
 
 async function loadDiaryForDate(date) {
   diary = { cafe:[], almoco:[], lanche:[], jantar:[] };
   if (!currentUser) return;
-  const { data } = await supabase.from('diary_entries').select('*').eq('user_id', currentUser.id).eq('date', date);
+  const { data } = await _sb().from('diary_entries').select('*').eq('user_id', currentUser.id).eq('date', date);
   (data||[]).forEach(entry => {
     const meal = entry.meal;
     if (diary[meal]) diary[meal].push({ id:entry.id, name:entry.food_name, kcal:entry.kcal, carbs:entry.carbs, prot:entry.protein, fat:entry.fat, qty:entry.qty||100, unit:entry.unit||'g', photoUrl: entry.photo_url||null });
@@ -311,12 +317,12 @@ async function loadDiaryForDate(date) {
 // ─── Goal persistence ───
 async function saveGoalToDB(kcal) {
   if (!currentUser) return;
-  await supabase.from('user_goals').upsert({ user_id:currentUser.id, daily_kcal:kcal, updated_at:new Date().toISOString() }, { onConflict:'user_id' });
+  await _sb().from('user_goals').upsert({ user_id:currentUser.id, daily_kcal:kcal, updated_at:new Date().toISOString() }, { onConflict:'user_id' });
 }
 
 async function loadGoalFromDB() {
   if (!currentUser) return;
-  const { data } = await supabase.from('user_goals').select('daily_kcal').eq('user_id',currentUser.id).maybeSingle();
+  const { data } = await _sb().from('user_goals').select('daily_kcal').eq('user_id',currentUser.id).maybeSingle();
   if (data) {
     diaryGoal = data.daily_kcal;
     const gi = document.getElementById('goalInput');
@@ -369,9 +375,8 @@ async function calcCalories() {
   updateDiaryProgress();
   await saveGoalToDB(goal);
 
-  // Sincroniza esses dados no perfil do usuário para reaproveitar depois
   try {
-    await supabase.from('profiles').update({ sex, age, weight, height }).eq('id', currentUser.id);
+    await _sb().from('profiles').update({ sex, age, weight, height }).eq('id', currentUser.id);
     currentProfile = { ...currentProfile, sex, age, weight, height };
   } catch(e) { console.warn('[CalorIA] Não foi possível sincronizar dados no perfil:', e); }
 
@@ -477,9 +482,9 @@ async function addCamToDiary() {
       const byteNumbers = new Array(byteChars.length);
       for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
       const blob = new Blob([new Uint8Array(byteNumbers)], { type: currentImageMimeType });
-      const { error: upErr } = await supabase.storage.from('diary-photos').upload(path, blob, { upsert: true, contentType: currentImageMimeType });
+      const { error: upErr } = await _sb().storage.from('diary-photos').upload(path, blob, { upsert: true, contentType: currentImageMimeType });
       if (!upErr) {
-        const { data: urlData } = supabase.storage.from('diary-photos').getPublicUrl(path);
+        const { data: urlData } = _sb().storage.from('diary-photos').getPublicUrl(path);
         photoUrl = urlData?.publicUrl || null;
       }
     } catch (e) { console.warn('Falha ao salvar foto:', e); }
@@ -512,7 +517,7 @@ async function compareFoods() {
   let diseaseCtx = '';
   try {
     if (currentUser?.id) {
-      const { data: an } = await supabase.from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other').eq('patient_id', currentUser.id).maybeSingle();
+      const { data: an } = await _sb().from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other').eq('patient_id', currentUser.id).maybeSingle();
       if (an) {
         const diseases = [...(an.diseases_general||[]), ...(an.diseases_chronic_auto||[])].filter(Boolean);
         if (diseases.length) diseaseCtx += ` Doenças: ${diseases.join(', ')}.`;

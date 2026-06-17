@@ -3,7 +3,10 @@
 // ═══════════════════════════════════════
 const GROQ_KEY = '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';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
+const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
+const GROQ_MODEL_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão (imagens)
+const GROQ_MODEL_VISION_FB = 'llama-3.2-11b-vision-preview'; // fallback visão
 
 function extractJSON(text) {
   let s = text.replace(/```json/g,'').replace(/```/g,'').trim();
@@ -14,20 +17,27 @@ function extractJSON(text) {
   return JSON.parse(s.substring(start, end+1));
 }
 
-async function callGroq(messages, retries = 3) {
+async function _groqFetch(model, messages, maxTokens = 4096) {
   if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
+  let res;
+  try {
+    res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+      body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.2 })
+    });
+  } catch(netErr) {
+    throw new Error('Sem conexão com a API. Verifique sua internet.');
+  }
+  return res;
+}
+
+async function callGroq(messages, retries = 3, maxTokens = 4096) {
   let lastErr;
   for (let attempt = 0; attempt < retries; attempt++) {
-    let res;
-    try {
-      res = await fetch(GROQ_URL, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+GROQ_KEY },
-        body: JSON.stringify({ model:GROQ_MODEL, messages, max_tokens:4096, temperature:0.2 })
-      });
-    } catch(netErr) {
-      throw new Error('Sem conexão com a API. Verifique sua internet.');
-    }
+    // Na última tentativa, usa modelo menor como fallback
+    const model = attempt === retries - 1 ? GROQ_MODEL_FAST : GROQ_MODEL;
+    const res = await _groqFetch(model, messages, maxTokens);
     if (res.status === 401 || res.status === 403) throw new Error('401');
     if (res.status === 429) {
       if (attempt < retries - 1) {
@@ -53,6 +63,11 @@ async function callGroq(messages, retries = 3) {
   throw lastErr || new Error('429');
 }
 
+// Versão com mais tokens para prompts longos (como geração de dieta)
+async function callGroqLarge(messages) {
+  return callGroq(messages, 3, 8192);
+}
+
 async function askClaude(prompt, sys) {
   return callGroq([
     { role:'system', content: sys || 'Você é especialista em nutrição. Responda SOMENTE em JSON válido.' },
@@ -60,15 +75,38 @@ async function askClaude(prompt, sys) {
   ]);
 }
 
+// Análise de imagem com modelo de visão dedicado (llama-4-scout suporta image_url)
 async function askGeminiWithImage(b64, mime, prompt) {
-  return callGroq([
+  if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
+  const messages = [
     { role:'system', content:'Você é especialista em nutrição. Retorne SOMENTE JSON válido.' },
     { role:'user', content:[
       { type:'image_url', image_url:{ url:'data:'+mime+';base64,'+b64 }},
       { type:'text', text: prompt }
     ]}
-  ]);
+  ];
+
+  // Tenta modelo principal de visão, depois fallback
+  for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
+    try {
+      const res = await _groqFetch(model, messages, 2048);
+      if (res.status === 401 || res.status === 403) throw new Error('401');
+      if (!res.ok) {
+        if (model === GROQ_MODEL_VISION) continue; // tenta fallback
+        const body = await res.text().catch(()=>'');
+        throw new Error('Groq ' + res.status + ': ' + body.slice(0,120));
+      }
+      const data = await res.json();
+      if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
+      return extractJSON(data.choices[0].message.content);
+    } catch(e) {
+      if (model === GROQ_MODEL_VISION_FB) throw e;
+    }
+  }
+  throw new Error('Não foi possível analisar a imagem.');
 }
+
+
 
 // ═══════════════════════════════════════
 // SEARCH
@@ -233,6 +271,7 @@ function addToDiaryFromSearch() {
 // Expor funções para o escopo global
 window.extractJSON = extractJSON;
 window.callGroq = callGroq;
+window.callGroqLarge = callGroqLarge;
 window.askClaude = askClaude;
 window.askGeminiWithImage = askGeminiWithImage;
 window.searchFood = searchFood;
@@ -240,5 +279,7 @@ window.toggleNutritionPanel = toggleNutritionPanel;
 window._showNutriScore = _showNutriScore;
 window.quickSearch = quickSearch;
 window.addToDiaryFromSearch = addToDiaryFromSearch;
+
+
 
 
