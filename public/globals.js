@@ -4,6 +4,15 @@
 
 var currentUser = null;
 var supabase = null;
+var askClaude = null;
+var askGeminiWithImage = null;
+var callGroq = null;
+var callGroqLarge = null;
+var extractJSON = null;
+var showPanel = null;
+var showToast = null;
+var escapeHtml = null;
+var t = null;
 var currentProfile = null;
 var diary = { cafe: [], almoco: [], lanche: [], jantar: [] };
 var diaryGoal = 2000;
