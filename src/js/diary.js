@@ -53,9 +53,9 @@ function renderMeal(mealKey) {
   el.innerHTML = items.map((it, idx) => `
     <div class="diary-item">
       ${it.photoUrl ? `<img src="${it.photoUrl}" alt="${it.name}" class="diary-item-photo" onclick="openPhotoLightbox('${it.photoUrl}')">` : ''}
-      <span class="diary-item-name">${it.name}</span>
+      <span class="diary-item-name" style="cursor:pointer;" onclick="showFoodDetails('${mealKey}',${idx})">${it.name}</span>
       <div class="diary-item-actions">
-        <span class="diary-item-kcal">${it.kcal} kcal</span>
+        <span class="diary-item-kcal" style="cursor:pointer;" onclick="showFoodDetails('${mealKey}',${idx})">${it.kcal} kcal</span>
         <button class="btn-edit-item" onclick="openEditItem('${mealKey}',${idx})" title="Editar"><i class="fa-solid fa-pen ic-search"></i></button>
         <button class="btn-remove" onclick="removeDiaryItem('${mealKey}',${idx})" title="Remover">✕</button>
       </div>
@@ -88,7 +88,10 @@ async function saveEditItem(mealKey, idx) {
   if (newName !== item.name || newQty !== (item.qty||100)) {
     try {
       const data = await askClaude(`JSON: name, calories, carbs, protein, fat para "${newName}" em ${newQty} ${newUnit}.`, 'Retorne SOMENTE JSON válido.');
-      kcal = Math.round(data.calories||0); carbs = data.carbs||0; prot = data.protein||0; fat = data.fat||0;
+      kcal = Math.round(data.calories || data.calorias || data.kcal || 0);
+      carbs = data.carbs || data.carboidratos || data.carbohydrates || 0;
+      prot = data.protein || data.proteinas || data.prot || 0;
+      fat = data.fat || data.gorduras || 0;
     } catch(e) {}
   }
 
@@ -254,9 +257,11 @@ async function diaryAddFood() {
       'Retorne SOMENTE JSON válido.'
     );
     await addToDiaryMeal(meal, {
-      name: data.name || q,
-      kcal: Math.round(data.calories||0),
-      carbs: data.carbs||0, prot: data.protein||0, fat: data.fat||0,
+      name: data.name || data.nome || q,
+      kcal: Math.round(data.calories || data.calorias || data.kcal || 0),
+      carbs: data.carbs || data.carboidratos || data.carbohydrates || 0,
+      prot: data.protein || data.proteinas || data.prot || 0,
+      fat: data.fat || data.gorduras || 0,
       qty, unit
     });
     document.getElementById('diaryAddInput').value = '';
@@ -444,7 +449,7 @@ async function analyzeImage() {
   document.getElementById('analyzeBtn').disabled = true;
   try {
     const result = await askGeminiWithImage(currentImageBase64, currentImageMimeType,
-      'Analise esta imagem. Retorne JSON: foodName, confidence, portion, calories, carbs, protein, fat, fiber, tips.');
+      'Analise esta imagem. Estime o peso total da porção. Se for um prato com múltiplos alimentos, estime e descreva no campo "portion" o peso em gramas de cada porção individual (ex: "Arroz: 150g, Feijão: 100g, Frango: 120g"). Retorne JSON: foodName, confidence, portion, calories, carbs, protein, fat, fiber, tips.');
     lastCamResult = result;
     document.getElementById('camFoodName').textContent = result.foodName;
     document.getElementById('camConfidence').textContent = `✓ ${result.confidence} • ${result.portion}`;
@@ -515,6 +520,9 @@ async function compareFoods() {
   // Build user profile + anamnese context for recommendation
   const p = currentProfile || {};
   let diseaseCtx = '';
+  if (localStorage.getItem('cv_is_diabetic') === 'true') {
+    diseaseCtx += ' Diabetes/Pré-Diabetes.';
+  }
   try {
     if (currentUser?.id) {
       const { data: an } = await _sb().from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other').eq('patient_id', currentUser.id).maybeSingle();
@@ -627,3 +635,32 @@ window.calcCalories = calcCalories;
 window.saveGoal = saveGoal;
 window.handleImageUpload = handleImageUpload;
 window.analyzeImage = analyzeImage;
+
+window.showFoodDetails = function(mealKey, idx) {
+  const item = diary[mealKey][idx];
+  if (!item) return;
+  
+  document.getElementById('foodDetailName').textContent = item.name;
+  document.getElementById('foodDetailQty').textContent = `${item.qty || 100} ${item.unit || 'g'}`;
+  document.getElementById('foodDetailKcal').textContent = `${item.kcal || 0} kcal`;
+  document.getElementById('foodDetailCarbs').textContent = `${item.carbs || 0}g`;
+  document.getElementById('foodDetailProt').textContent = `${item.prot || 0}g`;
+  document.getElementById('foodDetailFat').textContent = `${item.fat || 0}g`;
+  
+  const totalMacros = (item.carbs || 0) + (item.prot || 0) + (item.fat || 0);
+  if (totalMacros > 0) {
+    document.getElementById('foodDetailCarbsBar').style.width = `${((item.carbs || 0) / totalMacros) * 100}%`;
+    document.getElementById('foodDetailProtBar').style.width = `${((item.prot || 0) / totalMacros) * 100}%`;
+    document.getElementById('foodDetailFatBar').style.width = `${((item.fat || 0) / totalMacros) * 100}%`;
+  } else {
+    document.getElementById('foodDetailCarbsBar').style.width = '0%';
+    document.getElementById('foodDetailProtBar').style.width = '0%';
+    document.getElementById('foodDetailFatBar').style.width = '0%';
+  }
+  
+  document.getElementById('foodDetailModal').classList.add('show');
+};
+
+window.closeFoodDetailModal = function() {
+  document.getElementById('foodDetailModal').classList.remove('show');
+};

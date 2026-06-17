@@ -309,7 +309,7 @@ async function fetchUserProfile(user) {
     for (let attempt = 0; attempt < 2; attempt++) {
       const { data } = await withTimeout(
         sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-        5000,
+        3000,
         'profile timeout'
       );
       if (data) return data;
@@ -319,7 +319,7 @@ async function fetchUserProfile(user) {
             id: user.id, email: user.email, name: metaName || null,
             role: 'standard', plan: 'free', updated_at: new Date().toISOString()
           }, { onConflict: 'id' }),
-          5000,
+          3000,
           'profile upsert timeout'
         );
       }
@@ -337,6 +337,7 @@ function _loadAppDataInBackground() {
   Promise.allSettled([
     window.loadGoalFromDB?.(),
     window.loadDiaryForDate?.(diaryDate),
+    window.loadDietPlan?.(),
     (async () => {
       try {
         if (typeof loadRecipesFromDB === 'function') await loadRecipesFromDB();
@@ -403,6 +404,7 @@ async function initApp(user) {
     currentUser = user;
     currentProfile = currentProfile || _profileFallback(user);
     showApp(user);
+    try { showPanel('home', document.getElementById('nav-home')); } catch(err){}
     _appInitialized = true;
     setAuthLoading(false);
     _loadAppDataInBackground();
@@ -513,10 +515,10 @@ function applyProfileUpdate(newData) {
         _cookieDel(_CV_COOKIE);
       }
       let { data: { session: stored } } = await sb.auth.getSession();
-      if (stored?.user) return;
+      if (stored?.user) { await initApp(stored.user); return; }
       await new Promise(r => setTimeout(r, 350));
       ({ data: { session: stored } } = await sb.auth.getSession());
-      if (stored?.user) return;
+      if (stored?.user) { await initApp(stored.user); return; }
     } else if (event === 'TOKEN_REFRESHED') {
       return;
     } else if (event !== 'SIGNED_OUT') {
@@ -530,6 +532,28 @@ function applyProfileUpdate(newData) {
     document.getElementById('appShell').style.display = 'none';
   }
 });
+
+// Fallback timeout to ensure the app doesn't stay black/stuck forever
+setTimeout(() => {
+  if (!_appInitialized) {
+    console.warn('[CalorIA] App initialization fallback triggered.');
+    if (currentUser) {
+      console.warn('[CalorIA] Current user exists but app not initialized. Forcing initialization.');
+      currentProfile = currentProfile || _profileFallback(currentUser);
+      showApp(currentUser);
+      setupRoleUI();
+      applyPlanRestrictions();
+      renderSidebarUser();
+      initDiaryDate();
+      try { showPanel('home', document.getElementById('nav-home')); } catch(err){}
+      _appInitialized = true;
+      setAuthLoading(false);
+      _loadAppDataInBackground();
+    } else {
+      setAuthLoading(false);
+    }
+  }
+}, 8000);
 
 // Expor funções e variáveis para o escopo global
 window.switchAuthTab = switchAuthTab;
@@ -547,5 +571,4 @@ window.selectOnbGoal = selectOnbGoal;
 window.completeOnboarding = completeOnboarding;
 window.doLogout = doLogout;
 window.initApp = initApp;
-
-
+window.forceRefreshProfile = forceRefreshProfile;

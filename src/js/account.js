@@ -7,7 +7,7 @@ async function loadMyNutritionistRequestStatus() {
 
   const { data, error } = await supabase
     .from('nutritionist_requests')
-    .select('status,rejection_reason,rejection_fields,reviewed_at,created_at')
+    .select('*')
     .eq('user_id', currentUser.id)
     .order('created_at', { ascending:false })
     .limit(1)
@@ -16,22 +16,71 @@ async function loadMyNutritionistRequestStatus() {
   if (error || !data) {
     statusEl.style.display = 'none';
     if (btn) btn.style.display = 'inline-flex';
+    window._myNutReq = null;
     return;
   }
 
-  const statusLabels = { pending:'Em analise', approved:'Aprovado', rejected:'Negado' };
+  window._myNutReq = data;
+  const statusLabels = { pending:'Em análise', approved:'Aprovado', rejected:'Negado' };
   const fields = Array.isArray(data.rejection_fields) && data.rejection_fields.length ? '<br>Dados marcados: ' + data.rejection_fields.join(', ') : '';
-  const reason = data.status === 'rejected' ? '<br>Motivo: ' + escapeHtml(data.rejection_reason || 'Nao informado') + fields : '';
-  statusEl.innerHTML = '<strong>Status da solicitacao:</strong> ' + (statusLabels[data.status] || data.status) + reason;
+  const reason = data.status === 'rejected' ? '<br>Motivo: ' + escapeHtml(data.rejection_reason || 'Não informado') + fields : '';
+  statusEl.innerHTML = '<strong>Status da solicitação:</strong> ' + (statusLabels[data.status] || data.status) + reason;
   statusEl.style.display = 'block';
-  if (btn) btn.style.display = data.status === 'pending' || data.status === 'approved' ? 'none' : 'inline-flex';
+  
+  if (btn) {
+    btn.style.display = 'inline-flex';
+    btn.innerHTML = data.status === 'rejected' ? 'Enviar Nova Solicitação' : 'Ver Solicitação';
+  }
 }
-function openNutritionistRequest() { document.getElementById('nutritionistModal').classList.add('show'); }
+function openNutritionistRequest() {
+  document.getElementById('nutritionistModal').classList.add('show');
+  const req = window._myNutReq;
+  const isReadOnly = req && (req.status === 'pending' || req.status === 'approved');
+  
+  if (req && req.status !== 'rejected') {
+    document.getElementById('nutCRN').value = req.crn || '';
+    document.getElementById('nutInstitution').value = req.institution || '';
+    document.getElementById('nutMessage').value = req.message || '';
+    
+    // Check specialties
+    const specStr = req.specialty || '';
+    document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => {
+      if (specStr.includes(cb.value)) cb.checked = true;
+      else cb.checked = false;
+    });
+    
+    // Handle 'Outra'
+    const predefined = ['Clínica', 'Esportiva', 'Pediatria', 'Gestante', 'Oncologia', 'Renal', 'Cardiologia', 'Outra'];
+    const customSpecs = specStr.split(', ').filter(s => !predefined.includes(s));
+    if (customSpecs.length > 0 || specStr.includes('Outra')) {
+      const otherCb = document.querySelector('input[name="nutSpecialty"][value="Outra"]');
+      if (otherCb) otherCb.checked = true;
+      document.getElementById('nutSpecialtyOtherContainer').style.display = 'block';
+      document.getElementById('nutSpecialtyOther').value = customSpecs.join(', ');
+    }
+  }
+
+  const inputs = ['nutCRN', 'nutInstitution', 'nutMessage', 'nutSpecialtyOther'];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = isReadOnly;
+  });
+  document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.disabled = isReadOnly);
+  
+  const submitBtn = document.querySelector('#nutritionistModal .btn-primary');
+  if (submitBtn) submitBtn.style.display = isReadOnly ? 'none' : 'block';
+}
 function closeNutritionistModal() { document.getElementById('nutritionistModal').classList.remove('show'); }
 
 async function sendNutritionistRequest() {
   const crn = document.getElementById('nutCRN').value.trim();
-  const specialty = document.getElementById('nutSpecialty').value.trim();
+  const checkboxes = document.querySelectorAll('input[name="nutSpecialty"]:checked');
+  let specialtyList = Array.from(checkboxes).map(c => c.value);
+  if (specialtyList.includes('Outra')) {
+    const otherVal = document.getElementById('nutSpecialtyOther').value.trim();
+    if (otherVal) specialtyList = specialtyList.filter(v => v !== 'Outra').concat(otherVal);
+  }
+  const specialty = specialtyList.join(', ');
   const institution = document.getElementById('nutInstitution').value.trim();
   const message = document.getElementById('nutMessage').value.trim();
   if (!crn) { showToast('Informe o CRN', 'error'); return; }
@@ -66,8 +115,14 @@ async function sendNutritionistRequest() {
     } catch(emailError) {
       console.warn('[CalorIA] Email notification failed:', emailError);
     }
-    ['nutCRN','nutSpecialty','nutInstitution','nutMessage'].forEach(id => document.getElementById(id).value = '');
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao enviada! O admin podera aprovar pelo painel.');
+    const crnInput = document.getElementById('nutCRN'); if (crnInput) crnInput.value = '';
+    const otherInput = document.getElementById('nutSpecialtyOther'); if (otherInput) otherInput.value = '';
+    const instInput = document.getElementById('nutInstitution'); if (instInput) instInput.value = '';
+    const msgInput = document.getElementById('nutMessage'); if (msgInput) msgInput.value = '';
+    document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.checked = false);
+    const otherContainer = document.getElementById('nutSpecialtyOtherContainer');
+    if (otherContainer) otherContainer.style.display = 'none';
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! O admin poderá aprovar pelo painel.');
   } catch(e) {
     console.error('[CalorIA] nutritionist request error:', e);
     showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitacao. Verifique a tabela nutritionist_requests no Supabase.', 'error');
@@ -1653,9 +1708,14 @@ window.saveProfile = async function() {
   const dob = document.getElementById('profileDob')?.value || null;
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
 
-  const { error } = await (window.getSupabase?.() || window._db).from('profiles').update({
-    name, username: username || null, sex, age, weight, height, body_fat_pct, dob
-  }).eq('id', currentUser.id);
+  const payload = { name, username: username || null, sex, age, weight, height, body_fat_pct, dob };
+  let { error } = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
+  if (error && error.code === '42703') {
+    if (error.message?.includes('dob')) delete payload.dob;
+    if (error.message?.includes('body_fat_pct')) delete payload.body_fat_pct;
+    const retry = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
+    error = retry.error;
+  }
   if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
 
   try {
@@ -1684,6 +1744,11 @@ window.renderSidebarUser = function() {
     const bfEl = document.getElementById('profileBodyFat');
     if (bfEl) { bfEl.value = currentProfile.body_fat_pct; profileUpdateFatClassification(); }
   }
+  const isDiabetic = localStorage.getItem('cv_is_diabetic') === 'true';
+  const profileDiabEl = document.getElementById('profileDiabetes');
+  if (profileDiabEl) profileDiabEl.checked = isDiabetic;
+  const calcDiabEl = document.getElementById('calcDiabetes');
+  if (calcDiabEl) calcDiabEl.checked = isDiabetic;
 };
 
 // Expor funções para o escopo global

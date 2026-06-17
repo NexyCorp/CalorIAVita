@@ -189,10 +189,10 @@ Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanch
         <span class="recipe-chip orange">⏱ ${data.time||'—'}</span>
       </div>
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.3rem;font-weight:700;">Ingredientes:</div>
-      <ul style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.6rem;">${(data.ingredients||[]).map(i=>`<li>${i}</li>`).join('')}</ul>
+      <ul style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.6rem;">${(data.ingredients||[]).map(i=>`<li>${typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) : i}</li>`).join('')}</ul>
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.3rem;font-weight:700;">Preparo:</div>
-      <ol style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.75rem;">${(data.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol>
-      <button onclick=\"saveAiRecipe()\" style="width:100%;background:var(--green-mid);color:white;border:none;border-radius:50px;padding:0.7rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">
+      <ol style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.75rem;">${(data.steps||[]).map(s=>`<li>${typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s}</li>`).join('')}</ol>
+      <button onclick="saveAiRecipe()" style="width:100%;background:var(--green-mid);color:white;border:none;border-radius:50px;padding:0.7rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">
         <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar esta Receita
       </button>`;
   } catch(e) {
@@ -216,8 +216,8 @@ function saveAiRecipe(data) {
     document.getElementById('newRecipeKcal').value = d.kcal || '';
     document.getElementById('newRecipeProt').value = d.prot || '';
     document.getElementById('newRecipeTotalGrams').value = d.totalGrams || '';
-    document.getElementById('newRecipeIngredients').value = (d.ingredients||[]).join('\n');
-    document.getElementById('newRecipeSteps').value = (d.steps||[]).join('\n');
+    document.getElementById('newRecipeIngredients').value = (d.ingredients||[]).map(i=>typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) : i).join('\n');
+    document.getElementById('newRecipeSteps').value = (d.steps||[]).map(s=>typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s).join('\n');
     if (d.category) document.getElementById('newRecipeCat').value = d.category;
     showToast('Receita IA preenchida! Revise e salve.');
   }, 200);
@@ -436,8 +436,8 @@ async function submitRecipe() {
   let savedRecipe = null, saveErr = null;
 
   for (let attempt = 0; attempt < 10; attempt++) {
-    const { data, error } = await supabase.from('recipes').insert(payload).select('id').single();
-    if (!error) { savedRecipe = data; saveErr = null; break; }
+    const { data, error } = await supabase.from('recipes').insert(payload).select();
+    if (!error) { savedRecipe = data?.[0]; saveErr = null; break; }
 
     saveErr = error;
     const msg = error.message || '';
@@ -621,10 +621,24 @@ async function notifyNutritionistRecipeView(recipeTitle) {
   } catch(e) { /* silently fail */ }
 }
 
-function shareRecipeAsPdf(id) {
+async function shareRecipeAsPdf(id) {
   const all = [...recipesData, ...userRecipes];
   const r = all.find(x => x.id == id);
   if (!r) return;
+
+  // Try Native Share first if supported
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: r.title,
+        text: `Receita: ${r.title}\nCalorias: ${r.kcal} kcal\nProteínas: ${r.prot}g\n\nIngredientes:\n${r.ingredients.join('\n')}\n\nModo de Preparo:\n${r.steps.join('\n')}`
+      });
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Receita compartilhada!');
+      return;
+    } catch(err) {
+      console.warn('[Share] Web Share API failed/cancelled, falling back to PDF:', err);
+    }
+  }
 
   const logoB64 = LOGO_LIGHT_B64;
   const logoSvg = `<img src="${logoB64}" width="48" height="48" style="border-radius:8px;">`;

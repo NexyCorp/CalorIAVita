@@ -58,6 +58,16 @@ function setupRoleUI() {
   const isProf = isProfessional();
   const isAdm = isAdmin();
 
+  if (isProf) {
+    if (document.getElementById('dropdownBecomeNut')) document.getElementById('dropdownBecomeNut').style.display = 'none';
+  } else {
+    if (document.getElementById('dropdownBecomeNut')) document.getElementById('dropdownBecomeNut').style.display = 'block';
+  }
+
+  // Ensure specialty button is hidden for non-professionals
+  const nutSpecBtn = document.getElementById('dropdownNutSpecialtyBtn');
+  if (nutSpecBtn) nutSpecBtn.style.display = isProf ? 'block' : 'none';
+
   document.getElementById('nav-prof').style.display = isProf ? 'flex' : 'none';
   document.getElementById('navGroupPro').style.display = isProf ? 'block' : 'none';
   // Chat nav: visible for CLINIC nutritionists AND patients linked to a clinic nutritionist (not for Pro nutritionists)

@@ -10,7 +10,8 @@ async function loadGoalFromDB() {
   const { data } = await sb.from('user_goals').select('daily_kcal,daily_sugar,daily_water').eq('user_id',currentUser.id).maybeSingle();
   if (data) {
     diaryGoal      = data.daily_kcal  || 2000;
-    diaryGoalSugar = data.daily_sugar || 25;
+    const isDiabetic = localStorage.getItem('cv_is_diabetic') === 'true';
+    diaryGoalSugar = data.daily_sugar || (isDiabetic ? 15 : 25);
     diaryGoalWater = data.daily_water || 2000;
     const gi = document.getElementById('goalInput');
     if (gi) gi.value = diaryGoal;
@@ -206,11 +207,12 @@ async function calcCalories() {
   const fat   = Math.round((goal*0.25)/9);
 
   // Açúcar: OMS recomenda <10% das calorias = <25g (meta estrita) ou <50g (limite)
-  const sugarGoal = Math.round((goal * 0.05) / 4); // 5% das kcal
+  let sugarGoal = Math.round((goal * 0.05) / 4); // 5% das kcal
   // Água: 35ml por kg de peso corporal (IOM)
   const waterGoal = Math.round(weight * 35);
 
-  diaryGoalSugar = Math.max(25, sugarGoal);
+  const isDiabetic = document.getElementById('calcDiabetes')?.checked || localStorage.getItem('cv_is_diabetic') === 'true';
+  diaryGoalSugar = isDiabetic ? 15 : Math.max(25, sugarGoal);
   diaryGoalWater = Math.max(1500, waterGoal);
 
   document.getElementById('calcTMB').textContent  = Math.round(tmb);
@@ -587,6 +589,157 @@ function printDiet() {
   const win  = window.open(url, '_blank');
   if (!win) { const a = document.createElement('a'); a.href=url; a.download='plano_alimentar.html'; a.click(); }
   setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
+
+// ═══════════════════════════════════════
+// FEATURE 5.1: DIETA IA TRACKING & SAVING
+// ═══════════════════════════════════════
+var _savedDietPlan = null;
+var _savedDietProgress = {};
+
+async function saveDietPlan() {
+  if (!_lastGeneratedDiet) { showToast('Nenhuma dieta gerada para salvar', 'error'); return; }
+  
+  _savedDietPlan = _lastGeneratedDiet;
+  _savedDietProgress = {}; // Reset progress when new diet plan is saved
+  
+  localStorage.setItem('cv_saved_diet_plan', JSON.stringify(_savedDietPlan));
+  localStorage.setItem('cv_saved_diet_progress', JSON.stringify(_savedDietProgress));
+  
+  showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Salvando plano...');
+  
+  if (currentUser) {
+    const sb = window.getSupabase?.() || window._db;
+    try {
+      const { error } = await sb.from('dieta_ia_logs').upsert({
+        user_id: currentUser.id,
+        diet_plan: _savedDietPlan,
+        progress_tracking: _savedDietProgress
+      }, { onConflict: 'user_id' });
+      if (error) console.warn('[saveDietPlan DB error]', error.message);
+    } catch(e) {
+      console.warn('[saveDietPlan DB catch]', e);
+    }
+  }
+  
+  renderSavedDiet();
+  closeDietGenModal();
+  showPanel('dietaia', document.getElementById('nav-dietaia'));
+  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Plano salvo e acompanhamento iniciado!', 'success');
+}
+
+async function loadDietPlan() {
+  try {
+    const localPlan = localStorage.getItem('cv_saved_diet_plan');
+    const localProgress = localStorage.getItem('cv_saved_diet_progress');
+    if (localPlan) _savedDietPlan = JSON.parse(localPlan);
+    if (localProgress) _savedDietProgress = JSON.parse(localProgress);
+  } catch(e) {}
+  
+  if (currentUser) {
+    const sb = window.getSupabase?.() || window._db;
+    try {
+      const { data, error } = await sb.from('dieta_ia_logs').select('diet_plan,progress_tracking').eq('user_id', currentUser.id).maybeSingle();
+      if (!error && data) {
+        if (data.diet_plan) _savedDietPlan = data.diet_plan;
+        if (data.progress_tracking) _savedDietProgress = data.progress_tracking;
+      }
+    } catch(e) {}
+  }
+  
+  renderSavedDiet();
+}
+
+async function toggleDietFoodProgress(dayIdx, mealIdx, foodIdx, isChecked) {
+  const key = `${dayIdx}-${mealIdx}-${foodIdx}`;
+  if (!_savedDietProgress) _savedDietProgress = {};
+  
+  if (isChecked) {
+    _savedDietProgress[key] = true;
+  } else {
+    delete _savedDietProgress[key];
+  }
+  
+  localStorage.setItem('cv_saved_diet_progress', JSON.stringify(_savedDietProgress));
+  
+  if (currentUser) {
+    const sb = window.getSupabase?.() || window._db;
+    try {
+      await sb.from('dieta_ia_logs').update({
+        progress_tracking: _savedDietProgress
+      }).eq('user_id', currentUser.id);
+    } catch(e) {}
+  }
+  
+  renderSavedDiet();
+}
+
+function renderSavedDiet() {
+  const container = document.getElementById('dietaiaSavedPlan');
+  const contentEl = document.getElementById('dietaiaPlanContent');
+  if (!container || !contentEl) return;
+
+  if (!_savedDietPlan || !_savedDietPlan.days) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  const progress = _savedDietProgress || {};
+  const mealEmoji = { cafe:'🌅', almoco:'☀️', lanche:'🍎', jantar:'🌙' };
+
+  let totalItems = 0;
+  let checkedItems = 0;
+
+  const html = _savedDietPlan.days.map((day, dayIdx) => `
+    <div style="margin-bottom:1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-mid); padding: 1.2rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--green-deep);margin-bottom:0.8rem; border-bottom: 2px solid var(--green-pale); padding-bottom: 0.4rem;">
+        ${_savedDietPlan.days.length > 1 ? `📅 Dia ${day.day}` : '📅 Plano Diário'}
+      </div>
+      ${(day.meals||[]).map((meal, mealIdx) => `
+        <div class="diet-meal-block" style="margin-bottom:1rem; border-left: 3px solid var(--green-mid); padding-left: 0.8rem;">
+          <div class="diet-meal-title" style="font-weight:700; color:var(--text-main); font-size:0.95rem; margin-bottom:0.5rem;">
+            ${mealEmoji[meal.mealKey]||'🍽️'} ${meal.meal} · <span style="color:var(--orange-hot); font-weight:700;">${meal.totalKcal} kcal</span>
+          </div>
+          ${(meal.foods||[]).map((f, foodIdx) => {
+            const key = `${dayIdx}-${mealIdx}-${foodIdx}`;
+            const isChecked = !!progress[key];
+            totalItems++;
+            if (isChecked) checkedItems++;
+
+            return `
+              <div class="diet-food-row" style="display:flex; justify-content:space-between; align-items:center; padding:0.4rem 0; border-bottom:1px dashed var(--border);">
+                <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; font-size:0.88rem; flex:1; margin:0;">
+                  <input type="checkbox" onchange="toggleDietFoodProgress(${dayIdx}, ${mealIdx}, ${foodIdx}, this.checked)" ${isChecked ? 'checked' : ''} style="accent-color:var(--green-deep); width:18px; height:18px; cursor:pointer; margin:0;">
+                  <span style="${isChecked ? 'text-decoration:line-through; color:var(--text-muted);' : 'color:var(--text-main);'}">
+                    ${f.name} <span style="color:var(--text-muted);font-size:0.75rem;">(${f.qty})</span>
+                  </span>
+                </label>
+                <span style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">${f.kcal} kcal</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  const pct = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+  const progressHeader = `
+    <div style="background:var(--green-pale); border:1px solid var(--green-light); border-radius:var(--radius-mid); padding:1rem; margin-bottom:1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
+        <div>
+          <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:0.95rem; color:var(--green-deep);">ACOMPANHAMENTO DIÁRIO</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">Você consumiu <strong>${checkedItems}</strong> de <strong>${totalItems}</strong> refeições (${pct}%)</div>
+        </div>
+      </div>
+      <div style="width:100%; height:8px; background:rgba(0,0,0,0.06); border-radius:10px; overflow:hidden; margin-top:0.6rem;">
+        <div style="width:${pct}%; height:100%; background:var(--green-deep); transition:width 0.4s ease; border-radius:10px;"></div>
+      </div>
+    </div>
+  `;
+
+  contentEl.innerHTML = progressHeader + html;
 }
 
 // Hook into initApp to load new features
@@ -1255,6 +1408,7 @@ setTimeout(() => {
   _p2_patchUnitSelects();
   _p2_applyPatientGoalsModalPatch();
   _p2_applyLoadPatientsPatch();
+  if (typeof loadDietPlan === 'function') loadDietPlan();
 }, 1500);
 
 console.log('[CalorIA Patch v2] Todas as melhorias carregadas: açúcar/água no diário, formulários por doença, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
@@ -1285,3 +1439,7 @@ window.addCustomRestrictionPill = addCustomRestrictionPill;
 window.getSelectedRestrictions = getSelectedRestrictions;
 window.openNutTypeModal = openNutTypeModal;
 window.loadNutSpecialty = loadNutSpecialty;
+window.saveDietPlan = saveDietPlan;
+window.loadDietPlan = loadDietPlan;
+window.toggleDietFoodProgress = toggleDietFoodProgress;
+window.renderSavedDiet = renderSavedDiet;
