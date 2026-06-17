@@ -704,13 +704,20 @@ async function refreshAdminUsers() {
 
 function renderAdminTable(users) {
   const roleLabels = { standard:'Padrão', patient:'Paciente', nutricionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
-  const planLabels = { free:'Gratuito', pro:'Pro', clinic:'Clínica', admin:'Admin' };
-  const planBadge = { free:'badge-free', pro:'badge-pro', clinic:'badge-clinic', admin:'badge-admin' };
+  const planLabels = { 
+    free:'Gratuito', pro:'Padrão Pro', clinic:'Clínica', admin:'Admin',
+    patient_pro: 'Paciente+', patient_clinic: 'Paciente Clínica'
+  };
+  const planBadge = { 
+    free:'badge-free', pro:'badge-pro', clinic:'badge-clinic', admin:'badge-admin',
+     patient_pro:'badge-pro', patient_clinic:'badge-clinic'
+  };
   const tbody = document.getElementById('adminTableBody');
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum usuário.</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
     const initials = (u.name||'U').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
     const date = u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '—';
+    const safePlan = u.plan || 'free';
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:0.5rem;">
         <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:white;flex-shrink:0;">${initials}</div>
@@ -724,14 +731,19 @@ function renderAdminTable(users) {
         <option value="personal_trainer" ${u.role==='personal_trainer'?'selected':''}>Personal</option>
         <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
       </select></td>
-      <td><span class="plan-badge-inline ${planBadge[u.plan||'free']}">${planLabels[u.plan||'free']}</span></td>
+      <td><span class="plan-badge-inline ${planBadge[safePlan] || 'badge-free'}">${planLabels[safePlan] || safePlan}</span></td>
       <td style="color:var(--text-muted);font-size:0.78rem;">${date}</td>
       <td><div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
         <select class="plan-select" id="planSel-${u.id}">
-          <option value="free" ${(u.plan||'free')==='free'?'selected':''}>Gratuito</option>
-          <option value="pro" ${u.plan==='pro'?'selected':''}>Pro</option>
-          <option value="clinic" ${u.plan==='clinic'?'selected':''}>Clínica</option>
-          <option value="admin" ${u.plan==='admin'?'selected':''}>Admin</option>
+          <option value="free" ${safePlan==='free'?'selected':''}>Gratuito</option>
+          <option value="standard_pro" ${safePlan==='standard_pro'?'selected':''}>Padrão Pro</option>
+          <option value="patient_pro" ${safePlan==='patient_pro'?'selected':''}>Paciente+</option>
+          <option value="patient_clinic" ${safePlan==='patient_clinic'?'selected':''}>Paciente Clínica</option>
+          <option value="nutritionist_pro" ${safePlan==='nutritionist_pro'?'selected':''}>Nutricionista Pro</option>
+          <option value="nutritionist_clinic" ${safePlan==='nutritionist_clinic'?'selected':''}>Nutri. Clínica</option>
+          <option value="pro" ${safePlan==='pro'?'selected':''}>Pro (Legado)</option>
+          <option value="clinic" ${safePlan==='clinic'?'selected':''}>Clínica</option>
+          <option value="admin" ${safePlan==='admin'?'selected':''}>Admin</option>
         </select>
         <button class="btn-save-plan" onclick="savePlan('${u.id}')">Salvar</button>
       </div></td>
