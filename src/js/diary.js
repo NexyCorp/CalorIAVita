@@ -635,7 +635,7 @@ window.calcCalories = calcCalories;
 window.saveGoal = saveGoal;
 window.handleImageUpload = handleImageUpload;
 window.analyzeImage = analyzeImage;
-
+window.diaryAddFood = diaryAddFood;
 window.showFoodDetails = function(mealKey, idx) {
   const item = diary[mealKey][idx];
   if (!item) return;
