@@ -29,14 +29,40 @@ async function doLogin() {
     return;
   }
   setAuthLoading(true);
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) {
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      if (error.message?.toLowerCase().includes('email not confirmed')) showAuthError('Confirme seu e-mail antes de entrar.');
+      else showAuthError('E-mail ou senha incorretos.');
+      return;
+    }
+    if (data?.user) {
+      // onAuthStateChange (SIGNED_IN) também chama initApp — aguarda conclusão
+      await waitForAppInit(data.user.id, 25000);
+    }
+  } catch(e) {
+    console.error('[CalorIA] doLogin:', e);
+    showAuthError('Erro ao entrar. Tente novamente.');
+  } finally {
     setAuthLoading(false);
-    if (error.message?.toLowerCase().includes('email not confirmed')) showAuthError('Confirme seu e-mail antes de entrar.');
-    else showAuthError('E-mail ou senha incorretos.');
-    return;
   }
-  if (data?.user) await initApp(data.user);
+}
+
+async function waitForAppInit(userId, timeoutMs = 25000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (_appInitialized && currentUser?.id === userId) return;
+    if (!_initAppRunning && !_appInitialized) {
+      const sb = window.getSupabase?.() || window._db;
+      const { data: { session } } = await sb.auth.getSession();
+      if (session?.user?.id === userId) {
+        await initApp(session.user);
+        if (_appInitialized) return;
+      }
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  if (!_appInitialized) throw new Error('init timeout');
 }
 
 // ─── Register avatar logic ───────────────────────────────────────────────────
@@ -271,19 +297,20 @@ async function doLogout() {
 // INIT APP
 // ═══════════════════════════════════════
 async function fetchUserProfile(user) {
+  const sb = window.getSupabase?.() || window._db;
   const metaName = user.user_metadata?.name || user.user_metadata?.full_name || '';
   for (let attempt = 0; attempt < 4; attempt++) {
     try {
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+      const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (data) return data;
       if (attempt === 0) {
-        await supabase.from('profiles').upsert({
+        await sb.from('profiles').upsert({
           id: user.id, email: user.email, name: metaName || null,
           role: 'standard', plan: 'free', updated_at: new Date().toISOString()
         }, { onConflict: 'id' });
       }
-    } catch(e) {}
-    await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+    } catch(e) { console.warn('[CalorIA] fetchUserProfile attempt', attempt, e); }
+    if (attempt < 3) await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
   }
   if (window._pendingFreshProfile) {
     const fresh = window._pendingFreshProfile;
@@ -297,8 +324,12 @@ async function fetchUserProfile(user) {
 }
 
 async function initApp(user) {
-  if (_initAppRunning) return;
+  if (_initAppRunning) {
+    try { await waitForAppInit(user.id, 30000); } catch(e) { console.warn('[CalorIA] initApp wait:', e); }
+    return;
+  }
   if (_appInitialized && currentUser?.id === user.id) {
+    setAuthLoading(false);
     if (typeof window.renderSidebarUser === 'function') window.renderSidebarUser();
     if (typeof window.updateHomePanel === 'function') window.updateHomePanel();
     return;
@@ -377,8 +408,9 @@ function showApp(user) {
 let _realtimeChannel = null;
 let _profilePollInterval = null;
 function startProfileRealtime(userId) {
-  if (_realtimeChannel) supabase.removeChannel(_realtimeChannel);
-  _realtimeChannel = supabase
+  const sb = window.getSupabase?.() || window._db;
+  if (_realtimeChannel) sb.removeChannel(_realtimeChannel);
+  _realtimeChannel = sb
     .channel('profile-changes-' + userId)
     .on('postgres_changes', {
       event: 'UPDATE',
@@ -397,7 +429,7 @@ function startProfileRealtime(userId) {
   if (_profilePollInterval) clearInterval(_profilePollInterval);
   _profilePollInterval = setInterval(async () => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      const { data, error } = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
       if (!error && data) {
         const changed = data.role !== currentProfile?.role || data.plan !== currentProfile?.plan;
         if (changed) {
@@ -446,9 +478,11 @@ function applyProfileUpdate(newData) {
   if (session?.user) {
     if (session.refresh_token) _cookieSet(_CV_COOKIE, session.refresh_token, 7);
     if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-      if (_initAppRunning) return;
-      if (_appInitialized && currentUser?.id === session.user.id) return;
-      await initApp(session.user);
+      if (_appInitialized && currentUser?.id === session.user.id) {
+        setAuthLoading(false);
+        return;
+      }
+      if (!_initAppRunning) await initApp(session.user);
     } else if (event === 'TOKEN_REFRESHED' && !_appInitialized && !_initAppRunning) {
       await initApp(session.user);
     }
