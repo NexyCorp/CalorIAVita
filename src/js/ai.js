@@ -36,21 +36,19 @@ async function callGroq(messages, retries = 7, maxTokens = 4096) {
   let lastErr;
   
   // Lista de modelos disponíveis no Groq para rotação caso ocorra rate limit (429) ou erro
+  // Modelos obsoletos (como llama3-8b-8192 e gemma2) foram removidos.
   const models = [
     GROQ_MODEL,               // 'llama-3.3-70b-versatile'
-    'llama3-70b-8192',        // Fallback pesado 1
     'mixtral-8x7b-32768',     // Excelente para fallback longo
-    GROQ_MODEL_FAST,          // 'llama-3.1-8b-instant'
-    'llama3-8b-8192',         // Fallback rápido
-    'llama-3.2-3b-preview',   // Modelo muito leve e rápido
-    'llama-3.2-1b-preview'    // Último recurso
+    GROQ_MODEL_FAST           // 'llama-3.1-8b-instant'
   ];
 
+  // Se o usuário passou 7 retries, mas só temos 3 modelos, vamos tentar os modelos de forma circular
+  // Ex: model[0], model[1], model[2], model[0], model[1]... dando um tempinho entre eles.
   const maxAttempts = Math.max(retries, models.length);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    // Escolhe o modelo baseado na tentativa (se exaurir, usa o último)
-    const model = models[Math.min(attempt, models.length - 1)];
+    const model = models[attempt % models.length];
     
     // Se der 413, tenta reduzir maxTokens progressivamente nas próximas tentativas
     let currentMaxTokens = attempt > 0 ? Math.floor(maxTokens * Math.pow(0.75, attempt)) : maxTokens;
@@ -67,7 +65,10 @@ async function callGroq(messages, retries = 7, maxTokens = 4096) {
     if (res.status === 401 || res.status === 403) throw new Error('401');
     if (res.status === 429) {
       lastErr = new Error('429');
-      // No 429 (Rate Limit por modelo), vamos para o próximo loop trocar de modelo imediatamente
+      // Se já testamos todos os modelos e voltamos a pegar 429, esperamos um pouco antes de tentar a próxima rodada
+      if (attempt >= models.length - 1) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
       continue; 
     }
     if (res.status === 413) {
