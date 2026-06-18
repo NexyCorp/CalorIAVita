@@ -32,18 +32,23 @@ async function _groqFetch(model, messages, maxTokens = 4096) {
   return res;
 }
 
-async function callGroq(messages, retries = 3, maxTokens = 4096) {
+async function callGroq(messages, retries = 7, maxTokens = 4096) {
   let lastErr;
   
   // Lista de modelos disponíveis no Groq para rotação caso ocorra rate limit (429) ou erro
   const models = [
     GROQ_MODEL,               // 'llama-3.3-70b-versatile'
+    'llama3-70b-8192',        // Fallback pesado 1
     'mixtral-8x7b-32768',     // Excelente para fallback longo
     GROQ_MODEL_FAST,          // 'llama-3.1-8b-instant'
-    'gemma2-9b-it'            // Outro fallback leve
+    'llama3-8b-8192',         // Fallback rápido
+    'llama-3.2-3b-preview',   // Modelo muito leve e rápido
+    'llama-3.2-1b-preview'    // Último recurso
   ];
 
-  for (let attempt = 0; attempt < retries; attempt++) {
+  const maxAttempts = Math.max(retries, models.length);
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     // Escolhe o modelo baseado na tentativa (se exaurir, usa o último)
     const model = models[Math.min(attempt, models.length - 1)];
     
