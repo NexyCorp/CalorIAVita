@@ -24,7 +24,13 @@ async function _groqFetch(model, messages, maxTokens = 4096) {
     res = await fetch(GROQ_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-      body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.2 })
+      body: JSON.stringify({ 
+        model, 
+        messages, 
+        max_tokens: maxTokens, 
+        temperature: 0.2,
+        response_format: { type: "json_object" }
+      })
     });
   } catch(netErr) {
     throw new Error('Sem conexão com a API. Verifique sua internet.');
