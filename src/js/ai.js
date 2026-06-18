@@ -73,7 +73,7 @@ async function callGroq(messages, retries = 7, maxTokens = 4096) {
       lastErr = new Error('429');
       // Se já testamos todos os modelos e voltamos a pegar 429, esperamos um pouco antes de tentar a próxima rodada
       if (attempt >= models.length - 1) {
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 5000));
       }
       continue; 
     }
@@ -86,7 +86,7 @@ async function callGroq(messages, retries = 7, maxTokens = 4096) {
       const body = await res.text().catch(()=>'');
       lastErr = new Error('Groq ' + res.status + ': ' + body.slice(0,120));
       if (attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise(r => setTimeout(r, 3000));
         continue;
       }
       throw lastErr;
@@ -117,7 +117,7 @@ async function askClaude(prompt, sys) {
   return callGroq([
     { role:'system', content: sys || 'Você é especialista em nutrição. Responda SOMENTE em JSON válido.' },
     { role:'user', content: prompt }
-  ], 4);
+  ], 7, 4096);
 }
 
 // Análise de imagem com modelo de visão dedicado (llama-4-scout suporta image_url)

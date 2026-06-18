@@ -286,9 +286,10 @@ async function doLogout() {
   _appInitialized = false; _initAppRunning = false;
   try { await (window.getSupabase?.() || window._db).auth.signOut({ scope:'global' }); } catch(e) {}
   try { Object.keys(localStorage).forEach(k => { if (k.startsWith('sb-') || k.includes('supabase') || k === 'caloria-verde-auth') localStorage.removeItem(k); }); } catch(e) {}
+  try { sessionStorage.clear(); } catch(e) {}
   _cookieDel(_CV_COOKIE);
   await new Promise(r => setTimeout(r, 200));
-  window.location.reload();
+  window.location.href = window.location.pathname; // Clear hash and query params on reload
 }
 
 // ═══════════════════════════════════════

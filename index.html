@@ -756,6 +756,7 @@
         <div class="cam-result-card" id="camResult">
           <div class="cam-food-id" id="camFoodName">—</div>
           <div class="cam-confidence" id="camConfidence">—</div>
+          <div style="margin-top:0.3rem; font-size:0.95rem; font-weight:700; color:#ffd54f; text-align:center;" id="camPortion"></div>
           <div class="cam-macros">
             <div class="cam-macro"><div class="cam-macro-val" id="camKcal">0</div><div class="cam-macro-label">kcal</div></div>
             <div class="cam-macro"><div class="cam-macro-val" id="camCarbs">0g</div><div class="cam-macro-label">Carboidratos</div></div>
@@ -2334,30 +2335,44 @@
     <button class="modal-close" onclick="closeNutTypeModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
     <div class="modal-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Minha Especialidade</div>
     <p class="modal-sub">Selecionar sua área principal personaliza os formulários de anamnese e as métricas de acompanhamento.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
-      <button class="goal-btn nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
-        🏥 Nutrição Clínica<br><small>Doenças crônicas, internação</small>
+    <style>
+      .spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1.5rem; }
+      .spec-card {
+        background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius-mid);
+        padding: 1rem; text-align: left; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display:flex; flex-direction:column; gap:0.3rem; outline: none;
+      }
+      .spec-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: var(--green-mid); }
+      .spec-card.active { border-color: var(--green-deep); background: var(--green-pale); box-shadow: 0 0 0 3px rgba(42,92,48,0.1); }
+      .spec-icon { font-size: 1.6rem; }
+      .spec-title { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text-main); font-size: 0.95rem; }
+      .spec-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.3; }
+      @media(max-width: 400px) { .spec-grid { grid-template-columns: 1fr; } }
+    </style>
+    <div class="spec-grid">
+      <button class="spec-card nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
+        <span class="spec-icon">🏥</span><span class="spec-title">Nutrição Clínica</span><span class="spec-desc">Doenças crônicas, internação</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
-        🏋️ Nutrição Esportiva<br><small>Performance, hipertrofia</small>
+      <button class="spec-card nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
+        <span class="spec-icon">🏋️</span><span class="spec-title">Nutrição Esportiva</span><span class="spec-desc">Performance, hipertrofia</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
-        👶 Pediatria<br><small>0–18 anos</small>
+      <button class="spec-card nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
+        <span class="spec-icon">👶</span><span class="spec-title">Pediatria</span><span class="spec-desc">Crianças, de 0 a 18 anos</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="gestante" onclick="selectNutType(this)">
-        🤰 Gestação & Lactação<br><small>Pré-natal, amamentação</small>
+      <button class="spec-card nut-type-select-btn" data-type="gestante" onclick="selectNutType(this)">
+        <span class="spec-icon">🤰</span><span class="spec-title">Gestação & Lactação</span><span class="spec-desc">Pré-natal, amamentação</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="oncologia" onclick="selectNutType(this)">
-        🎗️ Oncologia<br><small>Pacientes oncológicos</small>
+      <button class="spec-card nut-type-select-btn" data-type="oncologia" onclick="selectNutType(this)">
+        <span class="spec-icon">🎗️</span><span class="spec-title">Oncologia</span><span class="spec-desc">Pacientes oncológicos</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="renal" onclick="selectNutType(this)">
-        🫘 Nefrologia<br><small>Doenças renais</small>
+      <button class="spec-card nut-type-select-btn" data-type="renal" onclick="selectNutType(this)">
+        <span class="spec-icon">🫘</span><span class="spec-title">Nefrologia</span><span class="spec-desc">Doenças renais e crônicas</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="cardio" onclick="selectNutType(this)">
-        ❤️ Cardiologia<br><small>Risco cardiovascular</small>
+      <button class="spec-card nut-type-select-btn" data-type="cardio" onclick="selectNutType(this)">
+        <span class="spec-icon">❤️</span><span class="spec-title">Cardiologia</span><span class="spec-desc">Risco e saúde cardiovascular</span>
       </button>
-      <button class="goal-btn nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
-        🌿 Geral / Preventiva<br><small>Educação alimentar</small>
+      <button class="spec-card nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
+        <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Educação e reeducação alimentar</span>
       </button>
     </div>
     <button class="btn-primary" onclick="saveNutType()">Salvar especialidade</button>

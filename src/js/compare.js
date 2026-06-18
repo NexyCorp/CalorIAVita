@@ -629,9 +629,11 @@ async function shareRecipeAsPdf(id) {
   // Try Native Share first if supported
   if (navigator.share) {
     try {
+      const fmtIng = r.ingredients.map(i => typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) + (i.qty ? ` (${i.qty})` : '') : i).join('\n');
+      const fmtStep = r.steps.map(s => typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s).join('\n');
       await navigator.share({
         title: r.title,
-        text: `Receita: ${r.title}\nCalorias: ${r.kcal} kcal\nProteínas: ${r.prot}g\n\nIngredientes:\n${r.ingredients.join('\n')}\n\nModo de Preparo:\n${r.steps.join('\n')}`
+        text: `Receita: ${r.title}\nCalorias: ${r.kcal} kcal\nProteínas: ${r.prot}g\n\nIngredientes:\n${fmtIng}\n\nModo de Preparo:\n${fmtStep}`
       });
       showToast('<i class="fa-solid fa-circle-check ic-check"></i> Receita compartilhada!');
       return;
@@ -678,9 +680,9 @@ async function shareRecipeAsPdf(id) {
     ${r.totalGrams ? `<span class="chip">⚖️ Total: ${r.totalGrams >= 1000 ? (r.totalGrams/1000).toFixed(1)+'kg' : r.totalGrams+'g'}</span>` : ''}
   </div>
   <h3>🥗 Ingredientes</h3>
-  <ul>${r.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
+  <ul>${r.ingredients.map(i=>`<li>${typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) + (i.qty ? ` (${i.qty})` : '') : i}</li>`).join('')}</ul>
   <h3>📋 Modo de preparo</h3>
-  <ol>${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+  <ol>${r.steps.map(s=>`<li>${typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s}</li>`).join('')}</ol>
   <div class="footer">
     <span>Gerado pelo CalorIA — ${new Date().toLocaleDateString('pt-BR')}</span>
   </div>

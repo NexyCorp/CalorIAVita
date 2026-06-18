@@ -77,6 +77,32 @@ function openEditItem(mealKey, idx) {
   formEl.classList.add('open');
 }
 
+function showFoodDetails(mealKey, idx) {
+  const item = diary[mealKey][idx];
+  if (!item) return;
+  document.getElementById('foodDetailName').textContent = item.name;
+  document.getElementById('foodDetailQty').textContent = (item.qty || 100) + ' ' + (item.unit || 'g');
+  document.getElementById('foodDetailKcal').textContent = Math.round(item.kcal) + ' kcal';
+  
+  const c = item.carbs || 0, p = item.prot || 0, f = item.fat || 0;
+  const tot = c + p + f || 1; // avoid division by zero
+  
+  document.getElementById('foodDetailCarbs').textContent = c + 'g';
+  document.getElementById('foodDetailCarbsBar').style.width = Math.min((c/tot)*100, 100) + '%';
+  
+  document.getElementById('foodDetailProt').textContent = p + 'g';
+  document.getElementById('foodDetailProtBar').style.width = Math.min((p/tot)*100, 100) + '%';
+  
+  document.getElementById('foodDetailFat').textContent = f + 'g';
+  document.getElementById('foodDetailFatBar').style.width = Math.min((f/tot)*100, 100) + '%';
+  
+  document.getElementById('foodDetailModal').classList.add('show');
+}
+
+function closeFoodDetailModal() {
+  document.getElementById('foodDetailModal').classList.remove('show');
+}
+
 async function saveEditItem(mealKey, idx) {
   const item = diary[mealKey][idx];
   const newName = document.getElementById(`editName-${mealKey}-${idx}`).value.trim();
@@ -452,7 +478,9 @@ async function analyzeImage() {
       'Analise esta imagem. Estime o peso total da porção. Se for um prato com múltiplos alimentos, estime e descreva no campo "portion" o peso em gramas de cada porção individual (ex: "Arroz: 150g, Feijão: 100g, Frango: 120g"). Retorne JSON: foodName, confidence, portion, calories, carbs, protein, fat, fiber, tips.');
     lastCamResult = result;
     document.getElementById('camFoodName').textContent = result.foodName;
-    document.getElementById('camConfidence').textContent = `✓ ${result.confidence} • ${result.portion}`;
+    document.getElementById('camConfidence').textContent = `✓ Confiança: ${result.confidence}`;
+    const pEl = document.getElementById('camPortion');
+    if (pEl) { pEl.textContent = result.portion ? `⚖️ Porção Estimada: ${result.portion}` : ''; }
     document.getElementById('camKcal').textContent = Math.round(result.calories||0);
     document.getElementById('camCarbs').textContent = (result.carbs||0).toFixed(1) + 'g';
     document.getElementById('camProt').textContent = (result.protein||0).toFixed(1) + 'g';
