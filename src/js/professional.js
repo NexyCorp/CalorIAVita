@@ -684,7 +684,7 @@ async function loadAdminPanel() {
 async function refreshAdminUsers() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Carregando usuários...</td></tr>';
-  const { data, error } = await _getSb().from('profiles').select('*').order('created_at', { ascending:false });
+  const { data, error } = await _getSb().rpc('get_all_profiles');
   if (error) {
     console.error('[Admin] Erro ao carregar usuários:', error);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#e53935;padding:2rem;">
@@ -694,6 +694,7 @@ async function refreshAdminUsers() {
     return;
   }
   allAdminUsers = data || [];
+  allAdminUsers.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   document.getElementById('statTotal').textContent = allAdminUsers.length;
   document.getElementById('statProf').textContent = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
   document.getElementById('statPro').textContent = allAdminUsers.filter(u=>u.plan==='pro').length;
