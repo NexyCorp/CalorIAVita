@@ -935,6 +935,7 @@ async function loadNutritionistRequests() {
     const created = req.created_at ? new Date(req.created_at).toLocaleString('pt-BR') : '—';
     const fieldsId = `nutRejectFields-${req.id}`;
     const reasonId = `nutRejectReason-${req.id}`;
+    const planId = `nutApprovePlan-${req.id}`;
     return `
       <div class="queue-item">
         <div class="queue-info">
@@ -945,6 +946,10 @@ async function loadNutritionistRequests() {
           ${req.message ? `<p><strong>Mensagem:</strong> ${window.escapeHtml(req.message)}</p>` : ''}
           <p style="font-size:0.75rem;color:var(--text-muted);">Enviado em ${created}</p>
           <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
+            <select id="${planId}" class="form-select">
+              <option value="pro">Nutricionista Pro</option>
+              <option value="clinic">Nutricionista Clinic</option>
+            </select>
             <select id="${fieldsId}" class="form-select" multiple size="4" style="min-height:92px;">
               <option value="crn">CRN / registro profissional</option>
               <option value="specialty">Especialidade</option>
@@ -971,9 +976,10 @@ async function reviewNutritionistRequest(requestId, action) {
   if (!req) return;
 
   if (action === 'approve') {
+    const approvedPlan = document.getElementById(`nutApprovePlan-${requestId}`)?.value || 'pro';
     const { error: profileError } = await supabase.from('profiles').update({
       role: 'nutritionist',
-      plan: 'pro'
+      plan: approvedPlan
     }).eq('id', req.user_id);
     if (profileError) {
       showToast('Erro ao aprovar usuario: ' + profileError.message, 'error');

@@ -714,7 +714,7 @@ async function loadSavedDietsList() {
   listEl.style.display = 'block';
   const sb = window.getSupabase?.() || window._db;
   try {
-    const { data, error } = await sb.from('user_diets').select('id, title, is_active, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    const { data, error } = await sb.from('user_diets').select('id, title, is_active, created_at, diet_plan').eq('user_id', currentUser.id).order('created_at', { ascending: false });
     if (error || !data || data.length === 0) {
       contentEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.9rem;">Nenhuma dieta salva ainda.</div>';
       return;
@@ -726,14 +726,15 @@ async function loadSavedDietsList() {
       const dateStr = diet.created_at ? new Date(diet.created_at).toLocaleDateString('pt-BR') : '';
       
       html += `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border); padding:1rem; border-radius:8px; margin-bottom:0.75rem;">
+        <div class="diet-list-card" onclick="openSavedDietDetails('${diet.id}')" style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border); padding:1rem; border-radius:8px; margin-bottom:0.75rem; cursor:pointer; transition:transform 0.15s ease,border-color 0.15s ease;">
           <div>
             <div style="font-weight:700; color:var(--green-deep);">${diet.title} ${activeBadge}</div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">Criada em: ${dateStr}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">Criada em: ${dateStr} ${diet.diet_plan?.days?.length ? `- ${diet.diet_plan.days.length} dia(s)` : ''}</div>
           </div>
           <div style="display:flex; gap:0.5rem;">
-            ${!diet.is_active ? `<button onclick="activateDiet('${diet.id}')" style="background:var(--green-pale); color:var(--green-deep); border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">Ativar</button>` : ''}
-            <button onclick="deleteDiet('${diet.id}')" style="background:#fee2e2; color:#dc2626; border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;"><i class="fa-solid fa-trash"></i></button>
+            <button onclick="event.stopPropagation();openSavedDietDetails('${diet.id}')" style="background:var(--green-pale); color:var(--green-deep); border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">Ver</button>
+            ${!diet.is_active ? `<button onclick="event.stopPropagation();activateDiet('${diet.id}')" style="background:var(--green-pale); color:var(--green-deep); border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">Ativar</button>` : ''}
+            <button onclick="event.stopPropagation();deleteDiet('${diet.id}')" style="background:#fee2e2; color:#dc2626; border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
       `;
@@ -757,6 +758,26 @@ async function activateDiet(dietId) {
   loadDietPlan();
 }
 
+async function openSavedDietDetails(dietId) {
+  if (!currentUser || !dietId) return;
+  const sb = window.getSupabase?.() || window._db;
+  showToast('Abrindo dieta...', 'info');
+  try {
+    const { data, error } = await sb.from('user_diets').select('*').eq('id', dietId).eq('user_id', currentUser.id).maybeSingle();
+    if (error || !data) throw error || new Error('Dieta nao encontrada');
+    _activeDietId = data.id;
+    _savedDietPlan = data.diet_plan;
+    _savedDietProgress = data.progress_tracking || {};
+    localStorage.setItem('cv_saved_diet_plan', JSON.stringify(_savedDietPlan));
+    localStorage.setItem('cv_active_diet_id', _activeDietId);
+    localStorage.setItem('cv_saved_diet_progress', JSON.stringify(_savedDietProgress));
+    renderSavedDiet();
+    document.getElementById('dietaiaSavedPlan')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {
+    showToast('Erro ao abrir dieta: ' + (e.message || e), 'error');
+  }
+}
+
 async function deleteDiet(dietId) {
   if (!currentUser) return;
   if (!confirm('Deseja realmente excluir esta dieta?')) return;
@@ -775,6 +796,7 @@ async function deleteDiet(dietId) {
 }
 
 window.activateDiet = activateDiet;
+window.openSavedDietDetails = openSavedDietDetails;
 window.deleteDiet = deleteDiet;
 window.loadSavedDietsList = loadSavedDietsList;
 
@@ -1033,6 +1055,40 @@ function _p2_injectDiseaseButtons() {
   });
 }
 
+function _p2_renderDiseaseFormFallback(patientId, patientName, diseases) {
+  const diseaseList = Array.isArray(diseases) ? diseases.join(', ') : diseases;
+  const titleEl = document.getElementById('diseaseFormTitle');
+  const bodyEl  = document.getElementById('diseaseFormBody');
+  if (!titleEl || !bodyEl) { showToast('Modal de formulario nao encontrado.', 'error'); return; }
+  const sections = [{
+    name: `Condicoes: ${diseaseList}`,
+    questions: [
+      { id: 'df_symptoms', label: 'Sintomas atuais relacionados a condicao' },
+      { id: 'df_meds', label: 'Medicamentos em uso, dose e horario' },
+      { id: 'df_labs', label: 'Exames recentes alterados' },
+      { id: 'df_restrictions', label: 'Restricoes, alergias ou intolerancias' },
+      { id: 'df_food_triggers', label: 'Alimentos que pioram sintomas' },
+      { id: 'df_monitoring', label: 'Como monitora a condicao no dia a dia?' }
+    ]
+  }];
+  titleEl.textContent = `Formulario clinico - ${patientName}`;
+  bodyEl.innerHTML = sections.map(section => `
+    <div style="background:var(--green-pale);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-bottom:0.75rem;">
+      <div style="font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--green-mid);margin-bottom:0.6rem;">${section.name}</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:0.6rem;">
+        ${section.questions.map(q => `<div class="form-field"><label class="form-label">${q.label}</label><textarea id="${q.id}" class="form-input" rows="2"></textarea></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+  if (typeof _diseaseFormState !== 'undefined') {
+    _diseaseFormState.disease = Array.isArray(diseases) ? (diseases[0] || 'custom') : 'custom';
+    _diseaseFormState.patientId = patientId;
+    _diseaseFormState.patientName = patientName;
+    _diseaseFormState._aiSections = sections;
+  }
+  document.getElementById('diseaseFormModal').classList.add('show');
+}
+
 async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
   showToast('<i class="fa-solid fa-robot ic-chat"></i> Gerando formulário específico com IA...', 'success');
   const diseaseList = Array.isArray(diseases) ? diseases.join(', ') : diseases;
@@ -1087,7 +1143,8 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
     document.getElementById('diseaseFormModal').classList.add('show');
     showToast('<i class="fa-solid fa-circle-check ic-check"></i> Formulário específico gerado pela IA!');
   } catch(e) {
-    showToast('Erro ao gerar formulário: ' + e.message, 'error');
+    _p2_renderDiseaseFormFallback(patientId, patientName, diseases);
+    showToast('Formulario padrao criado. A IA nao respondeu com dados validos.', 'error');
     console.error('[_p2_openDiseaseFormForPatient]', e);
   }
 }
@@ -1486,6 +1543,10 @@ if (profPanel) _p2_moPatientsObs.observe(profPanel, { childList: true, subtree: 
       opacity: 0.88;
       transform: translateY(-1px);
     }
+    .diet-list-card:hover {
+      transform: translateY(-1px);
+      border-color: var(--green-mid) !important;
+    }
     #dietGenPatientBadge {
       animation: fadeIn 0.2s ease;
     }
@@ -1552,3 +1613,5 @@ window.saveDietPlan = saveDietPlan;
 window.loadDietPlan = loadDietPlan;
 window.toggleDietFoodProgress = toggleDietFoodProgress;
 window.renderSavedDiet = renderSavedDiet;
+
+

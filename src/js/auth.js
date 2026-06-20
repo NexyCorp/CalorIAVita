@@ -163,6 +163,7 @@ async function doRegister() {
   if (!name || !email || !password) { showAuthError('Preencha todos os campos.'); return; }
   if (password.length < 6) { showAuthError('Senha deve ter pelo menos 6 caracteres.'); return; }
   setAuthLoading(true);
+  _suppressAuthChange = true;
 
   // Check invite token in URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -174,8 +175,9 @@ async function doRegister() {
     email, password,
     options: { data: { name, role: 'standard' } }
   });
-  if (error) { setAuthLoading(false); showAuthError(error.message); return; }
+  if (error) { _suppressAuthChange = false; setAuthLoading(false); showAuthError(error.message); return; }
   if (data.user?.identities?.length === 0) {
+    _suppressAuthChange = false;
     setAuthLoading(false); showAuthError('Este e-mail já está cadastrado.'); switchAuthTab('login'); return;
   }
 
@@ -225,6 +227,7 @@ async function doRegister() {
       const banner = document.getElementById('emailConfirmBanner');
       if (banner) banner.style.display = 'block';
       showAuthError('');
+      _suppressAuthChange = false;
       setAuthLoading(false);
     }
   }
@@ -275,9 +278,11 @@ async function completeOnboarding() {
       switchAuthTab('register');
       document.getElementById('emailConfirmBanner').style.display = 'block';
       document.getElementById('regEmail').value = window._pendingUser.email || '';
+      _suppressAuthChange = false;
       return;
     }
 
+    _suppressAuthChange = false;
     await initApp(window._pendingUser);
   }
 }
