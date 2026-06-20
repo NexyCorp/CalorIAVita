@@ -1,12 +1,7 @@
 // ═══════════════════════════════════════
-// GROQ API
+// AI PROXIES (Supabase + Vercel Fallback)
 // ═══════════════════════════════════════
-const GROQ_KEY = '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';
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
-const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
-const GROQ_MODEL_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão (imagens)
-const GROQ_MODEL_VISION_FB = 'llama-3.2-11b-vision-preview'; // fallback visão
+const VERCEL_PROXY_URL = 'https://caloria-vercel-proxy.vercel.app/api/ai'; // URL do projeto Vercel
 
 function extractJSON(text) {
   let s = text.replace(/```json/g,'').replace(/```/g,'').trim();
@@ -17,95 +12,95 @@ function extractJSON(text) {
   return JSON.parse(s.substring(start, end+1));
 }
 
-async function _groqFetch(model, messages, maxTokens = 4096) {
-  if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
-  let res;
-  try {
-    res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
-      body: JSON.stringify({ 
-        model, 
-        messages, 
-        max_tokens: maxTokens, 
-        temperature: 0.2,
-        response_format: { type: "json_object" }
-      })
-    });
-  } catch(netErr) {
-    throw new Error('Sem conexão com a API. Verifique sua internet.');
+async function callAiProxy(payload) {
+  const sb = window.getSupabase?.() || window._db;
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token;
+  
+  if (!token) throw new Error('401 - Usuário não autenticado');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
+
+  const supabaseUrl = window._SUPABASE_URL || sb.supabaseUrl || window.ENV?.SUPABASE_URL;
+  let lastErr;
+
+  // 1. Tentar Supabase Edge Function
+  if (supabaseUrl) {
+    try {
+      const proxyUrl = `${supabaseUrl}/functions/v1/ai-proxy`;
+      const supaHeaders = {
+        ...headers,
+        'apikey': window._SUPABASE_ANON_KEY || ''
+      };
+      const res = await fetch(proxyUrl, { method: 'POST', headers: supaHeaders, body: JSON.stringify(payload) });
+      if (res.ok) {
+        const data = await res.json();
+        return data.result;
+      } else {
+        if (res.status === 401) throw new Error('401');
+        if (res.status === 429) throw new Error('429');
+        lastErr = await res.text().catch(()=>'');
+      }
+    } catch (err) {
+      if (err.message === '401' || err.message === '429') throw err;
+      console.warn('[AI Proxy] Supabase falhou, tentando Vercel...', err);
+      lastErr = err.message;
+    }
   }
-  return res;
+
+  // 2. Fallback para Vercel
+  try {
+    const res = await fetch(VERCEL_PROXY_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (!res.ok) {
+      if (res.status === 401) throw new Error('401');
+      if (res.status === 429) throw new Error('429');
+      const errData = await res.json().catch(()=>({}));
+      throw new Error(errData.error || `Erro Vercel: ${res.status}`);
+    }
+    const data = await res.json();
+    return data.result;
+  } catch (err) {
+    if (err.message === '401' || err.message === '429') throw err;
+    throw new Error(`Falha nos Proxies (Supabase & Vercel). Último erro: ${lastErr || err.message}`);
+  }
 }
 
-async function callGroq(messages, retries = 7, maxTokens = 4096) {
+async function callGroq(messages, retries = 3, maxTokens = 4096) {
   let lastErr;
   
-  // Lista de modelos disponíveis no Groq para rotação caso ocorra rate limit (429) ou erro
-  // Modelos obsoletos (como llama3-8b-8192 e gemma2) foram removidos.
-  const models = [
-    GROQ_MODEL,               // 'llama-3.3-70b-versatile'
-    'mixtral-8x7b-32768',     // Excelente para fallback longo
-    GROQ_MODEL_FAST           // 'llama-3.1-8b-instant'
-  ];
-
-  // Se o usuário passou 7 retries, mas só temos 3 modelos, vamos tentar os modelos de forma circular
-  // Ex: model[0], model[1], model[2], model[0], model[1]... dando um tempinho entre eles.
-  const maxAttempts = Math.max(retries, models.length);
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const model = models[attempt % models.length];
-    
-    // Se der 413, tenta reduzir maxTokens progressivamente nas próximas tentativas
-    let currentMaxTokens = attempt > 0 ? Math.floor(maxTokens * Math.pow(0.75, attempt)) : maxTokens;
-
-    let res;
+  for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      res = await _groqFetch(model, messages, currentMaxTokens);
+      // Formata os messages para string simples para o proxy (que converte p/ Llama internamente)
+      const prompt = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n');
+      
+      const resultText = await callAiProxy({
+        provider: 'groq',
+        prompt: prompt,
+        maxTokens: maxTokens
+      });
+
+      return extractJSON(resultText);
+
     } catch(err) {
       lastErr = err;
-      await new Promise(r => setTimeout(r, 1500));
-      continue;
-    }
-
-    if (res.status === 401 || res.status === 403) throw new Error('401');
-    if (res.status === 429) {
-      lastErr = new Error('429');
-      // Se já testamos todos os modelos e voltamos a pegar 429, esperamos um pouco antes de tentar a próxima rodada
-      if (attempt >= models.length - 1) {
-        await new Promise(r => setTimeout(r, 5000));
-      }
-      continue; 
-    }
-    if (res.status === 413) {
-      lastErr = new Error('413');
-      // No 413 (Payload too large), reduzimos maxTokens no próximo loop
-      continue;
-    }
-    if (!res.ok) {
-      const body = await res.text().catch(()=>'');
-      lastErr = new Error('Groq ' + res.status + ': ' + body.slice(0,120));
-      if (attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, 3000));
+      if (err.message === '401') throw err; // Não tenta de novo se for 401
+      
+      if (err.message === '429') {
+        await new Promise(r => setTimeout(r, 4000));
         continue;
       }
-      throw lastErr;
-    }
-    
-    const data = await res.json();
-    if (!data.choices?.[0]?.message?.content) {
-      lastErr = new Error('Resposta vazia da API');
-      continue;
-    }
-    
-    try {
-      return extractJSON(data.choices[0].message.content);
-    } catch (parseErr) {
-      lastErr = new Error('Falha ao processar JSON da IA');
-      continue;
+      
+      if (err.message.includes('Falha ao processar JSON')) {
+        continue;
+      }
+
+      await new Promise(r => setTimeout(r, 2000));
     }
   }
-  throw lastErr || new Error('Falha de IA após rotação de modelos.');
+  throw lastErr || new Error('Falha de IA após tentativas.');
 }
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
@@ -117,38 +112,23 @@ async function askClaude(prompt, sys) {
   return callGroq([
     { role:'system', content: sys || 'Você é especialista em nutrição. Responda SOMENTE em JSON válido.' },
     { role:'user', content: prompt }
-  ], 7, 4096);
+  ], 4, 4096);
 }
 
-// Análise de imagem com modelo de visão dedicado (llama-4-scout suporta image_url)
+// Análise de imagem com Gemini Vision via Proxy
 async function askGeminiWithImage(b64, mime, prompt) {
-  if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
-  const messages = [
-    { role:'system', content:'Você é especialista em nutrição. Retorne SOMENTE JSON válido.' },
-    { role:'user', content:[
-      { type:'image_url', image_url:{ url:'data:'+mime+';base64,'+b64 }},
-      { type:'text', text: prompt }
-    ]}
-  ];
+  try {
+    const resultText = await callAiProxy({
+      provider: 'gemini',
+      prompt: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido. ' + prompt,
+      image: b64 // O proxy espera a string base64 pura
+    });
 
-  // Tenta modelo principal de visão, depois fallback
-  for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
-    try {
-      const res = await _groqFetch(model, messages, 2048);
-      if (res.status === 401 || res.status === 403) throw new Error('401');
-      if (!res.ok) {
-        if (model === GROQ_MODEL_VISION) continue; // tenta fallback
-        const body = await res.text().catch(()=>'');
-        throw new Error('Groq ' + res.status + ': ' + body.slice(0,120));
-      }
-      const data = await res.json();
-      if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
-      return extractJSON(data.choices[0].message.content);
-    } catch(e) {
-      if (model === GROQ_MODEL_VISION_FB) throw e;
-    }
+    return extractJSON(resultText);
+  } catch(e) {
+    console.error('Gemini Proxy Error:', e);
+    throw new Error('Não foi possível analisar a imagem: ' + e.message);
   }
-  throw new Error('Não foi possível analisar a imagem.');
 }
 
 
