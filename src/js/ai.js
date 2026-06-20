@@ -55,7 +55,13 @@ async function callAiProxy(payload) {
 
   // 2. Fallback para Vercel
   try {
-    const res = await fetch(VERCEL_PROXY_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
+    const res = await fetch(VERCEL_PROXY_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+      mode: 'cors',
+      credentials: 'omit'
+    });
     if (!res.ok) {
       if (res.status === 401) throw new Error('401');
       if (res.status === 429) throw new Error('429');
@@ -107,7 +113,7 @@ async function callGroq(messages, retries = 3, maxTokens = 4096) {
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  return callGroq(messages, 4, 8192);
+  return callGroq(messages, 3, 4096);
 }
 
 async function askClaude(prompt, sys) {
