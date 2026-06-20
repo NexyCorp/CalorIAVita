@@ -2550,13 +2550,13 @@
 
 
 <!-- ══ PATIENT DASHBOARD MODAL (Dossiê do Paciente) ══ -->
-<div class="modal-overlay" id="patientDashboardModal" onclick="if(event.target===this)closeModal('patientDashboardModal')">
+<div class="modal-overlay" id="patientDashboardModal" onclick="if(event.target===this)closePatientDashboard()">
   <div class="modal-box" style="max-width:800px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
     <div style="padding:1.2rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); flex-shrink:0;">
       <div>
         <div class="modal-title" id="pdName" style="margin:0;"><i class="fa-solid fa-folder-open ic-stethoscope"></i> Dossiê do Paciente</div>
       </div>
-      <button class="modal-close" onclick="closeModal('patientDashboardModal')"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close" onclick="closePatientDashboard()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div style="display:flex; border-bottom:1px solid var(--border); overflow-x:auto; padding:0 1.2rem; flex-shrink:0; gap:0.2rem;">
