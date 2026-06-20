@@ -681,7 +681,7 @@ async function loadAdminPanel() {
 async function refreshAdminUsers() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">' + t('loading') + '</td></tr>';
-  const { data, error } = await _getSb().from('profiles').select('*');
+  const { data, error } = await _getSb().rpc('get_all_profiles');
   if (error) {
     console.error('[Admin] Erro ao carregar usuários:', error);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#e53935;padding:2rem;">
