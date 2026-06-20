@@ -681,22 +681,48 @@ async function loadAdminPanel() {
 async function refreshAdminUsers() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">' + t('loading') + '</td></tr>';
-  const { data, error } = await _getSb().rpc('get_all_profiles');
+
+  let data = null;
+  let error = null;
+
+  // Tenta primeiro via RPC (necessita da função get_all_profiles no Supabase)
+  const rpcResult = await _getSb().rpc('get_all_profiles');
+  if (!rpcResult.error) {
+    data = rpcResult.data;
+  } else {
+    console.warn('[Admin] RPC get_all_profiles falhou, tentando query direta:', rpcResult.error.message);
+    // Fallback: query direta na tabela (funciona se RLS estiver com policy permissiva)
+    const directResult = await _getSb().from('profiles').select('*').order('created_at', { ascending: false });
+    data = directResult.data;
+    error = directResult.error;
+  }
+
   if (error) {
     console.error('[Admin] Erro ao carregar usuários:', error);
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#e53935;padding:2rem;">
-      <i class="fa-solid fa-xmark ic-alert"></i> Erro ${error.code}: ${error.message}<br>
-      <small style="color:var(--text-muted);">Verifique as políticas RLS da tabela profiles no Supabase (admin deve ter SELECT em profiles).</small>
+      <i class="fa-solid fa-xmark ic-alert"></i> Erro: ${error.message}<br>
+      <small style="color:var(--text-muted);">
+        Para resolver: no Supabase, vá em SQL Editor e execute o script <strong>admin_fix.sql</strong> 
+        (função get_all_profiles). Ou confirme que a política RLS da tabela <strong>profiles</strong> 
+        permite SELECT para todos (USING true).
+      </small>
     </td></tr>`;
     return;
   }
+
   allAdminUsers = data || [];
   allAdminUsers.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-  document.getElementById('statTotal').textContent = allAdminUsers.length;
-  document.getElementById('statProf').textContent = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
-  document.getElementById('statPro').textContent = allAdminUsers.filter(u=>u.plan==='pro').length;
-  document.getElementById('statClinic').textContent = allAdminUsers.filter(u=>u.plan==='clinic').length;
-  document.getElementById('statPatients').textContent = allAdminUsers.filter(u=>u.role==='patient').length;
+
+  const statTotal    = document.getElementById('statTotal');
+  const statProf     = document.getElementById('statProf');
+  const statPro      = document.getElementById('statPro');
+  const statClinic   = document.getElementById('statClinic');
+  const statPatients = document.getElementById('statPatients');
+  if (statTotal)    statTotal.textContent    = allAdminUsers.length;
+  if (statProf)     statProf.textContent     = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
+  if (statPro)      statPro.textContent      = allAdminUsers.filter(u=>u.plan==='pro').length;
+  if (statClinic)   statClinic.textContent   = allAdminUsers.filter(u=>u.plan==='clinic').length;
+  if (statPatients) statPatients.textContent = allAdminUsers.filter(u=>u.role==='patient').length;
   renderAdminTable(allAdminUsers);
 }
 
