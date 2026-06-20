@@ -493,7 +493,12 @@ function applyProfileUpdate(newData) {
       showToast('<i class="fa-solid fa-arrows-rotate ic-water"></i> Cargo atualizado: ' + (newData.role || 'padrão'));
     }
   }
+  // Se o usuário é admin, carrega o painel de admin agora que o perfil está disponível
+  if (isAdmin() && typeof loadAdminPanel === 'function') {
+    setTimeout(() => loadAdminPanel().catch(() => {}), 300);
+  }
 }
+
 
 // ═══════════════════════════════════════
 // AUTH STATE
