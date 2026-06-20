@@ -172,7 +172,7 @@ async function generateAiRecipe() {
   let prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
 DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
 Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
-Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array), steps (array) }`;
+Retorne JSON: { title, kcal, prot, totalGrams, servings, time, category, ingredients, steps, tips, storage }`;
 
   prompt += `
 Regras obrigatorias para evitar receita resumida:
@@ -183,7 +183,8 @@ Regras obrigatorias para evitar receita resumida:
 - Se retornar tips ou storage, inclua esses campos no JSON.`;
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional.');
+    const askFn = window.callGroqLarge || window.callGroq;
+    const data = await askFn([{ role: 'system', content: 'Retorne SOMENTE JSON valido sem markdown, sem listas soltas e sem texto adicional.' }, { role: 'user', content: prompt }]);
 
     const el = document.getElementById('aiRecipeResult');
     el.style.display = 'block';
@@ -575,7 +576,7 @@ function openRecipe(id) {
   if (!r) return;
 
   // Notify nutritionist if patient is viewing
-  if (isPatient() && currentProfile?.nutritionist_id) {
+  if (isPatient()) {
     notifyNutritionistRecipeView(r.title).catch(e => console.warn('[recipe notify]', e));
   }
 
@@ -618,10 +619,19 @@ function openRecipe(id) {
 }
 
 async function notifyNutritionistRecipeView(recipeTitle) {
-  if (!currentProfile?.nutritionist_id || !currentUser) return;
+  if (!currentUser) return;
+  let nutId = currentProfile?.nutritionist_id || null;
+  if (!nutId) {
+    try {
+      const { data } = await supabase.from('professional_patients').select('professional_id').eq('patient_id', currentUser.id).maybeSingle();
+      nutId = data?.professional_id || null;
+      if (nutId && currentProfile) currentProfile.nutritionist_id = nutId;
+    } catch(e) {}
+  }
+  if (!nutId) return;
   try {
     await supabase.from('chat_messages').insert({
-      nutritionist_id: currentProfile.nutritionist_id,
+      nutritionist_id: nutId,
       patient_id: currentUser.id,
       sender_id: currentUser.id,
       content: '📋 ' + (currentProfile?.name || 'Seu paciente') + ' visualizou a receita: "' + recipeTitle + '"',
@@ -759,3 +769,4 @@ window.submitRecipe = submitRecipe;
 window.setVisibility = setVisibility;
 window.previewRecipePhotos = previewRecipePhotos;
 window.closeModal = closeModal;
+

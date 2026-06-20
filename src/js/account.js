@@ -34,6 +34,7 @@ async function loadMyNutritionistRequestStatus() {
 }
 function openNutritionistRequest() {
   document.getElementById('nutritionistModal').classList.add('show');
+  ensureNutritionistRequestPlanField();
   const req = window._myNutReq;
   const isReadOnly = req && (req.status === 'pending' || req.status === 'approved');
   
@@ -72,8 +73,26 @@ function openNutritionistRequest() {
 }
 function closeNutritionistModal() { document.getElementById('nutritionistModal').classList.remove('show'); }
 
+function ensureNutritionistRequestPlanField() {
+  const modal = document.getElementById('nutritionistModal');
+  if (!modal || document.getElementById('nutRequestPlan')) return;
+  const anchor = document.getElementById('nutInstitution');
+  if (!anchor?.parentNode) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'form-field';
+  wrap.innerHTML = `
+    <label class="form-label">Tipo de assinatura</label>
+    <select id="nutRequestPlan" class="form-select">
+      <option value="nutritionist_pro">Nutricionista Pro</option>
+      <option value="nutritionist_clinic">Nutricionista Clinic</option>
+    </select>
+  `;
+  anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+}
+
 async function sendNutritionistRequest() {
   const crn = document.getElementById('nutCRN').value.trim();
+  const requestedPlan = document.getElementById('nutRequestPlan')?.value || 'nutritionist_pro';
   const checkboxes = document.querySelectorAll('input[name="nutSpecialty"]:checked');
   let specialtyList = Array.from(checkboxes).map(c => c.value);
   if (specialtyList.includes('Outra')) {
@@ -91,6 +110,7 @@ async function sendNutritionistRequest() {
     'Nome: ' + (currentProfile?.name||'') + '\n' +
     'E-mail: ' + (currentUser?.email||'') + '\n' +
     'CRN: ' + crn + '\n' +
+    'Plano desejado: ' + (requestedPlan === 'nutritionist_clinic' ? 'Nutricionista Clinic' : 'Nutricionista Pro') + '\n' +
     'Especialidade: ' + specialty + '\n' +
     'Instituição: ' + institution + '\n\n' +
     'Mensagem: ' + message;
@@ -100,6 +120,7 @@ async function sendNutritionistRequest() {
       user_name: currentProfile?.name || '',
       user_email: currentUser?.email || '',
       crn,
+      requested_plan: requestedPlan,
       specialty,
       institution,
       message,
@@ -119,6 +140,7 @@ async function sendNutritionistRequest() {
     const otherInput = document.getElementById('nutSpecialtyOther'); if (otherInput) otherInput.value = '';
     const instInput = document.getElementById('nutInstitution'); if (instInput) instInput.value = '';
     const msgInput = document.getElementById('nutMessage'); if (msgInput) msgInput.value = '';
+    const planInput = document.getElementById('nutRequestPlan'); if (planInput) planInput.value = 'nutritionist_pro';
     document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.checked = false);
     const otherContainer = document.getElementById('nutSpecialtyOtherContainer');
     if (otherContainer) otherContainer.style.display = 'none';
@@ -1817,3 +1839,4 @@ function setupDynamicDiseaseForms() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(setupDynamicDiseaseForms, 800);
 });
+
