@@ -1117,14 +1117,14 @@
         <div id="profilePatientTypePanel" style="display:none;background:linear-gradient(135deg,var(--green-pale),var(--yellow-pale));border:1px solid var(--green-light);border-radius:var(--radius-mid);padding:1rem 1.2rem;margin-top:0.75rem;">
           <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
             <i class="fa-solid fa-robot ic-chat" style="font-size:1.1rem;"></i>
-            <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
+            <span data-i18n="detected_profile" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
           </div>
           <div id="profilePatientTypeContent" style="font-size:0.85rem;color:var(--text-main);line-height:1.6;"></div>
         </div>
 
         <div class="form-field" style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; margin-bottom:0.75rem;">
           <input type="checkbox" id="profileDiabetes" onchange="localStorage.setItem('cv_is_diabetic', this.checked)">
-          <label for="profileDiabetes" style="font-size:0.85rem; cursor:pointer; user-select:none; font-weight:600; color:var(--orange-hot);">Tenho Diabetes ou Pré-Diabetes</label>
+          <label for="profileDiabetes" data-i18n="diabetes_label" style="font-size:0.85rem; cursor:pointer; user-select:none; font-weight:600; color:var(--orange-hot);">Tenho Diabetes ou Pré-Diabetes</label>
         </div>
 
         <div class="form-field" style="margin-top:0.75rem;">
@@ -1132,10 +1132,12 @@
           <div class="lang-selector">
             <button class="lang-btn active" id="langBtnPT" onclick="setLanguage('pt')">🇧🇷 Português</button>
             <button class="lang-btn" id="langBtnEN" onclick="setLanguage('en')">🇺🇸 English</button>
+            <button class="lang-btn" id="langBtnES" onclick="setLanguage('es')">🇪🇸 Español</button>
+            <button class="lang-btn" id="langBtnDE" onclick="setLanguage('de')">🇩🇪 Deutsch</button>
           </div>
         </div>
 
-        <button class="btn-primary" style="margin-top:1rem;" onclick="saveProfile()">Salvar alterações</button>
+        <button class="btn-primary" style="margin-top:1rem;" onclick="saveProfile()" data-i18n="save_changes">Salvar alterações</button>
       </div>
 
       <!-- Become nutritionist -->
@@ -1143,7 +1145,7 @@
         <h3><i class="fa-solid fa-utensils ic-recipes"></i> <span data-i18n="become_nut_title">Quero ser Nutricionista</span></h3>
         <p data-i18n="become_nut_desc">Envie suas credenciais profissionais para análise. Após aprovação, você terá acesso ao painel de pacientes e poderá gerenciar dietas personalizadas.</p>
         <div id="nutritionistRequestStatus" style="display:none;margin:0.75rem 0;padding:0.7rem 0.9rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.85rem;color:var(--text-muted);"></div>
-        <button class="btn-request-nutritionist" id="nutritionistRequestBtn" onclick="openNutritionistRequest()">Enviar Solicitação</button>
+        <button class="btn-request-nutritionist" id="nutritionistRequestBtn" onclick="openNutritionistRequest()" data-i18n="submit_request">Enviar Solicitação</button>
       </div>
     </div>
 
