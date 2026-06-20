@@ -285,43 +285,48 @@ const NUT_SPECIALTY_META = {
 };
 
 function openNutTypeModal() {
-  // Pre-select current type
+  const currentTypes = (_currentNutType || '').split(',').filter(Boolean);
   document.querySelectorAll('.nut-type-select-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.type === _currentNutType);
+    b.classList.toggle('active', currentTypes.includes(b.dataset.type));
   });
   document.getElementById('nutTypeModal').classList.add('show');
 }
 function closeNutTypeModal() { document.getElementById('nutTypeModal').classList.remove('show'); }
 
 function selectNutType(btn) {
-  document.querySelectorAll('.nut-type-select-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  btn.classList.toggle('active');
 }
 
 async function saveNutType() {
-  const activeBtn = document.querySelector('.nut-type-select-btn.active');
-  if (!activeBtn) { showToast('Selecione uma especialidade', 'error'); return; }
-  const type = activeBtn.dataset.type;
-  _currentNutType = type;
+  const activeBtns = document.querySelectorAll('.nut-type-select-btn.active');
+  if (activeBtns.length === 0) { showToast('Selecione pelo menos uma especialidade', 'error'); return; }
+  const types = Array.from(activeBtns).map(b => b.dataset.type).join(',');
+  _currentNutType = types;
   const sb = window.getSupabase?.() || window._db;
-  const { error } = await sb.from('profiles').update({ nutritionist_type: type }).eq('id', currentUser.id);
+  const { error } = await sb.from('profiles').update({ nutritionist_type: types }).eq('id', currentUser.id);
   if (error) {
     console.warn('[saveNutType]', error);
     showToast('Erro ao salvar especialidade: ' + error.message, 'error');
     return;
   }
-  currentProfile = { ...currentProfile, nutritionist_type: type };
+  currentProfile = { ...currentProfile, nutritionist_type: types };
   closeNutTypeModal();
   renderNutSpecialtyBadge();
-  showToast(`<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Especialidade: ${NUT_SPECIALTY_META[type]?.label || type}`);
+  showToast(`<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Especialidades salvas!`);
 }
 
 function renderNutSpecialtyBadge() {
-  const type = _currentNutType || currentProfile?.nutritionist_type;
-  if (!type || !isProfessional()) return;
-  const meta = NUT_SPECIALTY_META[type];
-  if (!meta) return;
-  // Show badge in sidebar footer
+  const typeStr = _currentNutType || currentProfile?.nutritionist_type;
+  if (!typeStr || !isProfessional()) return;
+  const types = typeStr.split(',').filter(Boolean);
+  if (types.length === 0) return;
+  
+  const mainMeta = NUT_SPECIALTY_META[types[0]];
+  if (!mainMeta) return;
+
+  const extraCount = types.length > 1 ? ` +${types.length - 1}` : '';
+  const fullLabel = types.map(t => NUT_SPECIALTY_META[t]?.label || t).join(', ');
+
   let badgeEl = document.getElementById('nutSpecialtyBadge');
   if (!badgeEl) {
     badgeEl = document.createElement('div');
@@ -331,7 +336,7 @@ function renderNutSpecialtyBadge() {
     const footer = document.querySelector('.sidebar-footer');
     if (footer) footer.insertBefore(badgeEl, footer.firstChild);
   }
-  badgeEl.innerHTML = `<span class="nut-specialty-badge ${meta.badge}" title="Clique para alterar">${meta.icon} ${meta.label}</span>`;
+  badgeEl.innerHTML = `<span class="nut-specialty-badge ${mainMeta.badge}" title="${fullLabel}">${mainMeta.icon} ${mainMeta.label}${extraCount}</span>`;
 }
 
 // Load specialty on init

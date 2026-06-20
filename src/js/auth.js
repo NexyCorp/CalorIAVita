@@ -377,11 +377,19 @@ async function initApp(user) {
 
   try {
     currentUser = user;
-    currentProfile = await fetchUserProfile(user);
     if (window._pendingFreshProfile) {
       currentProfile = { ...currentProfile, ...window._pendingFreshProfile };
       window._pendingFreshProfile = null;
+    } else {
+      currentProfile = currentProfile || _profileFallback(user);
     }
+
+    // Run fetch in background instead of blocking init
+    fetchUserProfile(user).then(prof => {
+      if (prof && !window._pendingFreshProfile) {
+        applyProfileUpdate(prof);
+      }
+    });
 
     showApp(user);
     setupRoleUI();
