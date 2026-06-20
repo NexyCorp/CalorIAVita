@@ -621,11 +621,8 @@ async function loadPatients() {
             </div>
           </div>
           <div class="patient-actions" style="display:flex;gap:0.4rem;align-items:center;">
-            <button class="btn-view-diary" onclick="viewPatientDiary('${p.id}', '${p.name || p.email}')">
-              <i class="fa-solid fa-book"></i> Diário
-            </button>
-            <button class="btn-view-diary" onclick="openRecordModal('${p.id}', '${p.name || p.email}')" style="background:var(--yellow-pale);color:var(--orange-hot);">
-              <i class="fa-solid fa-file-invoice"></i> Prontuário
+            <button class="btn-primary" style="padding:0.5rem 1rem;font-size:0.8rem;" onclick="openPatientDashboard('${p.id}', '${p.name || p.email}')">
+              <i class="fa-solid fa-folder-open"></i> Dossiê do Paciente
             </button>
           </div>
         </div>
