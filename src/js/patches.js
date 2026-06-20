@@ -468,10 +468,19 @@ Retorne SOMENTE um JSON válido com esta estrutura:
     renderDietResult(data);
 
   } catch(e) {
-    const msg = e.message?.includes('429')
-      ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
-      : 'Erro ao gerar dieta: ' + e.message;
-    showToast(msg, 'error');
+    const fallback = _p2_buildLocalDietPlan({
+      goalSel,
+      restrict,
+      numMeals,
+      numDays,
+      obs,
+      profile,
+      targetName
+    });
+    _lastGeneratedDiet = fallback;
+    _lastGeneratedDiet._forPatient = _p2_dietPatientName || null;
+    renderDietResult(fallback);
+    showToast('IA indisponível agora. Uma dieta base foi gerada localmente.', 'error');
   } finally {
     document.getElementById('dietGenLoading').style.display = 'none';
     const btn = document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]');
@@ -1341,6 +1350,60 @@ function _p2_ensureDietPatientBadge(patientName) {
   badgeDiv.style.cssText = 'display:flex;align-items:center;gap:0.4rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:var(--radius-sm);padding:0.5rem 0.9rem;font-size:0.82rem;font-weight:600;color:var(--green-deep);margin-bottom:0.75rem;flex-wrap:wrap;';
   badgeDiv.innerHTML = `<i class="fa-solid fa-user ic-user"></i> Gerando para: <strong style="margin-left:0.3rem;">${patientName}</strong> <button onclick="_p2_clearDietPatient()" style="background:none;border:none;cursor:pointer;font-size:0.9rem;color:var(--text-muted);margin-left:0.4rem;" title="Remover">✕</button>`;
   form.insertBefore(badgeDiv, form.firstChild);
+}
+
+function _p2_buildLocalDietPlan({ goalSel, restrict, numMeals, numDays, obs, profile, targetName }) {
+  const mealNames = ['Café da manhã', 'Almoço', 'Lanche', 'Jantar', 'Ceia'];
+  const baseFoods = {
+    cafe: [
+      { name: 'Ovos mexidos', qty: '2 unidades', kcal: 180, protein: 14, carbs: 2, fat: 13, sugar: 1 },
+      { name: 'Pão integral', qty: '2 fatias', kcal: 140, protein: 6, carbs: 24, fat: 2, sugar: 2 }
+    ],
+    almoco: [
+      { name: 'Arroz integral', qty: '4 colheres de sopa', kcal: 120, protein: 3, carbs: 25, fat: 1, sugar: 0 },
+      { name: 'Feijão', qty: '1 concha', kcal: 90, protein: 5, carbs: 15, fat: 1, sugar: 0 },
+      { name: 'Frango grelhado', qty: '120g', kcal: 190, protein: 32, carbs: 0, fat: 5, sugar: 0 },
+      { name: 'Salada colorida', qty: '1 prato de sobremesa', kcal: 50, protein: 2, carbs: 8, fat: 1, sugar: 3 }
+    ],
+    lanche: [
+      { name: 'Iogurte natural', qty: '1 pote', kcal: 120, protein: 8, carbs: 10, fat: 4, sugar: 8 },
+      { name: 'Banana', qty: '1 unidade', kcal: 90, protein: 1, carbs: 23, fat: 0, sugar: 12 }
+    ],
+    jantar: [
+      { name: 'Batata doce', qty: '1 porção media', kcal: 130, protein: 2, carbs: 30, fat: 0, sugar: 4 },
+      { name: 'Peixe assado', qty: '120g', kcal: 170, protein: 28, carbs: 0, fat: 6, sugar: 0 },
+      { name: 'Legumes no vapor', qty: '1 prato pequeno', kcal: 60, protein: 3, carbs: 10, fat: 1, sugar: 4 }
+    ]
+  };
+  const mealsPerDay = Math.max(3, Math.min(Number(numMeals) || 4, 5));
+  const days = [];
+  for (let d = 1; d <= Math.max(1, Number(numDays) || 1); d++) {
+    const meals = [];
+    const keys = ['cafe', 'almoco', 'lanche', 'jantar'];
+    for (let i = 0; i < mealsPerDay; i++) {
+      const key = keys[i] || 'jantar';
+      const foods = baseFoods[key].map(f => ({ ...f }));
+      const totalKcal = foods.reduce((sum, f) => sum + (f.kcal || 0), 0);
+      meals.push({
+        meal: mealNames[i] || mealNames[3],
+        mealKey: key,
+        foods,
+        totalKcal
+      });
+    }
+    days.push({ day: d, meals });
+  }
+
+  const totalKcal = days.reduce((sum, day) => sum + day.meals.reduce((s, m) => s + m.totalKcal, 0), 0);
+  return {
+    totalKcal: Math.round(totalKcal / days.length),
+    totalProtein: 120,
+    totalCarbs: 180,
+    totalFat: 60,
+    totalSugar: 25,
+    waterMl: Math.round((profile?.weight || 70) * 35),
+    days
+  };
 }
 
 // Override generateAIDiet to use patient anamnese when generating for a patient
