@@ -150,7 +150,7 @@
         <span class="nav-icon"><i class="fa-solid fa-house ic-home"></i></span><span>Início</span>
       </button>
       <button class="nav-item" id="nav-dietaia" onclick="showPanel('dietaia',this)">
-        <span class="nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i></span><span style="font-weight:700;color:var(--orange-hot);">Dieta IA</span>
+        <span class="nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i></span><span data-i18n="nav_dietaia" style="font-weight:700;color:var(--orange-hot);">Dieta IA</span>
       </button>
       <button class="nav-item" id="nav-search" onclick="showPanel('search',this)">
         <span class="nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span><span data-i18n="nav_search">Pesquisar</span>
@@ -248,12 +248,12 @@
       <div class="card" style="background:linear-gradient(135deg,var(--green-deep) 0%,#1e5c23 100%);color:white;border:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
           <div>
-            <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;">Olá, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
-            <div style="opacity:0.8;font-size:0.88rem;margin-top:0.25rem;">Aqui está o seu resumo de hoje</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;"><span data-i18n="home_hello">Olá</span>, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
+            <div data-i18n="home_summary" style="opacity:0.8;font-size:0.88rem;margin-top:0.25rem;">Aqui está o seu resumo de hoje</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:2rem;font-weight:900;font-family:'Playfair Display',serif;" id="homeKcalToday">0</div>
-            <div style="opacity:0.7;font-size:0.75rem;">kcal hoje</div>
+            <div data-i18n="kcal_today" style="opacity:0.7;font-size:0.75rem;">kcal hoje</div>
           </div>
         </div>
         <div style="margin-top:1rem;background:rgba(255,255,255,0.2);border-radius:8px;height:8px;overflow:hidden;">
@@ -268,36 +268,36 @@
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('search',document.getElementById('nav-search'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-magnifying-glass ic-search"></i></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Tabela nutricional</div>
+          <div data-i18n="search_food" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
+          <div data-i18n="search_food_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Tabela nutricional</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('diary',document.getElementById('nav-diary'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-book ic-diary"></i></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Registrar refeições</div>
+          <div data-i18n="my_diary" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
+          <div data-i18n="my_diary_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Registrar refeições</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('camera',document.getElementById('nav-camera'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-camera ic-camera"></i></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Analisar foto do prato</div>
+          <div data-i18n="camera_ai" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
+          <div data-i18n="camera_ai_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Analisar foto do prato</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('water',document.getElementById('nav-water'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-droplet ic-water"></i></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Acompanhar hidratação</div>
+          <div data-i18n="water" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
+          <div data-i18n="water_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Acompanhar hidratação</div>
         </div>
         <!-- Diet Generator shortcut (desktop/sidebar — não aparece na barra fixa mobile) -->
         <div class="card home-diet-card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:linear-gradient(135deg,var(--green-deep),#1a4a1f);border:none;color:white;" onclick="openDietGenModal()">
           <div style="font-size:2rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#ffd54f!important;"></i></div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
-          <div style="font-size:0.75rem;opacity:0.75;margin-top:0.2rem;">Plano alimentar personalizado baseado na sua anamnese</div>
+          <div data-i18n="generate_diet" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
+          <div data-i18n="generate_diet_desc" style="font-size:0.75rem;opacity:0.75;margin-top:0.2rem;">Plano alimentar personalizado baseado na sua anamnese</div>
         </div>
       </div>
 
       <!-- Today macros + recipes side by side -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
         <div class="card" style="margin-bottom:0;">
-          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-pills ic-water"></i> Macros de Hoje</div>
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-pills ic-water"></i> <span data-i18n="macros_today">Macros de Hoje</span></div>
           <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.75rem;">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
@@ -349,11 +349,11 @@
     <!-- ══ DIETA IA PANEL ══ -->
     <div class="panel" id="panel-dietaia">
       <div class="card">
-        <div class="card-title"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i> Dieta IA</div>
-        <div class="card-sub">Gere um plano alimentar personalizado com Inteligência Artificial e acompanhe o seu consumo diário.</div>
+        <div class="card-title"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i> <span data-i18n="nav_dietaia">Dieta IA</span></div>
+        <div class="card-sub" data-i18n="dietaia_sub">Gere um plano alimentar personalizado com Inteligência Artificial e acompanhe o seu consumo diário.</div>
         
         <div style="margin-top:1.5rem; text-align:center;">
-          <button class="btn-primary" onclick="openDietGenModal()"><i class="fa-solid fa-wand-magic-sparkles"></i> Gerar Nova Dieta com IA</button>
+          <button class="btn-primary" onclick="openDietGenModal()"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="generate_diet">Gerar Nova Dieta com IA</span></button>
         </div>
 
         <div id="dietaiaSavedPlan" style="margin-top:2rem; display:none;">
@@ -981,17 +981,17 @@
     <!-- ══ ADMIN PANEL ══ -->
     <div class="panel" id="panel-admin">
       <div class="card">
-        <div class="card-title"><i class="fa-solid fa-gear ic-admin"></i> Painel Administrativo</div>
+        <div class="card-title"><i class="fa-solid fa-gear ic-admin"></i> <span data-i18n="admin_panel_title">Painel Administrativo</span></div>
         <div class="card-sub">Gerenciar usuários, planos e receitas pendentes</div>
 
         <div class="admin-stat-grid">
-          <div class="admin-stat"><div class="admin-stat-num" id="statTotal">—</div><div class="admin-stat-label">Usuários</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statProf">—</div><div class="admin-stat-label">Profissionais</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statPro">—</div><div class="admin-stat-label">Plano Pro</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statClinic">—</div><div class="admin-stat-label">Clínica</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statPatients">—</div><div class="admin-stat-label">Pacientes</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statPendingNutritionists">—</div><div class="admin-stat-label">Nutricionistas Pendentes</div></div>
-          <div class="admin-stat"><div class="admin-stat-num" id="statPendingUpgrades">�</div><div class="admin-stat-label">Upgrades Pendentes</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statTotal">—</div><div class="admin-stat-label" data-i18n="admin_users">Usuários</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statProf">—</div><div class="admin-stat-label" data-i18n="admin_prof">Profissionais</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPro">—</div><div class="admin-stat-label" data-i18n="admin_pro">Plano Pro</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statClinic">—</div><div class="admin-stat-label" data-i18n="admin_clinic">Clínica</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPatients">—</div><div class="admin-stat-label" data-i18n="admin_patients">Pacientes</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPendingNutritionists">—</div><div class="admin-stat-label" data-i18n="admin_pending_nut">Nutricionistas Pendentes</div></div>
+          <div class="admin-stat"><div class="admin-stat-num" id="statPendingUpgrades">—</div><div class="admin-stat-label" data-i18n="admin_pending_upg">Upgrades Pendentes</div></div>
         </div>
       </div>
       <!-- Pending upgrade requests -->
@@ -1607,7 +1607,7 @@
           </div>
         </div>
         <div class="form-field">
-          <label class="form-label">Dietas anteriores?</label>
+          <label class="form-label" data-i18n="previous_diets">Dietas anteriores?</label>
           <div class="radio-group">
             <label class="radio-opt"><input type="radio" name="cpPrevDiets" value="nao" checked> Não</label>
             <label class="radio-opt"><input type="radio" name="cpPrevDiets" value="sim"> Sim</label>
@@ -2242,8 +2242,8 @@
 <div class="modal-overlay" id="dietGenModal" onclick="if(event.target===this)closeDietGenModal()">
   <div class="modal-box" style="max-width:640px;width:96vw;max-height:92vh;overflow-y:auto;">
     <button class="modal-close" onclick="closeDietGenModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
-    <div class="modal-title"><i class="fa-solid fa-wand-magic-sparkles ic-star"></i> Gerar Dieta com IA</div>
-    <p class="modal-sub">A IA cria um plano alimentar completo baseado nos seus dados e anamnese.</p>
+    <div class="modal-title"><i class="fa-solid fa-wand-magic-sparkles ic-star"></i> <span data-i18n="generate_diet">Gerar Dieta com IA</span></div>
+    <p class="modal-sub" data-i18n="dietaia_modal_sub">A IA cria um plano alimentar completo baseado nos seus dados e anamnese.</p>
 
     <div id="dietGenForm">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
