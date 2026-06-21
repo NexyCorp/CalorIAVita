@@ -90,17 +90,27 @@ function extractJSON(text) {
 // ═══════════════════════════════════════
 // CHAMADA VIA PROXY CLOUDFLARE
 // ═══════════════════════════════════════
+// Retorna { content, provider, model } do proxy
 async function _callProxy(body) {
-  const res = await fetch('/api/ai', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  let res;
+  try {
+    res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+  } catch(netErr) {
+    throw new Error('Sem conexão com o servidor. Verifique sua internet.');
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data.error) {
-    throw new Error(data.error || `Proxy error ${res.status}`);
+    const msg = data.error || `Proxy error ${res.status}`;
+    // Propaga o status code no erro para tratamento upstream
+    const err = new Error(msg);
+    err.status = res.status;
+    throw err;
   }
-  return data.content;
+  return data; // { content, provider?, model? }
 }
 
 // ═══════════════════════════════════════
@@ -123,8 +133,8 @@ async function _devGroqFetch(model, messages, maxTokens = 6000) {
 async function callGroq(messages, retries = 3, maxTokens = 6000) {
   // Produção: usa proxy Cloudflare
   if (USE_PROXY) {
-    const content = await _callProxy({ type: 'text', messages, maxTokens });
-    return extractJSON(content);
+    const data = await _callProxy({ type: 'text', messages, maxTokens });
+    return extractJSON(data.content);
   }
 
   // Dev local: direto ao Groq com rotação de chaves
@@ -160,8 +170,8 @@ async function callGroq(messages, retries = 3, maxTokens = 6000) {
 // Versão com mais tokens para prompts longos (dieta, receitas completas)
 async function callGroqLarge(messages) {
   if (USE_PROXY) {
-    const content = await _callProxy({ type: 'text', messages, maxTokens: 8192, useLarge: true });
-    return extractJSON(content);
+    const data = await _callProxy({ type: 'text', messages, maxTokens: 8192, useLarge: true });
+    return extractJSON(data.content);
   }
   return callGroq(messages, 3, 8192);
 }
@@ -182,8 +192,11 @@ async function askGeminiWithImage(b64, mime, prompt) {
 
   // Produção: tudo passa pelo proxy seguro
   if (USE_PROXY) {
-    const content = await _callProxy({ type: 'vision', b64, mime: mimeType, prompt });
-    return extractJSON(content);
+    const data = await _callProxy({ type: 'vision', b64, mime: mimeType, prompt });
+    const result = extractJSON(data.content);
+    // Injeta provider no resultado para feedback visual em diary.js
+    if (data.provider) result._provider = data.provider;
+    return result;
   }
 
   // Dev local: HuggingFace → Groq Vision fallback

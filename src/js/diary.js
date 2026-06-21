@@ -452,20 +452,65 @@ async function saveGoal() {
 // ═══════════════════════════════════════
 let currentImageBase64 = null, currentImageMimeType = 'image/jpeg';
 
-function handleImageUpload(e) {
+// Comprime imagem via Canvas antes de enviar (evita 413)
+// Máx 1024px, 75% JPEG quality — reduz foto de celular de ~4MB para ~300KB
+async function compressImage(file, maxDim = 1024, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width >= height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(objectUrl);
+      canvas.toBlob(blob => {
+        if (!blob) { reject(new Error('Falha ao comprimir imagem.')); return; }
+        const reader = new FileReader();
+        reader.onload = e => resolve({ dataUrl: e.target.result, mimeType: 'image/jpeg' });
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Imagem inválida.')); };
+    img.src = objectUrl;
+  });
+}
+
+async function handleImageUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
-  currentImageMimeType = file.type || 'image/jpeg';
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const src = ev.target.result;
-    currentImageBase64 = src.split(',')[1];
-    document.getElementById('cameraImg').src = src;
-    document.getElementById('cameraPreview').style.display = 'block';
+
+  // Mostra pré-via imediata com o arquivo original
+  const rawUrl = URL.createObjectURL(file);
+  document.getElementById('cameraImg').src = rawUrl;
+  document.getElementById('cameraPreview').style.display = 'block';
+  document.getElementById('analyzeBtn').classList.remove('show'); // esconde até comprimir
+  document.getElementById('camResult').classList.remove('show');
+
+  try {
+    // Comprime antes de armazenar (evita 413 no proxy)
+    const { dataUrl, mimeType } = await compressImage(file);
+    currentImageBase64 = dataUrl.split(',')[1];
+    currentImageMimeType = mimeType;
+    document.getElementById('cameraImg').src = dataUrl; // atualiza para versão comprimida
     document.getElementById('analyzeBtn').classList.add('show');
-    document.getElementById('camResult').classList.remove('show');
-  };
-  reader.readAsDataURL(file);
+  } catch(compErr) {
+    // Fallback: usa imagem original sem compressão
+    console.warn('[CameraIA] Compressão falhou, usando original:', compErr);
+    currentImageMimeType = file.type || 'image/jpeg';
+    const reader = new FileReader();
+    reader.onload = ev => {
+      currentImageBase64 = ev.target.result.split(',')[1];
+      document.getElementById('analyzeBtn').classList.add('show');
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 async function analyzeImage() {
@@ -490,14 +535,25 @@ async function analyzeImage() {
     document.getElementById('camProt').textContent = (result.protein||0).toFixed(1) + 'g';
     document.getElementById('camFat').textContent = (result.fat||0).toFixed(1) + 'g';
     document.getElementById('camExtra').innerHTML = result.tips ? '<i class="fa-solid fa-lightbulb ic-star"></i> ' + result.tips : '';
+
+    // Mostra qual provider foi usado (debug visual)
+    if (result._provider) {
+      const provLabel = result._provider === 'huggingface'
+        ? '🤗 HuggingFace'
+        : result._provider === 'groq_vision'
+        ? '⚡ Groq Vision (fallback)'
+        : result._provider;
+      showToast(`CameraIA — ${provLabel}`, 'info', 2500);
+    }
+
     document.getElementById('camResult').classList.add('show');
   } catch(e) {
     const camMsg = e.message?.includes('401') || e.message?.includes('403')
       ? '🔑 Chave API inválida. Verifique as configurações.'
       : e.message?.includes('429')
       ? '<i class="fa-solid fa-hourglass-half ic-water"></i> Limite de requisições atingido. Aguarde e tente novamente.'
-      : e.message?.includes('413') || e.message?.includes('large')
-      ? '📦 Imagem muito grande. Use uma foto menor.'
+      : e.message?.includes('413') || e.message?.includes('large') || e.message?.includes('too large')
+      ? '📦 Imagem muito grande. Usando compressão automática — tente novamente.'
       : '<i class="fa-solid fa-xmark ic-alert"></i> Não foi possível analisar a imagem. Tente uma foto mais clara e bem iluminada.';
     showToast(camMsg, 'error');
   } finally {

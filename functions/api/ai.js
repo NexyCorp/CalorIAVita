@@ -4,14 +4,7 @@
  *
  * Configure os Secrets no Cloudflare Dashboard:
  *   Settings → Environment Variables → Add variable (tipo: Secret)
- *   GROQ_KEY_1  — primeira chave Groq
- *   GROQ_KEY_2  — segunda chave Groq
- *   GROQ_KEY_3  — terceira chave Groq
- *   HF_KEY      — chave HuggingFace (opcional, usa Groq Vision como fallback)
- *
- * O cliente envia POST /api/ai com body:
- *   { type: 'text',   messages, maxTokens?, useLarge? }  → Groq text
- *   { type: 'vision', b64, mime, prompt }                → HF Vision / Groq Vision fallback
+ *   GROQ_KEY_1  /  GROQ_KEY_2  /  GROQ_KEY_3  /  HF_KEY
  */
 
 const GROQ_URL             = 'https://api.groq.com/openai/v1/chat/completions';
@@ -39,6 +32,7 @@ function errResp(msg, status = 500) { return jsonResp({ error: msg }, status); }
 // Groq fetch com rotação automática de chaves no 429
 async function groqFetch(keys, model, messages, maxTokens = 6000) {
   let lastStatus = 429;
+  let lastErr = '';
   for (let ki = 0; ki < keys.length; ki++) {
     const key = keys[ki];
     if (!key || key.length < 10) continue;
@@ -49,14 +43,22 @@ async function groqFetch(keys, model, messages, maxTokens = 6000) {
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
         body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.2 })
       });
-    } catch(e) { continue; }
-
+    } catch(e) {
+      lastErr = 'Sem conexão com Groq: ' + e.message;
+      continue;
+    }
     if (res.status === 429 || res.status === 503) {
       lastStatus = res.status;
+      lastErr = `Chave ${ki+1} com rate limit (429)`;
       if (ki < keys.length - 1) await new Promise(r => setTimeout(r, 600 * (ki + 1)));
       continue; // próxima chave
     }
-    if (res.status === 401 || res.status === 403) return { error: 'Chave Groq inválida.', status: 401 };
+    if (res.status === 401 || res.status === 403) {
+      return { error: `Chave Groq ${ki+1} inválida (${res.status}).`, status: 401 };
+    }
+    if (res.status === 413) {
+      return { error: 'Payload muito grande para o Groq (413). A imagem foi comprimida?', status: 413 };
+    }
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       return { error: `Groq ${res.status}: ${body.slice(0, 150)}`, status: res.status };
@@ -66,33 +68,48 @@ async function groqFetch(keys, model, messages, maxTokens = 6000) {
     if (!content) return { error: 'Resposta vazia da API Groq', status: 200 };
     return { content, status: 200 };
   }
-  return { error: '429 — Todas as chaves Groq atingiram o limite. Tente em alguns minutos.', status: lastStatus };
+  return {
+    error: `429 — Todas as ${keys.length} chaves Groq atingiram o limite. Tente em alguns minutos. (Último erro: ${lastErr})`,
+    status: lastStatus
+  };
 }
 
+// ─── Handler: texto ────────────────────────────────────────────────────────────
 async function handleText(body, env) {
   const keys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3].filter(k => k && k.length > 10);
-  if (keys.length === 0) return errResp('Nenhuma chave Groq configurada no Cloudflare.', 401);
+  if (keys.length === 0) return errResp('Nenhuma chave Groq configurada no Cloudflare (GROQ_KEY_1/2/3).', 401);
 
   const { messages, maxTokens = 6000, useLarge } = body;
   const tokenLimit = useLarge ? 8192 : maxTokens;
 
   for (const model of [GROQ_MODEL, GROQ_MODEL_FAST]) {
     const result = await groqFetch(keys, model, messages, tokenLimit);
-    if (result.content) return jsonResp({ content: result.content });
+    if (result.content) return jsonResp({ content: result.content, provider: 'groq', model });
     if (result.status === 401) return errResp(result.error, 401);
+    if (result.status === 413) return errResp(result.error, 413);
     if (model === GROQ_MODEL_FAST) return errResp(result.error, result.status || 500);
+    // Se falhou no modelo principal, tenta fast
   }
   return errResp('Não foi possível processar a requisição.', 500);
 }
 
+// ─── Handler: visão ─────────────────────────────────────────────────────────────
 async function handleVision(body, env) {
   const { b64, mime, prompt } = body;
+
+  // Valida tamanho: base64 de 1MB = ~750KB original
+  // Após compressão client-side (1024px, 75%), deve ser < 500KB base64
+  if (b64 && b64.length > 1_500_000) { // ~1.1MB base64 = ~800KB original
+    return errResp('Imagem ainda muito grande após compressão. Tente uma foto com menos detalhes ou resolução menor.', 413);
+  }
+
   const mimeType = mime || 'image/jpeg';
   const dataUri  = `data:${mimeType};base64,${b64}`;
   const hfKey    = env.HF_KEY;
 
   // ── HuggingFace (primário) ───────────────────────────────────────────────
-  if (hfKey && hfKey.length > 10) {
+  const hfConfigured = hfKey && hfKey.length > 10 && !hfKey.includes('xxxx');
+  if (hfConfigured) {
     const payload = {
       model: HF_VISION_MODEL,
       messages: [{
@@ -113,23 +130,42 @@ async function handleVision(body, env) {
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + hfKey },
           body: JSON.stringify(payload)
         });
-      } catch(e) { break; }
-      if (res.status === 400) {
-        const t = await res.text().catch(() => '');
-        return errResp(`Imagem inválida ou muito grande. (${t.slice(0,100)})`, 400);
-      }
-      if (res.status === 401 || res.status === 403 || res.status === 404) break;
-      if (res.status === 429 || res.status === 503) {
-        if (attempt === 0) { await new Promise(r => setTimeout(r, 3000)); continue; }
+      } catch(e) {
+        console.log('[Vision] HF network error, fallback Groq:', e.message);
         break;
       }
-      if (!res.ok) { if (attempt === 0) { await new Promise(r => setTimeout(r, 2000)); continue; } break; }
+      if (res.status === 400) {
+        const t = await res.text().catch(() => '');
+        // 400 pode ser imagem inválida — vai para Groq que pode lidar diferente
+        console.log('[Vision] HF 400, tentando Groq:', t.slice(0, 100));
+        break;
+      }
+      if (res.status === 401 || res.status === 403) {
+        console.log('[Vision] HF auth falhou (', res.status, '), usando Groq');
+        break;
+      }
+      if (res.status === 404) {
+        console.log('[Vision] HF 404 — modelo não encontrado, usando Groq');
+        break;
+      }
+      if (res.status === 429 || res.status === 503) {
+        if (attempt === 0) { await new Promise(r => setTimeout(r, 3000)); continue; }
+        console.log('[Vision] HF rate limit esgotado, usando Groq');
+        break;
+      }
+      if (!res.ok) {
+        console.log('[Vision] HF', res.status, '— usando Groq');
+        if (attempt === 0) { await new Promise(r => setTimeout(r, 2000)); continue; }
+        break;
+      }
       const data = await res.json();
       const text = data?.choices?.[0]?.message?.content;
-      if (text) return jsonResp({ content: text }); // ✅
+      if (text) return jsonResp({ content: text, provider: 'huggingface' }); // ✅ HF sucesso
       if (attempt === 0) continue;
       break;
     }
+  } else {
+    console.log('[Vision] HF_KEY não configurada ou inválida — usando Groq diretamente');
   }
 
   // ── Groq Vision fallback ─────────────────────────────────────────────────
@@ -145,21 +181,26 @@ async function handleVision(body, env) {
   ];
   for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
     const result = await groqFetch(keys, model, messages, 2048);
-    if (result.content) return jsonResp({ content: result.content });
+    if (result.content) return jsonResp({ content: result.content, provider: 'groq_vision', model });
     if (result.status === 401) return errResp(result.error, 401);
+    if (result.status === 413) return errResp('Imagem muito grande para o Groq Vision. Comprima mais a foto.', 413);
     if (model === GROQ_MODEL_VISION_FB) return errResp(result.error || 'Não foi possível analisar a imagem.', result.status || 500);
   }
   return errResp('Não foi possível analisar a imagem.', 500);
 }
 
+// ─── Entry point ──────────────────────────────────────────────────────────────
 export async function onRequestPost({ request, env }) {
   let body;
-  try { body = await request.json(); } catch(e) { return errResp('Body JSON inválido.', 400); }
+  try { body = await request.json(); }
+  catch(e) { return errResp('Body JSON inválido: ' + e.message, 400); }
+
   if (body.type === 'vision') return handleVision(body, env);
   if (body.type === 'text')   return handleText(body, env);
   return errResp('Tipo inválido. Use "text" ou "vision".', 400);
 }
 
+// Preflight CORS
 export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: CORS });
 }
