@@ -1563,6 +1563,8 @@
         </div>
       </div>
 
+    </div>
+
       <div class="form-field" style="margin-top:0.75rem;">
         <label class="form-label">Outras doenças / condições (texto livre)</label>
         <textarea id="cpDiseasesOther" class="form-input" rows="2" placeholder="Descreva outras condições relevantes..."></textarea>
@@ -2550,8 +2552,8 @@
 
 
 <!-- ══ PATIENT DASHBOARD MODAL (Dossiê do Paciente) ══ -->
-<div class="modal-overlay" id="patientDashboardModal" onclick="if(event.target===this)closeModal('patientDashboardModal')">
-  <div class="modal-box" style="max-width:800px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+<div class="modal" id="patientDashboardModal">
+  <div class="modal-content" style="max-width:800px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
     <div style="padding:1.2rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); flex-shrink:0;">
       <div>
         <div class="modal-title" id="pdName" style="margin:0;"><i class="fa-solid fa-folder-open ic-stethoscope"></i> Dossiê do Paciente</div>
@@ -2598,6 +2600,6 @@
 
 <script src="/globals.js"></script>
 <script type="module" src="/src/main.js"></script>
-<script type="module" src="/src/js/patient_dashboard.js"></script>
+<script src="src/js/patient_dashboard.js"></script>
 </body>
 </html>
