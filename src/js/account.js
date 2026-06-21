@@ -345,7 +345,7 @@ async function _createPatientDirectBase() {
     name,
     email,
     role: 'patient',
-    plan: 'pro',
+    plan: 'patient_pro',
     sex,
     age,
     weight,
