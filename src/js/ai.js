@@ -11,7 +11,7 @@ let currentGroqKeyIndex = 0;
 // Chave HuggingFace para análise de imagens (CameraIA)
 // Obtenha em: https://huggingface.co/settings/tokens
 // IMPORTANTE: aceite os termos do modelo em: https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct
-const HF_KEY = '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'; // ← Substitua pela sua chave HuggingFace
+const HF_KEY = ''; // ← Substitua pela sua chave HuggingFace
 const HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
 const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
 
