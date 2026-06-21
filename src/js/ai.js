@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// GROQ & GEMINI API
+// GROQ & HUGGINGFACE (Visão) API
 // ═══════════════════════════════════════
 const GROQ_KEYS = [
   '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',
@@ -8,7 +8,12 @@ const GROQ_KEYS = [
 ];
 let currentGroqKeyIndex = 0;
 
-const GEMINI_KEY = 'AQ.Ab8RN6L2kgtWGlEYECzbuNg_69Kdm_bQ2d1D-VEXa7td1iscvQ'; // Chave Gemini para imagens — obtenha em https://aistudio.google.com/app/apikey
+// Chave HuggingFace para análise de imagens (CameraIA)
+// Obtenha em: https://huggingface.co/settings/tokens
+// IMPORTANTE: aceite os termos do modelo em: https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct
+const HF_KEY = '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'; // ← Substitua pela sua chave HuggingFace
+const HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
+const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
@@ -91,60 +96,85 @@ async function askClaude(prompt, sys) {
   ]);
 }
 
-// Análise de imagem com Gemini — com retry em caso de 429
+// ─── Análise de imagem com HuggingFace (Llama-3.2-Vision) ───────────────────
+// Mantém o nome askGeminiWithImage para compatibilidade com diary.js
 async function askGeminiWithImage(b64, mime, prompt, _retries = 3) {
-  if (!GEMINI_KEY || GEMINI_KEY.length < 10) throw new Error('401 — Chave Gemini não configurada');
-  if (!GEMINI_KEY.startsWith('AIza')) {
-    throw new Error('401 — Chave Gemini inválida. Acesse https://aistudio.google.com/app/apikey para obter sua chave (deve começar com "AIza")');
+  if (!HF_KEY || HF_KEY.length < 10 || HF_KEY.includes('xxxx')) {
+    throw new Error('401 — Chave HuggingFace não configurada. Acesse https://huggingface.co/settings/tokens e substitua o valor de HF_KEY em ai.js');
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+
+  // Monta a URL da imagem em formato data-URI (aceito pela HF Inference API)
+  const mimeType = mime || 'image/jpeg';
+  const dataUri = `data:${mimeType};base64,${b64}`;
 
   const payload = {
-    contents: [{
-      parts: [
-        { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido sem markdown ou texto extra. ' + prompt },
-        { inline_data: { mime_type: mime, data: b64 } }
-      ]
-    }],
-    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
+    model: HF_VISION_MODEL,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'Você é um especialista em nutrição. Analise a imagem e retorne SOMENTE um JSON válido, sem markdown, sem texto extra, sem explicações. ' + prompt
+          },
+          {
+            type: 'image_url',
+            image_url: { url: dataUri }
+          }
+        ]
+      }
+    ],
+    max_tokens: 1024,
+    temperature: 0.2
   };
 
   for (let attempt = 0; attempt < _retries; attempt++) {
     let res;
     try {
-      res = await fetch(url, {
+      res = await fetch(HF_VISION_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + HF_KEY
+        },
         body: JSON.stringify(payload)
       });
     } catch(netErr) {
-      throw new Error('Sem conexão com a API Gemini. Verifique sua internet.');
+      throw new Error('Sem conexão com a API HuggingFace. Verifique sua internet.');
     }
-    if (res.status === 401 || res.status === 403) throw new Error('401 — Chave Gemini inválida ou sem permissão. Verifique em https://aistudio.google.com/app/apikey');
-    if (res.status === 404) throw new Error('404 — Endpoint Gemini não encontrado. Verifique o modelo usado.');
-    if (res.status === 429) {
+
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('401 — Chave HuggingFace inválida ou sem permissão. Verifique em https://huggingface.co/settings/tokens');
+    }
+    if (res.status === 404) {
+      throw new Error('404 — Modelo não encontrado. Verifique se você aceitou os termos em https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct');
+    }
+    if (res.status === 429 || res.status === 503) {
+      // 503 = modelo carregando (cold start), 429 = rate limit — ambos fazem retry
       if (attempt < _retries - 1) {
-        const wait = 2000 * Math.pow(2, attempt); // 2s, 4s, 8s...
+        const wait = 3000 * (attempt + 1); // 3s, 6s, 9s
+        console.warn(`[CameraIA] HF ${res.status} — aguardando ${wait}ms antes de tentar novamente (tentativa ${attempt + 1}/${_retries})`);
         await new Promise(r => setTimeout(r, wait));
         continue;
       }
-      throw new Error('429 — Limite de requisições Gemini atingido. Aguarde alguns segundos e tente novamente.');
+      throw new Error('429 — Limite de requisições HuggingFace atingido. Aguarde alguns segundos e tente novamente.');
     }
     if (res.status === 400) {
       const errTxt = await res.text().catch(() => '');
-      throw new Error(`Gemini 400: Requisição mal formatada ou imagem inválida. ${errTxt.substring(0, 200)}`);
+      throw new Error(`HuggingFace 400: Requisição inválida ou imagem muito grande. ${errTxt.substring(0, 200)}`);
     }
     if (!res.ok) {
       const errTxt = await res.text().catch(() => '');
-      if (attempt < _retries - 1) { await new Promise(r => setTimeout(r, 1500)); continue; }
-      throw new Error(`Gemini ${res.status}: ${errTxt.substring(0, 150)}`);
+      if (attempt < _retries - 1) { await new Promise(r => setTimeout(r, 2000)); continue; }
+      throw new Error(`HuggingFace ${res.status}: ${errTxt.substring(0, 200)}`);
     }
+
     const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Resposta vazia da API Gemini');
+    const text = data?.choices?.[0]?.message?.content;
+    if (!text) throw new Error('Resposta vazia da API HuggingFace');
     return extractJSON(text);
   }
-  throw new Error('Gemini: todas as tentativas falharam.');
+  throw new Error('HuggingFace: todas as tentativas falharam.');
 }
 
 
