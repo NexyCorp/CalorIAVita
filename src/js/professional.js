@@ -714,10 +714,13 @@ function renderAdminTable(users) {
      patient_pro:'badge-pro', patient_clinic:'badge-clinic'
   };
   const tbody = document.getElementById('adminTableBody');
+  if (!tbody) return;
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum usuário.</td></tr>'; return; }
   tbody.innerHTML = users.map(u => {
-    const initials = (u.name||'U').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-    const date = u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '—';
+    const initials = (u.name||'U').trim().split(' ').map(w=>w?w[0]:'U').slice(0,2).join('').toUpperCase();
+    let date = '—';
+    try { if (u.created_at) date = new Date(u.created_at).toLocaleDateString('pt-BR'); } catch(e){}
+    if (date === 'Invalid Date' || date === 'Data Inválida') date = '—';
     const safePlan = u.plan || 'free';
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:0.5rem;">
@@ -815,7 +818,9 @@ async function loadUpgradeRequests() {
 
   const planLabels = { pro:'Pro', clinic:'Clinica' };
   el.innerHTML = data.map(req => {
-    const created = req.created_at ? new Date(req.created_at).toLocaleString('pt-BR') : '�';
+    let created = '—';
+    try { if (req.created_at) created = new Date(req.created_at).toLocaleString('pt-BR'); } catch(e){}
+    if (created === 'Invalid Date' || created === 'Data Inválida') created = '—';
     const benefits = Array.isArray(req.benefits) ? req.benefits : [];
     return `
       <div class="queue-item">
@@ -909,7 +914,9 @@ async function loadNutritionistRequests() {
   }
 
   el.innerHTML = data.map(req => {
-    const created = req.created_at ? new Date(req.created_at).toLocaleString('pt-BR') : '—';
+    let created = '—';
+    try { if (req.created_at) created = new Date(req.created_at).toLocaleString('pt-BR'); } catch(e){}
+    if (created === 'Invalid Date' || created === 'Data Inválida') created = '—';
     const fieldsId = `nutRejectFields-${req.id}`;
     const reasonId = `nutRejectReason-${req.id}`;
     return `
