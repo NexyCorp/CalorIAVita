@@ -605,6 +605,25 @@ function collectPatientAnamneseData() {
   const allergyOther = document.getElementById('cpAllergyOther')?.value.trim();
   if (allergyOther) allergies.push('outro: ' + allergyOther);
 
+  // Custom dynamic disease fields parsing
+  let dynamicDiseaseDetails = '';
+  if (diseasesGeneral.includes('diabetes_t1') || diseasesGeneral.includes('diabetes_t2')) {
+    dynamicDiseaseDetails += `\n[Diabetes] Uso de Insulina: ${document.getElementById('cpDiabetesInsulin')?.value || 'N/A'}, Glicemia média jejum: ${document.getElementById('cpDiabetesGlicemia')?.value || 'N/A'}`;
+  }
+  if (diseasesGeneral.includes('hipertensao')) {
+    dynamicDiseaseDetails += `\n[Hipertensão] Pressão média: ${document.getElementById('cpHipertensaoPressao')?.value || 'N/A'}`;
+  }
+  if (diseasesChronicAuto.includes('celiaquia')) {
+    dynamicDiseaseDetails += `\n[Celíaco] Sintomas cruzados: ${document.getElementById('cpCeliacoSintomas')?.value || 'N/A'}`;
+  }
+  if (document.getElementById('cbBariatrica')?.checked) {
+    if (!diseasesGeneral.includes('bariatrica')) diseasesGeneral.push('bariatrica');
+    dynamicDiseaseDetails += `\n[Bariátrica] Tempo de cirurgia: ${document.getElementById('cpBariatricaTempo')?.value || 'N/A'}, Tipo: ${document.getElementById('cpBariatricaTipo')?.options[document.getElementById('cpBariatricaTipo').selectedIndex]?.text || 'N/A'}`;
+  }
+  
+  let baseDiseasesOther = document.getElementById('cpDiseasesOther')?.value.trim() || '';
+  let combinedDiseasesOther = baseDiseasesOther + (dynamicDiseaseDetails ? '\n' + dynamicDiseaseDetails.trim() : '');
+
   // Radio buttons
   const getRadio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || null;
 
@@ -642,7 +661,7 @@ function collectPatientAnamneseData() {
     // Histórico clínico
     diseases_general:        diseasesGeneral,
     diseases_chronic_auto:   diseasesChronicAuto,
-    diseases_other:          document.getElementById('cpDiseasesOther')?.value.trim() || null,
+    diseases_other:          combinedDiseasesOther || null,
     family_history:          familyHistory,
     surgeries:               document.getElementById('cpSurgeries')?.value.trim() || null,
     hospitalizations:        document.getElementById('cpHospitalizations')?.value.trim() || null,
@@ -1647,128 +1666,12 @@ function openDiseaseForm(diseaseKey, diseaseName) {
           } else {
             input = `<input type="${q.type||'text'}" id="${q.id}" class="form-input" placeholder="${q.ph||''}" ${q.step?`step="${q.step}"`:''}${q.min?` min="${q.min}"`:''}${q.max?` max="${q.max}"`:''}>`; 
           }
-          const fullWidth = q.type === 'textarea' || (q.label && q.label.length > 40);
-          return `<div class="form-field" ${fullWidth?'style="grid-column:1/-1;"':''}><label class="form-label">${q.label}</label>${input}</div>`;
-        }).join('')}
-      </div>
-    </div>
-  `).join('');
-
-  document.getElementById('diseaseFormModal').classList.add('show');
-}
-
-function closeDiseaseFormModal() {
-  document.getElementById('diseaseFormModal').classList.remove('show');
-}
-
-async function saveDiseaseFormData() {
-  const disease = _diseaseFormState.disease;
-  const patientId = _diseaseFormState.patientId;
-  const questions = _diseaseQuestionBanks[disease];
-  if (!questions) return;
-
-  // Collect all form data
-  const data = {};
-  questions.sections.forEach(section => {
-    section.questions.forEach(q => {
-      const el = document.getElementById(q.id);
-      if (el) data[q.id] = el.value;
-    });
-  });
-
-  showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Salvando dados específicos...');
-
-  if (patientId) {
-    // Save to patient_anamnese as a JSON blob in a special field
-    const { error } = await supabase.from('patient_anamnese').upsert({
-      patient_id: patientId,
-      nutritionist_id: currentUser?.id,
-      diseases_other: (document.getElementById('cpDiseasesOther')?.value || '') + '\n\n[' + disease.toUpperCase() + ' FORM]\n' + JSON.stringify(data, null, 2),
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'patient_id' });
-    if (error) console.warn('[saveDiseaseFormData]', error);
-  }
-
-  closeDiseaseFormModal();
   showToast('<i class="fa-solid fa-circle-check ic-check"></i> Dados do formulário específico salvos!');
 }
 
 // _diseaseFormCurrentPatientId is reset in openCreatePatientModal directly above.
 // No additional override needed here.
 
-// ── Extend saveProfile to save body fat % ──────────────────────────────────
-const _origSaveProfile = window.saveProfile;
-window.saveProfile = async function() {
-  const name = document.getElementById('profileName')?.value.trim();
-  const sex = document.getElementById('profileSex')?.value;
-  const age = parseInt(document.getElementById('profileAge')?.value) || null;
-  const weight = parseFloat(document.getElementById('profileWeight')?.value) || null;
-  const height = parseFloat(document.getElementById('profileHeight')?.value) || null;
-  const body_fat_pct = parseFloat(document.getElementById('profileBodyFat')?.value) || null;
-  const dob = document.getElementById('profileDob')?.value || null;
-  const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
-
-  const payload = { name, username: username || null, sex, age, weight, height, body_fat_pct, dob };
-  let { error } = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
-  if (error && error.code === '42703') {
-    if (error.message?.includes('dob')) delete payload.dob;
-    if (error.message?.includes('body_fat_pct')) delete payload.body_fat_pct;
-    const retry = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
-    error = retry.error;
-  }
-  if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
-
-  try {
-    await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name } });
-    if (currentUser?.user_metadata) { currentUser.user_metadata.name = name; currentUser.user_metadata.full_name = name; }
-  } catch(e) { console.warn('[CalorIA] Não foi possível atualizar user_metadata:', e); }
-
-  currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob };
-  renderSidebarUser();
-  updateHomePanel();
-  profileUpdateFatClassification();
-  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Perfil salvo!');
-};
-
-// ── Extend renderSidebarUser to populate new profile fields ─────────────────
-const _origRenderSidebarUser = window.renderSidebarUser;
-window.renderSidebarUser = function() {
-  _origRenderSidebarUser();
-  if (currentProfile?.dob) {
-    const dobEl = document.getElementById('profileDob');
-    if (dobEl) dobEl.value = currentProfile.dob;
-    profileUpdateAgeFromDob();
-    profileDetectLifeStage();
-  }
-  if (currentProfile?.body_fat_pct) {
-    const bfEl = document.getElementById('profileBodyFat');
-    if (bfEl) { bfEl.value = currentProfile.body_fat_pct; profileUpdateFatClassification(); }
-  }
-  const isDiabetic = localStorage.getItem('cv_is_diabetic') === 'true';
-  const profileDiabEl = document.getElementById('profileDiabetes');
-  if (profileDiabEl) profileDiabEl.checked = isDiabetic;
-  const calcDiabEl = document.getElementById('calcDiabetes');
-  if (calcDiabEl) calcDiabEl.checked = isDiabetic;
-};
-
-// Expor funções para o escopo global
-window.openNutritionistRequest = openNutritionistRequest;
-window.closeNutritionistModal = closeNutritionistModal;
-window.showPaywall = showPaywall;
-window.removePaywall = removePaywall;
-window.selectCpGoal = selectCpGoal;
-window.openCreatePatientModal = openCreatePatientModal;
-window.closeCreatePatientModal = closeCreatePatientModal;
-window.updateCpInitial = updateCpInitial;
-window.handleCpAvatarUpload = handleCpAvatarUpload;
-window.toggleCpPasswordVisibility = toggleCpPasswordVisibility;
-window.showCpError = showCpError;
-window.openChangePasswordModal = openChangePasswordModal;
-window.openForgotPassword = openForgotPassword;
-window.closeForgotPassword = closeForgotPassword;
-window.cpUpdateAgeFromDob = cpUpdateAgeFromDob;
-window.cpToggleFemFields = cpToggleFemFields;
-window.cpTogglePregnancyFields = cpTogglePregnancyFields;
 window.cpCalcBodyFat = cpCalcBodyFat;
 window.collectPatientAnamneseData = collectPatientAnamneseData;
 window.profileUpdateAgeFromDob = profileUpdateAgeFromDob;
@@ -1791,7 +1694,7 @@ window.printPatientAnamnese = printPatientAnamnese;
 window.saveDiseaseFormData = saveDiseaseFormData;
 // saveProfile and renderSidebarUser extended above — do not overwrite
 
-// --- EVENTOS PARA FORMULÁRIOS DINÂMICOS DE DOENÇA ---
+// --- EVENT LISTENERS PARA FORMULÁRIOS DINÂMICOS DE DOENÇA ---
 function setupDynamicDiseaseForms() {
   const toggleForm = (id, show) => {
     const el = document.getElementById(id);
@@ -1799,21 +1702,24 @@ function setupDynamicDiseaseForms() {
   };
 
   const checkGeneral = () => {
-    const vals = Array.from(document.querySelectorAll('#cpDiseasesGeneral input[type=checkbox]:checked')).map(c => c.value);
-    toggleForm('dynFormDiabetes', vals.includes('diabetes_t1') || vals.includes('diabetes_t2'));
-    toggleForm('dynFormHipertensao', vals.includes('hipertensao'));
+    const dts = document.querySelectorAll('#cpDiseasesGeneral input[type=checkbox]:checked');
+    const vals = Array.from(dts).map(c => c.value);
+    toggleForm('dynamicFormDiabetes', vals.includes('diabetes_t1') || vals.includes('diabetes_t2'));
+    toggleForm('dynamicFormHipertensao', vals.includes('hipertensao'));
+    toggleForm('dynamicFormBariatrica', vals.includes('bariatrica') || document.getElementById('cbBariatrica')?.checked);
   };
-
+  
   const checkChronic = () => {
-    const vals = Array.from(document.querySelectorAll('#cpDiseasesChronicAuto input[type=checkbox]:checked')).map(c => c.value);
-    toggleForm('dynFormCeliaco', vals.includes('celiaquia'));
-    toggleForm('dynFormBariatrica', vals.includes('bariatrica'));
+    const dts = document.querySelectorAll('#cpDiseasesChronicAuto input[type=checkbox]:checked');
+    const vals = Array.from(dts).map(c => c.value);
+    toggleForm('dynamicFormCeliaco', vals.includes('celiaquia'));
   };
 
   document.getElementById('cpDiseasesGeneral')?.addEventListener('change', checkGeneral);
   document.getElementById('cpDiseasesChronicAuto')?.addEventListener('change', checkChronic);
 }
 
+// Call the setup when modal opens or on load
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(setupDynamicDiseaseForms, 800);
+  setTimeout(setupDynamicDiseaseForms, 1000); // give time to DOM
 });
