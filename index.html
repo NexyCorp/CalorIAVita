@@ -1183,8 +1183,8 @@
 </div>
 
 <!-- Force Change Password Modal -->
-<div class="modal-overlay" id="forceChangePasswordModal" style="z-index: 999999 !important;">
-  <div class="modal-box" style="max-width:400px;width:92vw;">
+<div class="modal-overlay" id="forceChangePasswordModal" style="z-index: 999999 !important;" onclick="return false;">
+  <div class="modal-box" style="max-width:400px;width:92vw;" onclick="event.stopPropagation()">
     <div class="modal-title"><i class="fa-solid fa-key ic-lock"></i> <span data-i18n="change_password_title">Trocar Senha</span></div>
     <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:1.2rem;" data-i18n="change_password_desc">Para continuar, você precisa criar uma senha pessoal diferente da senha temporária que recebeu.</p>
     <div class="form-field">

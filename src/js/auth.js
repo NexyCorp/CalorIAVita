@@ -277,11 +277,16 @@ async function completeOnboarding() {
       document.getElementById('emailConfirmBanner').style.display = 'block';
       document.getElementById('regEmail').value = window._pendingUser.email || '';
       window._isRegistering = false;
+      window._pendingUser = null;
       return;
     }
 
+    // CRITICAL: Clear both flags BEFORE calling initApp, otherwise initApp's
+    // guard (pendingUser check) will abort initialization immediately.
+    const userToInit = window._pendingUser;
+    window._pendingUser = null;
     window._isRegistering = false;
-    await initApp(window._pendingUser);
+    await initApp(userToInit);
   }
 }
 
@@ -399,10 +404,20 @@ async function initApp(user) {
       currentProfile = currentProfile || _profileFallback(user);
     }
 
-    // Run fetch in background instead of blocking init
+    // Check must_change_password BEFORE any async operations
+    // This flag is set in user_metadata by createPatientDirect (reliable, sync)
+    const mustChange = String(currentUser?.user_metadata?.must_change_password) === 'true';
+
+    // Run profile fetch in background
     fetchUserProfile(user).then(prof => {
       if (prof && !window._pendingFreshProfile) {
         applyProfileUpdate(prof);
+        // Re-check after profile loads: if patient and must change, enforce again
+        const stillMustChange = String(currentUser?.user_metadata?.must_change_password) === 'true';
+        if ((prof.role === 'patient' || currentProfile?.role === 'patient') && stillMustChange) {
+          document.getElementById('authOverlay').classList.remove('hidden');
+          if (typeof openChangePasswordModal === 'function') openChangePasswordModal();
+        }
       }
     });
 
@@ -416,11 +431,10 @@ async function initApp(user) {
     _appInitialized = true;
     setAuthLoading(false);
 
-    const isPatientRole = currentProfile?.role === 'patient';
-    const mustChange = String(currentUser?.user_metadata?.must_change_password) === 'true';
-    if (isPatientRole && mustChange) {
-      document.getElementById('authOverlay').classList.remove('hidden'); // Keep blocked
-      openChangePasswordModal();
+    // Block the app immediately if patient needs to change password
+    if (mustChange && (currentProfile?.role === 'patient' || currentUser?.user_metadata?.role === 'patient')) {
+      document.getElementById('authOverlay').classList.remove('hidden');
+      if (typeof openChangePasswordModal === 'function') openChangePasswordModal();
     }
 
     _loadAppDataInBackground();

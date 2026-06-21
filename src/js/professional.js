@@ -618,16 +618,19 @@ async function loadPatients() {
             </div>
           </div>
           <div class="patient-actions" style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+            <button class="btn-view-diary" onclick="openPatientDossier('${p.id}', '${(p.name || p.email).replace(/'/g, "&apos;")}')" style="background:linear-gradient(135deg,#5c6bc0,#3949ab);color:white;border:none;">
+              <i class="fa-solid fa-folder-open"></i> Dossiê
+            </button>
             <button class="btn-view-diary" onclick="openAiRecipeModal('${p.id}')" style="background:linear-gradient(135deg,var(--green-mid),#388e3c);color:white;border:none;">
               🤖 IA Receita
             </button>
             <button class="btn-view-diary" onclick="toggleRecipeForm('${p.id}')" style="background:var(--green-pale);color:var(--green-deep);">
               <i class="fa-solid fa-utensils"></i> Manual
             </button>
-            <button class="btn-view-diary" onclick="viewPatientDiary('${p.id}', '${p.name || p.email}')">
+            <button class="btn-view-diary" onclick="viewPatientDiary('${p.id}', '${(p.name || p.email).replace(/'/g, "&apos;")}')">
               <i class="fa-solid fa-book"></i> Diário
             </button>
-            <button class="btn-view-diary" onclick="openRecordModal('${p.id}', '${p.name || p.email}')" style="background:var(--yellow-pale);color:var(--orange-hot);">
+            <button class="btn-view-diary" onclick="openRecordModal('${p.id}', '${(p.name || p.email).replace(/'/g, "&apos;")}')" style="background:var(--yellow-pale);color:var(--orange-hot);">
               <i class="fa-solid fa-file-invoice"></i> Prontuário
             </button>
           </div>
@@ -640,6 +643,174 @@ async function loadPatients() {
     listEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Erro ao carregar pacientes.</p>';
   }
 }
+
+// ═══════════════════════════════════════
+// DOSSIE DO PACIENTE
+// ═══════════════════════════════════════
+async function openPatientDossier(patientId, patientName) {
+  // Create or find the modal
+  let modal = document.getElementById('patientDossierModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'patientDossierModal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'z-index:99999;';
+    modal.innerHTML = `
+      <div class="modal-box" style="max-width:680px;width:95vw;max-height:90vh;overflow-y:auto;text-align:left;">
+        <button class="modal-close" onclick="document.getElementById('patientDossierModal').classList.remove('show')">✕</button>
+        <div class="modal-title" style="border-bottom:2px solid var(--border);padding-bottom:1rem;margin-bottom:1.2rem;">
+          <i class="fa-solid fa-folder-open" style="color:#3949ab;"></i>
+          <span id="dossierPatientTitle">Dossiê do Paciente</span>
+        </div>
+        <div id="dossierContent" style="font-size:0.88rem;line-height:1.7;color:var(--text-main);">Carregando...</div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  modal.classList.add('show');
+  document.getElementById('dossierPatientTitle').textContent = `Dossiê — ${patientName}`;
+  const contentEl = document.getElementById('dossierContent');
+  contentEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando dados...</p>';
+
+  try {
+    const [{ data: profile }, { data: anamnese }, { data: goalData }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', patientId).maybeSingle(),
+      supabase.from('patient_anamnese').select('*').eq('patient_id', patientId).maybeSingle(),
+      supabase.from('user_goals').select('daily_kcal,daily_water').eq('user_id', patientId).maybeSingle()
+    ]);
+
+    const p = profile || {};
+    const a = anamnese || {};
+
+    function row(label, value) {
+      if (!value && value !== 0) return '';
+      return `<tr><td style="padding:4px 12px 4px 0;color:var(--text-muted);white-space:nowrap;font-weight:600;">${label}</td><td style="padding:4px 0;">${value}</td></tr>`;
+    }
+    function section(title, rows) {
+      const content = rows.filter(Boolean).join('');
+      if (!content) return '';
+      return `
+        <div style="margin-bottom:1.4rem;">
+          <div style="font-weight:700;font-size:0.95rem;color:var(--green-deep);border-left:3px solid var(--green-mid);padding-left:8px;margin-bottom:0.6rem;">${title}</div>
+          <table style="width:100%;border-collapse:collapse;">${content}</table>
+        </div>
+      `;
+    }
+
+    const sexLabel = p.sex === 'm' ? 'Masculino' : p.sex === 'f' ? 'Feminino' : p.sex || '—';
+    const arr = v => Array.isArray(v) && v.length > 0 ? v.join(', ') : null;
+
+    contentEl.innerHTML = [
+      section('📋 Dados Pessoais', [
+        row('Nome', p.name || '—'),
+        row('E-mail', p.email || '—'),
+        row('Sexo', sexLabel),
+        row('Idade', p.age ? p.age + ' anos' : null),
+        row('Data de Nascimento', a.dob || p.dob || null),
+        row('Telefone', a.phone || null),
+        row('Profissão', a.profession || null),
+        row('Escolaridade', a.education || null),
+        row('Renda familiar', a.income || null),
+        row('Nº pessoas no domicílio', a.household || null),
+        row('Religião', a.religion || null),
+        row('Endereço', a.address || null),
+        row('Cartão SUS', a.sus_card || null),
+        row('Raça/Cor', a.race || null),
+      ]),
+      section('⚖️ Dados Antropométricos', [
+        row('Peso atual', p.weight ? p.weight + ' kg' : null),
+        row('Altura', p.height ? p.height + ' cm' : null),
+        row('Peso habitual', a.weight_usual ? a.weight_usual + ' kg' : null),
+        row('Peso desejado', a.weight_desired ? a.weight_desired + ' kg' : null),
+        row('Gordura corporal', p.body_fat_pct ? p.body_fat_pct + '%' : null),
+        row('Massa muscular', a.muscle_mass_kg ? a.muscle_mass_kg + ' kg' : null),
+        row('Massa óssea', a.bone_mass_kg ? a.bone_mass_kg + ' kg' : null),
+        row('Água corporal', a.body_water_pct ? a.body_water_pct + '%' : null),
+        row('Cintura', a.waist_cm ? a.waist_cm + ' cm' : null),
+        row('Quadril', a.hip_cm ? a.hip_cm + ' cm' : null),
+        row('Circunf. braço', a.arm_circ_cm ? a.arm_circ_cm + ' cm' : null),
+        row('Circunf. panturrilha', a.calf_circ_cm ? a.calf_circ_cm + ' cm' : null),
+        row('TMB medida', a.bmr_measured ? a.bmr_measured + ' kcal' : null),
+        row('Meta calórica', goalData?.daily_kcal ? goalData.daily_kcal + ' kcal/dia' : null),
+        row('Meta hídrica', goalData?.daily_water ? goalData.daily_water + ' mL/dia' : null),
+      ]),
+      section('🏃 Atividade Física', [
+        row('Tipo de atividade', a.activity_type || null),
+        row('Frequência semanal', a.activity_freq ? a.activity_freq + 'x/sem' : null),
+        row('Duração por sessão', a.activity_duration ? a.activity_duration + ' min' : null),
+      ]),
+      section('🏥 Histórico Clínico', [
+        row('Doenças gerais', arr(a.diseases_general)),
+        row('Doenças crônicas/auto', arr(a.diseases_chronic_auto)),
+        row('Outras doenças', a.diseases_other || null),
+        row('Histórico familiar', arr(a.family_history)),
+        row('Cirurgias', a.surgeries || null),
+        row('Hospitalizações', a.hospitalizations || null),
+      ]),
+      section('💊 Medicamentos e Hábitos', [
+        row('Medicamentos', a.medications || null),
+        row('Suplementos', a.supplements || null),
+        row('Adoçante', a.sweetener === 'yes' ? `Sim (${a.sweetener_type || '?'})` : a.sweetener === 'no' ? 'Não' : null),
+        row('Tabagismo', a.smoking || null),
+        row('Álcool', a.alcohol || null),
+        row('Ingestão hídrica', a.water_intake || null),
+        row('Tempo nas refeições', a.eating_time_min ? a.eating_time_min + ' min' : null),
+        row('Hábito intestinal', a.bowel_habit || null),
+        row('Local das refeições', a.meal_location || null),
+        row('Companhia nas refeições', a.eating_company || null),
+        row('Disfagia', a.dysphagia || null),
+        row('Azia/refluxo', a.heartburn || null),
+        row('Dietas anteriores', a.prev_diets || null),
+        row('Aversões alimentares', a.food_aversions || null),
+        row('Preferências alimentares', a.food_preferences || null),
+        row('Alergias', arr(a.allergies)),
+        row('Óleo/mês', a.oil_month_ml ? a.oil_month_ml + ' mL' : null),
+        row('Açúcar/mês', a.sugar_month_g ? a.sugar_month_g + ' g' : null),
+        row('Sal/mês', a.salt_month_g ? a.salt_month_g + ' g' : null),
+      ]),
+      section('🧪 Exames Laboratoriais', [
+        row('Data dos exames', a.lab_date || null),
+        row('Glicose', a.lab_glucose ? a.lab_glucose + ' mg/dL' : null),
+        row('HbA1c', a.lab_hba1c ? a.lab_hba1c + '%' : null),
+        row('Colesterol total', a.lab_chol_total ? a.lab_chol_total + ' mg/dL' : null),
+        row('LDL', a.lab_ldl ? a.lab_ldl + ' mg/dL' : null),
+        row('HDL', a.lab_hdl ? a.lab_hdl + ' mg/dL' : null),
+        row('Triglicerídeos', a.lab_tg ? a.lab_tg + ' mg/dL' : null),
+        row('Creatinina', a.lab_creatinine ? a.lab_creatinine + ' mg/dL' : null),
+        row('Ureia', a.lab_urea ? a.lab_urea + ' mg/dL' : null),
+        row('TSH', a.lab_tsh ? a.lab_tsh + ' µUI/mL' : null),
+        row('Vitamina D', a.lab_vit_d ? a.lab_vit_d + ' ng/mL' : null),
+        row('Ferritina', a.lab_ferritin ? a.lab_ferritin + ' ng/mL' : null),
+        row('Hemoglobina', a.lab_hemoglobin ? a.lab_hemoglobin + ' g/dL' : null),
+        row('PCR', a.lab_crp ? a.lab_crp + ' mg/L' : null),
+        row('Insulina', a.lab_insulin ? a.lab_insulin + ' µU/mL' : null),
+        row('Outros exames', a.lab_other || null),
+      ]),
+      section('♀️ Saúde Feminina', [
+        row('Status menstrual', a.menstrual_status || null),
+        row('Duração do ciclo', a.cycle_duration ? a.cycle_duration + ' dias' : null),
+        row('Duração do período', a.period_duration ? a.period_duration + ' dias' : null),
+        row('Última menstruação', a.last_period || null),
+        row('Sintomas menstruais', a.menstrual_symptoms || null),
+        row('Contraceptivo', a.contraceptive || null),
+        row('Gestante', a.pregnant || null),
+        row('Semana gestacional', a.gest_week || null),
+        row('DPP', a.dpp || null),
+        row('Amamentando', a.breastfeeding || null),
+        row('Gestações anteriores', a.prev_pregnancies !== null && a.prev_pregnancies !== undefined ? a.prev_pregnancies : null),
+        row('Tipo de parto anterior', a.prev_birth_type || null),
+        row('Ganho de peso gestacional', a.gest_weight_gain ? a.gest_weight_gain + ' kg' : null),
+        row('Complicações gestacionais', a.gest_complications || null),
+      ]),
+    ].join('') || '<p style="color:var(--text-muted);text-align:center;padding:1rem;">Nenhum dado de anamnese preenchido ainda.</p>';
+
+  } catch(e) {
+    console.error('[openPatientDossier]', e);
+    contentEl.innerHTML = `<p style="color:#e53935;text-align:center;padding:1rem;"><i class="fa-solid fa-xmark"></i> Erro ao carregar dossiê: ${e.message}</p>`;
+  }
+}
+
 
 // ═══════════════════════════════════════
 // PHOTO LIGHTBOX
@@ -1072,7 +1243,7 @@ async function saveProfile() {
   renderSidebarUser();
   updateHomePanel();
   if (typeof showSuccessAnimated === 'function') {
-    showSuccessAnimated();
+    showSuccessAnimated('Perfil Salvo!', 'Suas informações foram atualizadas com sucesso.');
   } else {
     showToast('<i class="fa-solid fa-circle-check ic-check"></i> Perfil salvo!');
   }
@@ -1403,5 +1574,6 @@ window.uploadChatPdf = uploadChatPdf;
 window.uploadChatPhoto = uploadChatPhoto;
 window.subscribeChat = subscribeChat;
 window.loadPatients = loadPatients;
+window.openPatientDossier = openPatientDossier;
 
 

@@ -8,7 +8,7 @@ const GROQ_KEYS = [
 ];
 let currentGroqKeyIndex = 0;
 
-const GEMINI_KEY = 'AQ.Ab8RN6J28O5SZfpIH2nG5pqA6PB-fvlJNdYXYMi6J1Hfb8ue-w'; // Chave Gemini para imagens (Preencha aqui)
+const GEMINI_KEY = 'AQ.Ab8RN6LZFQDxxjAyG9vhR4o9zYLJZs_SiU5QgVjGqei1Si_QIg'; // Chave Gemini para imagens — obtenha em https://aistudio.google.com/app/apikey
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
@@ -91,10 +91,13 @@ async function askClaude(prompt, sys) {
   ]);
 }
 
-// Análise de imagem com Gemini
-async function askGeminiWithImage(b64, mime, prompt) {
+// Análise de imagem com Gemini — com retry em caso de 429
+async function askGeminiWithImage(b64, mime, prompt, _retries = 3) {
   if (!GEMINI_KEY || GEMINI_KEY.length < 10) throw new Error('401 — Chave Gemini não configurada');
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`;
+  if (!GEMINI_KEY.startsWith('AIza')) {
+    throw new Error('401 — Chave Gemini inválida. Acesse https://aistudio.google.com/app/apikey para obter sua chave (deve começar com "AIza")');
+  }
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
   const payload = {
     contents: [{
@@ -103,33 +106,45 @@ async function askGeminiWithImage(b64, mime, prompt) {
         { inline_data: { mime_type: mime, data: b64 } }
       ]
     }],
-    generationConfig: { temperature: 0.2 }
+    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
   };
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (res.status === 401 || res.status === 403) throw new Error('401 — Chave Gemini Inválida');
-    if (res.status === 404) throw new Error('404 — Endpoint Gemini não encontrado (Verifique o modelo)');
-    if (res.status === 429) throw new Error('429');
+  for (let attempt = 0; attempt < _retries; attempt++) {
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch(netErr) {
+      throw new Error('Sem conexão com a API Gemini. Verifique sua internet.');
+    }
+    if (res.status === 401 || res.status === 403) throw new Error('401 — Chave Gemini inválida ou sem permissão. Verifique em https://aistudio.google.com/app/apikey');
+    if (res.status === 404) throw new Error('404 — Endpoint Gemini não encontrado. Verifique o modelo usado.');
+    if (res.status === 429) {
+      if (attempt < _retries - 1) {
+        const wait = 2000 * Math.pow(2, attempt); // 2s, 4s, 8s...
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      throw new Error('429 — Limite de requisições Gemini atingido. Aguarde alguns segundos e tente novamente.');
+    }
     if (res.status === 400) {
       const errTxt = await res.text().catch(() => '');
-      throw new Error(`Gemini Error 400: Requisição mal formatada ou imagem muito grande. Detalhe: ${errTxt.substring(0, 100)}`);
+      throw new Error(`Gemini 400: Requisição mal formatada ou imagem inválida. ${errTxt.substring(0, 200)}`);
     }
     if (!res.ok) {
       const errTxt = await res.text().catch(() => '');
-      throw new Error(`Gemini Error ${res.status}: ${errTxt.substring(0, 100)}`);
+      if (attempt < _retries - 1) { await new Promise(r => setTimeout(r, 1500)); continue; }
+      throw new Error(`Gemini ${res.status}: ${errTxt.substring(0, 150)}`);
     }
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) throw new Error('Resposta vazia da API Gemini');
     return extractJSON(text);
-  } catch(e) {
-    throw e;
   }
+  throw new Error('Gemini: todas as tentativas falharam.');
 }
 
 
