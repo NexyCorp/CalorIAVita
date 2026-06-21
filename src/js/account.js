@@ -771,7 +771,7 @@ async function createPatientDirect() {
 
   // Salva perfil básico
   const { error: profErr } = await supabase.from('profiles').upsert({
-    id: patientId, name, email, role:'patient', plan:'pro',
+    id: patientId, name, email, role:'patient', plan: currentProfile?.plan === 'clinic' ? 'patient_clinic' : 'patient_pro',
     sex, age, weight, height, avatar_url: avatarUrl,
     nutritionist_id: currentUser.id,
     updated_at: new Date().toISOString()
