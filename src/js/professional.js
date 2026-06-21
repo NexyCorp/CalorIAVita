@@ -647,24 +647,8 @@ function closePhotoLightbox() {
 }
 
 async function loadLinkedNutritionist() {
-  if (!currentUser) return;
-  let nutriId = currentProfile?.nutritionist_id || null;
-  if (!nutriId && isPatient()) {
-    try {
-      const { data: link } = await supabase
-        .from('professional_patients')
-        .select('professional_id')
-        .eq('patient_id', currentUser.id)
-        .maybeSingle();
-      nutriId = link?.professional_id || null;
-      if (nutriId) {
-        currentProfile = { ...currentProfile, nutritionist_id: nutriId };
-        await supabase.from('profiles').update({ nutritionist_id: nutriId }).eq('id', currentUser.id);
-      }
-    } catch(e) {}
-  }
-  if (!nutriId) return;
-  const { data } = await supabase.from('profiles').select('name').eq('id', nutriId).single();
+  if (!currentProfile?.nutritionist_id) return;
+  const { data } = await supabase.from('profiles').select('name').eq('id', currentProfile.nutritionist_id).single();
   if (data?.name) {
     document.getElementById('linkedNutritionistName').textContent = data.name;
     document.getElementById('nutritionistCard').style.display = 'flex';
