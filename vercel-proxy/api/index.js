@@ -1,21 +1,14 @@
 const { createClient } = require('@supabase/supabase-js');
 
-function withCors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, apikey, x-client-info');
-  return res;
-}
-
 module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') {
-    return withCors(res).status(200).end();
+    return res.status(200).end();
   }
 
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      return withCors(res).status(401).json({ error: 'Missing Authorization header' });
+      return res.status(401).json({ error: 'Missing Authorization header' });
     }
 
     // 1. Verify Auth
@@ -27,7 +20,7 @@ module.exports = async (req, res) => {
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      return withCors(res).status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // 2. Parse request
@@ -57,7 +50,7 @@ module.exports = async (req, res) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'Groq API error');
 
-      return withCors(res).status(200).json({ result: data.choices[0].message.content });
+      return res.status(200).json({ result: data.choices[0].message.content });
     }
 
     // 4. Handle GEMINI
@@ -83,13 +76,13 @@ module.exports = async (req, res) => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || 'Gemini API error');
 
-      return withCors(res).status(200).json({ result: data.candidates[0].content.parts[0].text });
+      return res.status(200).json({ result: data.candidates[0].content.parts[0].text });
     }
 
-    return withCors(res).status(400).json({ error: 'Unsupported provider' });
+    return res.status(400).json({ error: 'Unsupported provider' });
 
   } catch (error) {
     console.error(error);
-    return withCors(res).status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
