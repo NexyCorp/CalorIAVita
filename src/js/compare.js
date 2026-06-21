@@ -748,3 +748,4 @@ window.submitRecipe = submitRecipe;
 window.setVisibility = setVisibility;
 window.previewRecipePhotos = previewRecipePhotos;
 window.closeModal = closeModal;
+window.shareRecipeAsPdf = shareRecipeAsPdf; 
