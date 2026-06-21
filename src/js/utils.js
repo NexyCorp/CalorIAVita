@@ -611,7 +611,8 @@ function showPanel(name, navEl) {
 
   // Update topbar title
   const title = panelTitles[name];
-  document.getElementById('topbarTitle').textContent = typeof title === 'function' ? title() : (title || name);
+  const topbarTitle = document.getElementById('topbarTitle');
+  if (topbarTitle) topbarTitle.textContent = typeof title === 'function' ? title() : (title || name);
 
   // Highlight nav
   const navBtn = navEl || document.getElementById('nav-' + name);

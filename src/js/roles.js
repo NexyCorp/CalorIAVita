@@ -238,9 +238,13 @@ function renderSidebarUser() {
   }
 
   // Sidebar
-  document.getElementById('sidebarPlanChip').innerHTML = _getPlanLabel();
-  document.getElementById('sidebarPlanChip').className = 'plan-chip-sidebar ' + _getPlanClass();
-  document.getElementById('sidebarUserName').textContent = name;
+  const sidebarPlanChip = document.getElementById('sidebarPlanChip');
+  if (sidebarPlanChip) {
+    sidebarPlanChip.innerHTML = _getPlanLabel();
+    sidebarPlanChip.className = 'plan-chip-sidebar ' + _getPlanClass();
+  }
+  const sidebarUserName = document.getElementById('sidebarUserName');
+  if (sidebarUserName) sidebarUserName.textContent = name;
 
   // Avatar
   const avatarBtn = document.getElementById('userAvatarBtn');

@@ -695,11 +695,11 @@ async function refreshAdminUsers() {
   }
   allAdminUsers = data || [];
   allAdminUsers.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-  document.getElementById('statTotal').textContent = allAdminUsers.length;
-  document.getElementById('statProf').textContent = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
-  document.getElementById('statPro').textContent = allAdminUsers.filter(u=>u.plan==='pro').length;
-  document.getElementById('statClinic').textContent = allAdminUsers.filter(u=>u.plan==='clinic').length;
-  document.getElementById('statPatients').textContent = allAdminUsers.filter(u=>u.role==='patient').length;
+  const stTot = document.getElementById('statTotal'); if(stTot) stTot.textContent = allAdminUsers.length;
+  const stProf = document.getElementById('statProf'); if(stProf) stProf.textContent = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
+  const stPro = document.getElementById('statPro'); if(stPro) stPro.textContent = allAdminUsers.filter(u=>u.plan==='pro').length;
+  const stClinic = document.getElementById('statClinic'); if(stClinic) stClinic.textContent = allAdminUsers.filter(u=>u.plan==='clinic').length;
+  const stPat = document.getElementById('statPatients'); if(stPat) stPat.textContent = allAdminUsers.filter(u=>u.role==='patient').length;
   renderAdminTable(allAdminUsers);
 }
 
