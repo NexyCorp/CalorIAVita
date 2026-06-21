@@ -169,18 +169,10 @@ async function generateAiRecipe() {
     p.body_fat_pct ? `percentual de gordura corporal: ${p.body_fat_pct}%` : ''
   ].filter(Boolean).join(', ');
 
-  let prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
+  const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
 DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
 Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
 Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array), steps (array) }`;
-
-  prompt += `
-Regras obrigatorias para evitar receita resumida:
-- ingredients deve ter 6 a 12 itens com quantidade caseira e peso aproximado.
-- steps deve ter 5 a 9 passos detalhados, com tempo, ponto visual, temperatura/fogo quando fizer sentido e ordem clara.
-- Inclua rendimento/porcoes, tempo total, dicas de substituicao e armazenamento.
-- A pessoa deve conseguir cozinhar seguindo somente a resposta.
-- Se retornar tips ou storage, inclua esses campos no JSON.`;
 
   try {
     const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional.');
@@ -200,8 +192,6 @@ Regras obrigatorias para evitar receita resumida:
       <ul style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.6rem;">${(data.ingredients||[]).map(i=>`<li>${typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) : i}</li>`).join('')}</ul>
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.3rem;font-weight:700;">Preparo:</div>
       <ol style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.75rem;">${(data.steps||[]).map(s=>`<li>${typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s}</li>`).join('')}</ol>
-      ${(data.tips||[]).length ? `<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.3rem;font-weight:700;">Dicas:</div><ul style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.6rem;">${(data.tips||[]).map(t=>`<li>${typeof t === 'object' && t !== null ? (t.text || t.description || JSON.stringify(t)) : t}</li>`).join('')}</ul>` : ''}
-      ${data.storage ? `<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;"><strong>Armazenamento:</strong> ${typeof data.storage === 'object' ? JSON.stringify(data.storage) : data.storage}</div>` : ''}
       <button onclick="saveAiRecipe()" style="width:100%;background:var(--green-mid);color:white;border:none;border-radius:50px;padding:0.7rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">
         <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar esta Receita
       </button>`;
