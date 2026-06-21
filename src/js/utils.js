@@ -604,6 +604,9 @@ function showPanel(name, navEl) {
   if (name === 'prof') {
     if (typeof loadPatients === 'function') loadPatients();
   }
+  if (name === 'admin') {
+    if (typeof loadAdminPanel === 'function') loadAdminPanel();
+  }
   if (name === 'water') {
     if (typeof window.updateWaterDisplay === 'function') window.updateWaterDisplay();
     if (typeof window.loadWaterForDate === 'function' && currentUser) window.loadWaterForDate(diaryDate);
