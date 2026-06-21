@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════
 // GROQ API
 // ═══════════════════════════════════════
-const GROQ_KEY = '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';
+const GROQ_KEY = '';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
 const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
