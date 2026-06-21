@@ -58,13 +58,13 @@ const i18n = {
     // Auth & Onboarding
     auth_tagline:'Nutrição inteligente para uma vida mais saudável', auth_loading:'Entrando...',
     auth_tab_login:'Entrar', auth_tab_register:'Cadastrar', auth_email:'E-mail', auth_password:'Senha',
-    auth_forgot_pwd:'Esqueci minha senha', auth_lgpd:'🔒 Dados protegidos pela <strong>LGPD</strong> (Lei 13.709/2018)',
+    auth_forgot_pwd:'Esqueci minha senha', auth_lgpd:'🔒 Dados protegidos pela <a href="#" onclick="openLgpdModal(event)" style="color:inherit;text-decoration:underline;"><strong>LGPD</strong></a> (Lei 13.709/2018)',
     auth_avatar_label:'Foto de perfil', auth_avatar_optional:'(opcional)', auth_avatar_upload:'Upload foto',
     auth_avatar_choose:'Escolher avatar', auth_avatar_initial:'Só inicial', auth_avatar_pick:'Escolha um avatar:',
     auth_fullname:'Nome completo', auth_register_btn:'Criar conta gratuita',
     auth_free_note:'Todos começam no plano Gratuito. Faça upgrade a qualquer momento.',
     auth_verify_email:'Verifique seu e-mail!', auth_verify_email_desc:'Enviamos um link de confirmação para o seu endereço de e-mail. Clique no link para ativar sua conta e poder entrar.',
-    auth_resend_email:'Reenviar e-mail de confirmação', auth_lgpd_note:'🔒 Seus dados são protegidos pela <strong>LGPD</strong> (Lei 13.709/2018). Não compartilhamos suas informações com terceiros.',
+    auth_resend_email:'Reenviar e-mail de confirmação', auth_lgpd_note:'🔒 Seus dados são protegidos pela <a href="#" onclick="openLgpdModal(event)" style="color:inherit;text-decoration:underline;"><strong>LGPD</strong></a> (Lei 13.709/2018). Não compartilhamos suas informações com terceiros.',
     onb_title:'Bem-vindo! Vamos começar', onb_desc:'Preencha seus dados para personalizar sua experiência. Você pode atualizar isso depois.',
     onb_body_fat:'Gordura Corporal (%)', onb_idk:'Não sei', onb_start_btn:'Começar agora',
     // Chat / Canal
@@ -687,7 +687,7 @@ function t(key) { return (i18n[currentLang] || i18n.pt)[key] || key; }
 function applyLanguage() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
-    if (i18n[currentLang][key]) el.textContent = i18n[currentLang][key];
+    if (i18n[currentLang][key]) el.innerHTML = i18n[currentLang][key];
   });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     const key = el.dataset.i18nPh;
@@ -767,6 +767,7 @@ function initTheme() {
   document.getElementById('themeBtn').innerHTML = saved === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
   setTimeout(updateLogos, 50);
 }
+
 function toggleTheme() {
   const cur = document.documentElement.getAttribute('data-theme');
   const next = cur === 'dark' ? 'light' : 'dark';
@@ -788,6 +789,17 @@ function showToast(msg, type='success', duration=2500) {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => { t.className = ''; }, duration);
 }
+
+window.showSuccessAnimated = function(title, desc, duration = 2500) {
+  const modal = document.getElementById('successAnimatedModal');
+  const tEl = document.getElementById('successAnimatedTitle');
+  const dEl = document.getElementById('successAnimatedDesc');
+  if (!modal) return showToast(title);
+  if (tEl) tEl.textContent = title;
+  if (dEl) dEl.textContent = desc || '';
+  modal.classList.add('show');
+  setTimeout(() => modal.classList.remove('show'), duration);
+};
 
 // ═══════════════════════════════════════
 // NAVIGATION

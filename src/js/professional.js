@@ -528,16 +528,13 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
   <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </body></html>`;
 
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const win = window.open(url, '_blank');
-  if (!win) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'prontuario_' + patientName.replace(/\s+/g,'_') + '.html';
-    a.click();
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+  } else {
+    showToast('Habilite os popups para visualizar o prontuário.', 'error');
   }
-  setTimeout(() => URL.revokeObjectURL(url), 15000);
 }
 
 async function loadPatients() {
@@ -621,6 +618,9 @@ async function loadPatients() {
             </div>
           </div>
           <div class="patient-actions" style="display:flex;gap:0.4rem;align-items:center;">
+            <button class="btn-view-diary" onclick="toggleRecipeForm('${p.id}')" style="background:var(--green-pale);color:var(--green-deep);">
+              <i class="fa-solid fa-utensils"></i> Receita
+            </button>
             <button class="btn-view-diary" onclick="viewPatientDiary('${p.id}', '${p.name || p.email}')">
               <i class="fa-solid fa-book"></i> Diário
             </button>

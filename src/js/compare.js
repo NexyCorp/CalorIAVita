@@ -97,18 +97,28 @@ async function confirmSendRecipeToPatient() {
 }
 let currentFilter = 'all';
 
-function toggleRecipeForm() {
+function toggleRecipeForm(defaultPatientId = null) {
   const form = document.getElementById('recipeAddForm');
   form.classList.toggle('open');
   if (form.classList.contains('open')) {
     // Set default visibility based on role
     if (isProfessional()) {
-      loadPatientsForRecipe();
-      // Default: send to all patients
-      newRecipeVisibility = 'all_patients';
-      document.querySelectorAll('.visibility-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('visAllPatients')?.classList.add('active');
-      document.getElementById('visPatient').style.display = 'flex';
+      loadPatientsForRecipe().then(() => {
+        if (defaultPatientId) {
+          newRecipeVisibility = 'patient';
+          document.querySelectorAll('.visibility-btn').forEach(b => b.classList.remove('active'));
+          const pBtn = document.getElementById('visPatient');
+          if (pBtn) pBtn.classList.add('active');
+          document.getElementById('patientSelectField').style.display = 'block';
+          document.getElementById('recipePatientSelect').value = defaultPatientId;
+        } else {
+          newRecipeVisibility = 'all_patients';
+          document.querySelectorAll('.visibility-btn').forEach(b => b.classList.remove('active'));
+          document.getElementById('visAllPatients')?.classList.add('active');
+          document.getElementById('visPatient').style.display = 'flex';
+          document.getElementById('patientSelectField').style.display = 'none';
+        }
+      });
     } else {
       // Standard pro: only private
       newRecipeVisibility = 'private';
@@ -172,10 +182,10 @@ async function generateAiRecipe() {
   const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
 DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
 Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
-Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array), steps (array) }`;
+Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array of strings ou objects), steps (array of strings) }`;
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional.');
+    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional. Certifique-se de que "steps" contém as instruções de preparo passo a passo.');
 
     const el = document.getElementById('aiRecipeResult');
     el.style.display = 'block';
@@ -185,6 +195,8 @@ Retorne JSON: { title, kcal, prot, totalGrams, time, category (cafe/almoco/lanch
       <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.75rem;">
         <span class="recipe-chip">🔥 ${data.kcal} kcal</span>
         <span class="recipe-chip yellow">💪 ${data.prot}g prot</span>
+        ${data.carbs ? `<span class="recipe-chip" style="background:#e3f2fd;color:#1565c0;">🥖 ${data.carbs}g carb</span>` : ''}
+        ${data.fat ? `<span class="recipe-chip" style="background:#fce4ec;color:#c2185b;">🥑 ${data.fat}g gord</span>` : ''}
         ${data.totalGrams ? `<span class="recipe-chip">⚖️ ${data.totalGrams}g total</span>` : ''}
         <span class="recipe-chip orange">⏱ ${data.time||'—'}</span>
       </div>
@@ -402,12 +414,28 @@ async function submitRecipe() {
 
   showToast('💾 Salvando receita...');
 
+  let photoUrls = [];
+  const photoInput = document.getElementById('newRecipePhotos');
+  if (photoInput && photoInput.files.length > 0) {
+    showToast('📸 Fazendo upload das fotos...');
+    for (let i = 0; i < photoInput.files.length; i++) {
+      const file = photoInput.files[i];
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `recipes/${currentUser.id}_${Date.now()}_${i}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('diary-photos').upload(path, file, { upsert: true, contentType: file.type });
+      if (!upErr) {
+        const { data: urlData } = supabase.storage.from('diary-photos').getPublicUrl(path);
+        if (urlData?.publicUrl) photoUrls.push(urlData.publicUrl);
+      }
+    }
+  }
+
   // Objeto local (memória)
   const recipe = {
     id: Date.now(), icon: '<i class="fa-solid fa-utensils ic-recipes"></i>',
     title: name, kcal, prot, totalGrams,
     category: [cat, kcal < 250 ? 'lowcal' : null, prot > 25 ? 'highprot' : null].filter(Boolean),
-    source: dbVisibility, ingredients, steps,
+    source: dbVisibility, ingredients, steps, photos: photoUrls,
     author: currentProfile?.name || 'Usuário',
     author_id: currentUser?.id, patient_id: patientId,
     pending: false, approved: true
@@ -418,6 +446,7 @@ async function submitRecipe() {
     title: name, kcal, prot, total_grams: totalGrams, category: cat,
     ingredients: ingredients,
     steps: steps,
+    photos: photoUrls.length ? JSON.stringify(photoUrls) : null,
     visibility: dbVisibility,
     user_id: currentUser.id, author_id: currentUser.id,
     patient_id: patientId, approved: true, pending: false,

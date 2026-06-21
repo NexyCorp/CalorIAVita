@@ -828,7 +828,7 @@
           </div>
           <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
             <button class="btn-add-recipe" id="aiRecipeBtn" onclick="openAiRecipeModal()" style="background:linear-gradient(135deg,var(--green-mid),#388e3c);color:white;border:none;"><span data-i18n="ai_recipe_btn">🤖 IA Cria Receita</span></button>
-            <button class="btn-add-recipe" id="addRecipeBtn" onclick="toggleRecipeForm()" style="display:none;">+ <span data-i18n="add_recipe">Nova Receita</span></button>
+            <button class="btn-add-recipe" id="addRecipeBtn" onclick="toggleRecipeForm()">+ <span data-i18n="add_recipe">Nova Receita</span></button>
           </div>
         </div>
 
@@ -1199,6 +1199,52 @@
     <button class="btn-primary" style="margin-top:0.5rem;" onclick="submitForcePasswordChange()" data-i18n="save_new_password">Salvar Nova Senha</button>
   </div>
 </div>
+
+<!-- Success Animated Modal -->
+<div class="modal-overlay" id="successAnimatedModal" style="z-index:9999;">
+  <div class="modal-box" style="max-width:320px;text-align:center;padding:2.5rem 1.5rem;">
+    <div style="font-size:4rem;color:var(--green-mid);margin-bottom:1rem;animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <h3 id="successAnimatedTitle" style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green-deep);margin-bottom:0.5rem;">Salvo!</h3>
+    <p id="successAnimatedDesc" style="color:var(--text-muted);font-size:0.9rem;">As alterações foram salvas.</p>
+  </div>
+</div>
+<style>
+@keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+</style>
+</div>
+
+<!-- LGPD Modal -->
+<div class="modal-overlay" id="lgpdModal" onclick="if(event.target===this)closeLgpdModal()">
+  <div class="modal-box" style="max-width:600px;width:95vw;max-height:90vh;overflow-y:auto;text-align:left;">
+    <button class="modal-close" onclick="closeLgpdModal()">✕</button>
+    <div class="modal-title" style="border-bottom:2px solid var(--border);padding-bottom:1rem;margin-bottom:1rem;">
+      <i class="fa-solid fa-scale-balanced ic-goal"></i> Lei Geral de Proteção de Dados (LGPD)
+    </div>
+    <div style="font-size:0.9rem;line-height:1.6;color:var(--text-main);">
+      <p>A Lei nº 13.709, de 14 de agosto de 2018 (Lei Geral de Proteção de Dados Pessoais - LGPD), dispõe sobre o tratamento de dados pessoais, inclusive nos meios digitais, por pessoa natural ou por pessoa jurídica de direito público ou privado, com o objetivo de proteger os direitos fundamentais de liberdade e de privacidade e o livre desenvolvimento da personalidade da pessoa natural.</p>
+      <br>
+      <p><strong>Nossos Compromissos:</strong></p>
+      <ul style="padding-left:1.5rem;margin-top:0.5rem;margin-bottom:1rem;">
+        <li>Seus dados de saúde e registros nutricionais são estritamente confidenciais e protegidos com criptografia.</li>
+        <li>Nenhuma informação pessoal sensível é compartilhada com terceiros para fins publicitários.</li>
+        <li>Você tem o direito de solicitar a exclusão permanente de todos os seus dados a qualquer momento.</li>
+        <li>Profissionais (Nutricionistas) só terão acesso aos dados dos pacientes mediante vínculo explícito na plataforma.</li>
+      </ul>
+      <p style="font-size:0.8rem;color:var(--text-muted);text-align:center;">Para mais informações, consulte o portal do Governo Federal sobre a LGPD.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openLgpdModal(e) {
+  if (e) e.preventDefault();
+  document.getElementById('lgpdModal').classList.add('show');
+}
+function closeLgpdModal() {
+  document.getElementById('lgpdModal').classList.remove('show');
+}
+</script>
 
 <!-- Create Patient Modal -->
 <div class="modal-overlay" id="createPatientModal" onclick="if(event.target===this)closeCreatePatientModal()">

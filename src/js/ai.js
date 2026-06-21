@@ -1,12 +1,26 @@
 // ═══════════════════════════════════════
-// GROQ API
+// GROQ & GEMINI API
 // ═══════════════════════════════════════
-const GROQ_KEY = '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';
+const GROQ_KEYS = [
+  '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',
+  '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', // Chave 2 (Preencha aqui)
+  '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'  // Chave 3 (Preencha aqui)
+];
+let currentGroqKeyIndex = 0;
+
+const GEMINI_KEY = 'AQ.Ab8RN6LOVLmEp_cEfLqwKjFEUnWyTqseQTEo08nyzN4uvJZAAQ'; // Chave Gemini para imagens (Preencha aqui)
+
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
 const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
-const GROQ_MODEL_VISION = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão (imagens)
-const GROQ_MODEL_VISION_FB = 'llama-3.2-11b-vision-preview'; // fallback visão
+
+function getGroqKey() {
+  return GROQ_KEYS[currentGroqKeyIndex] || GROQ_KEYS[0];
+}
+
+function rotateGroqKey() {
+  currentGroqKeyIndex = (currentGroqKeyIndex + 1) % GROQ_KEYS.length;
+}
 
 function extractJSON(text) {
   let s = text.replace(/```json/g,'').replace(/```/g,'').trim();
@@ -18,12 +32,13 @@ function extractJSON(text) {
 }
 
 async function _groqFetch(model, messages, maxTokens = 4096) {
-  if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
+  const key = getGroqKey();
+  if (!key || key.length < 10) throw new Error('401 — Chave Groq não configurada');
   let res;
   try {
     res = await fetch(GROQ_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_KEY },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
       body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.2 })
     });
   } catch(netErr) {
@@ -40,8 +55,9 @@ async function callGroq(messages, retries = 3, maxTokens = 4096) {
     const res = await _groqFetch(model, messages, maxTokens);
     if (res.status === 401 || res.status === 403) throw new Error('401');
     if (res.status === 429) {
+      rotateGroqKey(); // Rate limit atingido, rotaciona a chave!
       if (attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); // Espera menor, pois já trocou a chave
         continue;
       }
       throw new Error('429');
@@ -75,35 +91,40 @@ async function askClaude(prompt, sys) {
   ]);
 }
 
-// Análise de imagem com modelo de visão dedicado (llama-4-scout suporta image_url)
+// Análise de imagem com Gemini
 async function askGeminiWithImage(b64, mime, prompt) {
-  if (!GROQ_KEY || GROQ_KEY.length < 10) throw new Error('401 — Chave Groq não configurada');
-  const messages = [
-    { role:'system', content:'Você é especialista em nutrição. Retorne SOMENTE JSON válido.' },
-    { role:'user', content:[
-      { type:'image_url', image_url:{ url:'data:'+mime+';base64,'+b64 }},
-      { type:'text', text: prompt }
-    ]}
-  ];
+  if (!GEMINI_KEY || GEMINI_KEY.length < 10) throw new Error('401 — Chave Gemini não configurada');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
-  // Tenta modelo principal de visão, depois fallback
-  for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
-    try {
-      const res = await _groqFetch(model, messages, 2048);
-      if (res.status === 401 || res.status === 403) throw new Error('401');
-      if (!res.ok) {
-        if (model === GROQ_MODEL_VISION) continue; // tenta fallback
-        const body = await res.text().catch(()=>'');
-        throw new Error('Groq ' + res.status + ': ' + body.slice(0,120));
-      }
-      const data = await res.json();
-      if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
-      return extractJSON(data.choices[0].message.content);
-    } catch(e) {
-      if (model === GROQ_MODEL_VISION_FB) throw e;
+  const payload = {
+    contents: [{
+      parts: [
+        { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido sem markdown ou texto extra. ' + prompt },
+        { inline_data: { mime_type: mime, data: b64 } }
+      ]
+    }],
+    generationConfig: { temperature: 0.2 }
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.status === 401 || res.status === 403) throw new Error('401');
+    if (res.status === 429) throw new Error('429');
+    if (!res.ok) {
+      const errTxt = await res.text().catch(() => '');
+      throw new Error(`Gemini Error ${res.status}: ${errTxt.substring(0, 100)}`);
     }
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('Resposta vazia da API Gemini');
+    return extractJSON(text);
+  } catch(e) {
+    throw e;
   }
-  throw new Error('Não foi possível analisar a imagem.');
 }
 
 

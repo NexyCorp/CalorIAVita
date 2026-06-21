@@ -345,7 +345,7 @@ async function _createPatientDirectBase() {
     name,
     email,
     role: 'patient',
-    plan: 'patient_pro',
+    plan: currentProfile?.plan === 'clinic' ? 'patient_clinic' : 'patient_pro',
     sex,
     age,
     weight,
@@ -1727,7 +1727,7 @@ window.saveProfile = async function() {
   renderSidebarUser();
   updateHomePanel();
   profileUpdateFatClassification();
-  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Perfil salvo!');
+  showSuccessAnimated('Perfil Salvo!', 'Suas informações foram atualizadas com sucesso.');
 };
 
 // ── Extend renderSidebarUser to populate new profile fields ─────────────────

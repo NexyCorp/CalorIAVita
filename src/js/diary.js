@@ -475,12 +475,16 @@ async function analyzeImage() {
   document.getElementById('analyzeBtn').disabled = true;
   try {
     const result = await askGeminiWithImage(currentImageBase64, currentImageMimeType,
-      'Analise esta imagem. Estime o peso total da porção. Se for um prato com múltiplos alimentos, estime e descreva no campo "portion" o peso em gramas de cada porção individual (ex: "Arroz: 150g, Feijão: 100g, Frango: 120g"). Retorne JSON: foodName, confidence, portion, calories, carbs, protein, fat, fiber, tips.');
+      'Analise esta imagem. Estime o peso total da porção. Se for um prato com múltiplos alimentos, estime e descreva no campo "portion" o peso em gramas de cada porção individual (ex: "Arroz: 150g, Feijão: 100g, Frango: 120g"). OBRIGATÓRIO: Retorne o campo "portion" EXCLUSIVAMENTE como uma STRING (texto), nunca como um objeto. Retorne JSON: foodName, confidence, portion, calories, carbs, protein, fat, fiber, tips.');
     lastCamResult = result;
     document.getElementById('camFoodName').textContent = result.foodName;
     document.getElementById('camConfidence').textContent = `✓ Confiança: ${result.confidence}`;
     const pEl = document.getElementById('camPortion');
-    if (pEl) { pEl.textContent = result.portion ? `⚖️ Porção Estimada: ${result.portion}` : ''; }
+    if (pEl) { 
+      let portionText = result.portion;
+      if (typeof portionText === 'object') portionText = JSON.stringify(portionText).replace(/[{}"']/g, ' ').trim();
+      pEl.textContent = portionText ? `⚖️ Porção Estimada: ${portionText}` : ''; 
+    }
     document.getElementById('camKcal').textContent = Math.round(result.calories||0);
     document.getElementById('camCarbs').textContent = (result.carbs||0).toFixed(1) + 'g';
     document.getElementById('camProt').textContent = (result.protein||0).toFixed(1) + 'g';

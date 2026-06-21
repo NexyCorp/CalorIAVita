@@ -373,6 +373,13 @@ async function initApp(user) {
     if (typeof window.updateHomePanel === 'function') window.updateHomePanel();
     return;
   }
+
+  // Prevent closing auth overlay if user is still in the onboarding step
+  if (window._pendingUser && window._pendingUser.id === user.id) {
+    setAuthLoading(false);
+    return;
+  }
+
   _initAppRunning = true;
 
   try {
@@ -402,7 +409,7 @@ async function initApp(user) {
     setAuthLoading(false);
 
     const isPatientRole = currentProfile?.role === 'patient';
-    const mustChange = currentUser?.user_metadata?.must_change_password === true;
+    const mustChange = String(currentUser?.user_metadata?.must_change_password) === 'true';
     if (isPatientRole && mustChange) {
       setTimeout(() => openChangePasswordModal(), 800);
     }
