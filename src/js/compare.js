@@ -150,39 +150,6 @@ function closeAiRecipeModal() {
   document.getElementById('aiRecipeLoading').style.display = 'none';
 }
 
-function _localRecipeFallback(food, maxKcal, minProt, userCtx) {
-  return {
-    title: `Receita base de ${food}`,
-    kcal: Math.max(250, Math.min(Number(maxKcal) || 500, 650)),
-    prot: Math.max(Number(minProt) || 0, 18),
-    totalGrams: 450,
-    servings: 2,
-    time: '25 min',
-    category: 'almoco',
-    ingredients: [
-      `1 porcao de ${food}`,
-      '1 xicara de arroz ou carboidrato base',
-      '1 concha de leguminosa',
-      '1 ovo ou porcao de proteina magra',
-      '1 fio de azeite',
-      'sal, alho, pimenta e ervas a gosto'
-    ],
-    steps: [
-      `Separe todos os ingredientes e deixe a bancada pronta.`,
-      `Cozinhe o carboidrato base até ficar macio.`,
-      `Prepare a proteina com fogo medio, até dourar por fora e manter suculencia.`,
-      `Monte o prato com legumes ou folhas para equilibrar a refeicao.`,
-      `Finalize com azeite e ajuste sal e temperos no fim.`,
-      `Sirva na hora para manter textura e sabor.`
-    ],
-    tips: [
-      'Se quiser menos calorias, reduza a porcao do carboidrato.',
-      'Se quiser mais proteina, adicione mais 1 ovo ou mais frango desfiado.'
-    ],
-    storage: 'Guardar por ate 2 dias na geladeira em pote fechado.'
-  };
-}
-
 async function generateAiRecipe() {
   const food = document.getElementById('cravingFood').value.trim();
   const maxKcal = document.getElementById('cravingKcal').value || 500;
@@ -240,26 +207,7 @@ Regras obrigatorias para evitar receita resumida:
         <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar esta Receita
       </button>`;
   } catch(e) {
-    const fallback = _localRecipeFallback(food, maxKcal, minProt, userCtx);
-    const el = document.getElementById('aiRecipeResult');
-    lastAiRecipeData = fallback;
-    el.style.display = 'block';
-    el.innerHTML = `
-      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--green-deep);margin-bottom:0.5rem;">${fallback.title}</div>
-      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;">A IA nao respondeu. Esta versao local foi gerada para nao travar seu fluxo.</div>
-      <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-        <span class="recipe-chip">🔥 ${fallback.kcal} kcal</span>
-        <span class="recipe-chip yellow">💪 ${fallback.prot}g prot</span>
-        <span class="recipe-chip orange">⏱ ${fallback.time}</span>
-      </div>
-      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.3rem;font-weight:700;">Ingredientes:</div>
-      <ul style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.6rem;">${fallback.ingredients.map(i=>`<li>${i}</li>`).join('')}</ul>
-      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.3rem;font-weight:700;">Preparo:</div>
-      <ol style="font-size:0.82rem;padding-left:1.2rem;margin-bottom:0.75rem;">${fallback.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
-      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;"><strong>Armazenamento:</strong> ${fallback.storage}</div>
-      <button onclick="saveAiRecipe()" style="width:100%;background:var(--green-mid);color:white;border:none;border-radius:50px;padding:0.7rem;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;">
-        <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar esta Receita
-      </button>`;
+    showToast('Erro ao gerar receita: ' + e.message, 'error');
   } finally {
     document.getElementById('aiRecipeLoading').style.display = 'none';
   }
