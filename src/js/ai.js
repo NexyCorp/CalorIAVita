@@ -34,42 +34,19 @@ async function _groqFetch(model, messages, maxTokens = 4096) {
 
 async function callGroq(messages, retries = 3, maxTokens = 4096) {
   let lastErr;
-  
-  // Lista de modelos disponíveis no Groq para rotação caso ocorra rate limit (429) ou erro
-  const models = [
-    GROQ_MODEL,               // 'llama-3.3-70b-versatile'
-    'mixtral-8x7b-32768',     // Excelente para fallback longo
-    GROQ_MODEL_FAST,          // 'llama-3.1-8b-instant'
-    'gemma2-9b-it'            // Outro fallback leve
-  ];
-
   for (let attempt = 0; attempt < retries; attempt++) {
-    // Escolhe o modelo baseado na tentativa (se exaurir, usa o último)
-    const model = models[Math.min(attempt, models.length - 1)];
-    
-    // Se der 413, tenta reduzir maxTokens progressivamente nas próximas tentativas
-    let currentMaxTokens = attempt > 0 ? Math.floor(maxTokens * Math.pow(0.75, attempt)) : maxTokens;
-
-    let res;
-    try {
-      res = await _groqFetch(model, messages, currentMaxTokens);
-    } catch(err) {
-      lastErr = err;
-      await new Promise(r => setTimeout(r, 1500));
-      continue;
-    }
-
+    // Na última tentativa, usa modelo menor como fallback
+    const model = attempt === retries - 1 ? GROQ_MODEL_FAST : GROQ_MODEL;
+    const res = await _groqFetch(model, messages, maxTokens);
     if (res.status === 401 || res.status === 403) throw new Error('401');
     if (res.status === 429) {
-      lastErr = new Error('429');
-      // No 429 (Rate Limit por modelo), vamos para o próximo loop trocar de modelo imediatamente
-      continue; 
+      if (attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+        continue;
+      }
+      throw new Error('429');
     }
-    if (res.status === 413) {
-      lastErr = new Error('413');
-      // No 413 (Payload too large), reduzimos maxTokens no próximo loop
-      continue;
-    }
+    if (res.status === 413) throw new Error('413');
     if (!res.ok) {
       const body = await res.text().catch(()=>'');
       lastErr = new Error('Groq ' + res.status + ': ' + body.slice(0,120));
@@ -79,33 +56,23 @@ async function callGroq(messages, retries = 3, maxTokens = 4096) {
       }
       throw lastErr;
     }
-    
     const data = await res.json();
-    if (!data.choices?.[0]?.message?.content) {
-      lastErr = new Error('Resposta vazia da API');
-      continue;
-    }
-    
-    try {
-      return extractJSON(data.choices[0].message.content);
-    } catch (parseErr) {
-      lastErr = new Error('Falha ao processar JSON da IA');
-      continue;
-    }
+    if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
+    return extractJSON(data.choices[0].message.content);
   }
-  throw lastErr || new Error('Falha de IA após rotação de modelos.');
+  throw lastErr || new Error('429');
 }
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  return callGroq(messages, 4, 8192);
+  return callGroq(messages, 3, 8192);
 }
 
 async function askClaude(prompt, sys) {
   return callGroq([
     { role:'system', content: sys || 'Você é especialista em nutrição. Responda SOMENTE em JSON válido.' },
     { role:'user', content: prompt }
-  ], 7, 4096);
+  ]);
 }
 
 // Análise de imagem com modelo de visão dedicado (llama-4-scout suporta image_url)
