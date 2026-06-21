@@ -8,7 +8,7 @@ const GROQ_KEYS = [
 ];
 let currentGroqKeyIndex = 0;
 
-const GEMINI_KEY = 'AQ.Ab8RN6LZFQDxxjAyG9vhR4o9zYLJZs_SiU5QgVjGqei1Si_QIg'; // Chave Gemini para imagens — obtenha em https://aistudio.google.com/app/apikey
+const GEMINI_KEY = 'AQ.Ab8RN6JkGpdWr7oL0xdNYWUqqbswDegmgyegrqMteuoGTt_qiQ'; // Chave Gemini para imagens — obtenha em https://aistudio.google.com/app/apikey
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
