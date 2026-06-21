@@ -310,7 +310,7 @@ async function fetchUserProfile(user) {
     for (let attempt = 0; attempt < 2; attempt++) {
       const { data } = await withTimeout(
         sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-        10000,
+        3000,
         'profile timeout'
       );
       if (data) return data;
@@ -320,7 +320,7 @@ async function fetchUserProfile(user) {
             id: user.id, email: user.email, name: metaName || null,
             role: 'standard', plan: 'free', updated_at: new Date().toISOString()
           }, { onConflict: 'id' }),
-          8000,
+          3000,
           'profile upsert timeout'
         );
       }
