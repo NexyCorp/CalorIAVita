@@ -18,6 +18,8 @@ const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_M
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
 const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
+const GROQ_MODEL_VISION    = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão principal
+const GROQ_MODEL_VISION_FB = 'meta-llama/llama-4-maverick-17b-128e-instruct'; // visão fallback
 
 function getGroqKey() {
   return GROQ_KEYS[currentGroqKeyIndex] || GROQ_KEYS[0];
@@ -96,85 +98,119 @@ async function askClaude(prompt, sys) {
   ]);
 }
 
-// ─── Análise de imagem com HuggingFace (Llama-3.2-Vision) ───────────────────
-// Mantém o nome askGeminiWithImage para compatibilidade com diary.js
-async function askGeminiWithImage(b64, mime, prompt, _retries = 3) {
-  if (!HF_KEY || HF_KEY.length < 10 || HF_KEY.includes('xxxx')) {
-    throw new Error('401 — Chave HuggingFace não configurada. Acesse https://huggingface.co/settings/tokens e substitua o valor de HF_KEY em ai.js');
-  }
+// ─── Fallback Groq Vision ────────────────────────────────────────
+async function _askGroqVision(b64, mime, prompt) {
+  const messages = [
+    { role: 'system', content: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra.' },
+    { role: 'user', content: [
+      { type: 'image_url', image_url: { url: 'data:' + mime + ';base64,' + b64 } },
+      { type: 'text', text: prompt }
+    ]}
+  ];
 
-  // Monta a URL da imagem em formato data-URI (aceito pela HF Inference API)
-  const mimeType = mime || 'image/jpeg';
-  const dataUri = `data:${mimeType};base64,${b64}`;
-
-  const payload = {
-    model: HF_VISION_MODEL,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'text',
-            text: 'Você é um especialista em nutrição. Analise a imagem e retorne SOMENTE um JSON válido, sem markdown, sem texto extra, sem explicações. ' + prompt
-          },
-          {
-            type: 'image_url',
-            image_url: { url: dataUri }
-          }
-        ]
-      }
-    ],
-    max_tokens: 1024,
-    temperature: 0.2
-  };
-
-  for (let attempt = 0; attempt < _retries; attempt++) {
+  // Tenta modelo principal de visão, depois fallback
+  for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
     let res;
     try {
-      res = await fetch(HF_VISION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + HF_KEY
-        },
-        body: JSON.stringify(payload)
-      });
+      res = await _groqFetch(model, messages, 2048);
     } catch(netErr) {
-      throw new Error('Sem conexão com a API HuggingFace. Verifique sua internet.');
+      if (model === GROQ_MODEL_VISION_FB) throw netErr;
+      continue; // tenta fallback
     }
-
-    if (res.status === 401 || res.status === 403) {
-      throw new Error('401 — Chave HuggingFace inválida ou sem permissão. Verifique em https://huggingface.co/settings/tokens');
-    }
-    if (res.status === 404) {
-      throw new Error('404 — Modelo não encontrado. Verifique se você aceitou os termos em https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct');
-    }
-    if (res.status === 429 || res.status === 503) {
-      // 503 = modelo carregando (cold start), 429 = rate limit — ambos fazem retry
-      if (attempt < _retries - 1) {
-        const wait = 3000 * (attempt + 1); // 3s, 6s, 9s
-        console.warn(`[CameraIA] HF ${res.status} — aguardando ${wait}ms antes de tentar novamente (tentativa ${attempt + 1}/${_retries})`);
-        await new Promise(r => setTimeout(r, wait));
-        continue;
-      }
-      throw new Error('429 — Limite de requisições HuggingFace atingido. Aguarde alguns segundos e tente novamente.');
-    }
-    if (res.status === 400) {
-      const errTxt = await res.text().catch(() => '');
-      throw new Error(`HuggingFace 400: Requisição inválida ou imagem muito grande. ${errTxt.substring(0, 200)}`);
+    if (res.status === 401 || res.status === 403) throw new Error('401 — Chave Groq inválida');
+    if (res.status === 429) {
+      rotateGroqKey();
+      if (model === GROQ_MODEL_VISION_FB) throw new Error('429 — Rate limit Groq. Tente novamente em instantes.');
+      continue;
     }
     if (!res.ok) {
-      const errTxt = await res.text().catch(() => '');
-      if (attempt < _retries - 1) { await new Promise(r => setTimeout(r, 2000)); continue; }
-      throw new Error(`HuggingFace ${res.status}: ${errTxt.substring(0, 200)}`);
+      if (model === GROQ_MODEL_VISION) continue; // tenta fallback
+      const body = await res.text().catch(() => '');
+      throw new Error('Groq ' + res.status + ': ' + body.slice(0, 120));
     }
-
     const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content;
-    if (!text) throw new Error('Resposta vazia da API HuggingFace');
-    return extractJSON(text);
+    if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API Groq (visão)');
+    return extractJSON(data.choices[0].message.content);
   }
-  throw new Error('HuggingFace: todas as tentativas falharam.');
+  throw new Error('Não foi possível analisar a imagem via Groq.');
+}
+
+// ─── Análise de imagem: HuggingFace (primário) → Groq Vision (fallback) ──────
+// Mantém o nome askGeminiWithImage para compatibilidade com diary.js
+async function askGeminiWithImage(b64, mime, prompt, _retries = 2) {
+  const mimeType = mime || 'image/jpeg';
+  const dataUri = `data:${mimeType};base64,${b64}`;
+  const hfConfigured = HF_KEY && HF_KEY.length >= 10 && !HF_KEY.includes('xxxx');
+
+  // ─── Tentativa 1: HuggingFace ──────────────────────────────────
+  if (hfConfigured) {
+    const payload = {
+      model: HF_VISION_MODEL,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt },
+          { type: 'image_url', image_url: { url: dataUri } }
+        ]
+      }],
+      max_tokens: 1024,
+      temperature: 0.2
+    };
+
+    for (let attempt = 0; attempt < _retries; attempt++) {
+      let res;
+      try {
+        res = await fetch(HF_VISION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + HF_KEY },
+          body: JSON.stringify(payload)
+        });
+      } catch(netErr) {
+        console.warn('[CameraIA] HuggingFace indisponível, ativando fallback Groq...');
+        break; // sai do loop HF e vai para Groq
+      }
+
+      if (res.status === 401 || res.status === 403 || res.status === 404) {
+        // Chave ou modelo inválido — não adianta tentar de novo, vai para Groq
+        console.warn(`[CameraIA] HF ${res.status} — usando fallback Groq...`);
+        break;
+      }
+      if (res.status === 429 || res.status === 503) {
+        if (attempt < _retries - 1) {
+          const wait = 3000 * (attempt + 1);
+          console.warn(`[CameraIA] HF ${res.status} — aguardando ${wait}ms... (tentativa ${attempt + 1}/${_retries})`);
+          await new Promise(r => setTimeout(r, wait));
+          continue;
+        }
+        console.warn('[CameraIA] HF esgotou tentativas — ativando fallback Groq...');
+        break; // fallback para Groq
+      }
+      if (res.status === 400) {
+        const errTxt = await res.text().catch(() => '');
+        // Imagem inválida ou muito grande — não tenta Groq pois seria o mesmo problema
+        throw new Error(`Imagem inválida ou muito grande. Tente uma foto menor. (HF 400: ${errTxt.substring(0, 100)})`);
+      }
+      if (!res.ok) {
+        if (attempt < _retries - 1) { await new Promise(r => setTimeout(r, 2000)); continue; }
+        console.warn(`[CameraIA] HF ${res.status} — usando fallback Groq...`);
+        break;
+      }
+
+      const data = await res.json();
+      const text = data?.choices?.[0]?.message?.content;
+      if (!text) {
+        if (attempt < _retries - 1) continue;
+        break; // fallback para Groq
+      }
+      return extractJSON(text); // ✅ sucesso via HuggingFace
+    }
+  } else {
+    console.warn('[CameraIA] HF_KEY não configurada — usando fallback Groq diretamente...');
+  }
+
+  // ─── Tentativa 2: Groq Vision (fallback) ─────────────────────────
+  console.info('[CameraIA] Usando Groq Vision como fallback...');
+  return _askGroqVision(b64, mimeType, prompt);
 }
 
 
