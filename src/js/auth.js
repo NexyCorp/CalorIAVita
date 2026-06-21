@@ -163,6 +163,7 @@ async function doRegister() {
   if (!name || !email || !password) { showAuthError('Preencha todos os campos.'); return; }
   if (password.length < 6) { showAuthError('Senha deve ter pelo menos 6 caracteres.'); return; }
   setAuthLoading(true);
+  window._isRegistering = true; // Prevent initApp from jumping to main app
 
   // Check invite token in URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -275,9 +276,11 @@ async function completeOnboarding() {
       switchAuthTab('register');
       document.getElementById('emailConfirmBanner').style.display = 'block';
       document.getElementById('regEmail').value = window._pendingUser.email || '';
+      window._isRegistering = false;
       return;
     }
 
+    window._isRegistering = false;
     await initApp(window._pendingUser);
   }
 }
@@ -374,6 +377,11 @@ async function initApp(user) {
     return;
   }
 
+  // Prevent app load if the user is currently registering or in onboarding
+  if (window._isRegistering) {
+    return;
+  }
+
   // Prevent closing auth overlay if user is still in the onboarding step
   if (window._pendingUser && window._pendingUser.id === user.id) {
     setAuthLoading(false);
@@ -411,7 +419,8 @@ async function initApp(user) {
     const isPatientRole = currentProfile?.role === 'patient';
     const mustChange = String(currentUser?.user_metadata?.must_change_password) === 'true';
     if (isPatientRole && mustChange) {
-      setTimeout(() => openChangePasswordModal(), 800);
+      document.getElementById('authOverlay').classList.remove('hidden'); // Keep blocked
+      openChangePasswordModal();
     }
 
     _loadAppDataInBackground();
@@ -443,17 +452,15 @@ function startProfileRealtime(userId) {
   const sb = window.getSupabase?.() || window._db;
   if (_realtimeChannel) sb.removeChannel(_realtimeChannel);
   _realtimeChannel = sb
-    .channel('profile-changes-' + userId)
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'profiles',
-      filter: 'id=eq.' + userId
-    }, payload => {
-      if (payload.new) {
-        applyProfileUpdate(payload.new);
-        console.log('[CalorIA] Perfil atualizado em tempo real:', payload.new.role, payload.new.plan);
-      }
+    .channel('global-changes-' + userId)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: 'id=eq.' + userId }, (payload) => {
+      forceRefreshProfile();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'recipes' }, (payload) => {
+      if (typeof loadRecipes === 'function') loadRecipes();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'professional_patients' }, (payload) => {
+      if (typeof loadPatients === 'function') loadPatients();
     })
     .subscribe();
 

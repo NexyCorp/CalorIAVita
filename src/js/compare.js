@@ -153,7 +153,11 @@ function setVisibility(type, btn) {
   document.getElementById('patientSelectField').style.display = type === 'patient' ? 'block' : 'none';
 }
 
-function openAiRecipeModal() { document.getElementById('aiRecipeModal').classList.add('show'); }
+let _targetAiRecipePatientId = null;
+function openAiRecipeModal(patientId = null) { 
+  _targetAiRecipePatientId = patientId;
+  document.getElementById('aiRecipeModal').classList.add('show'); 
+}
 function closeAiRecipeModal() {
   document.getElementById('aiRecipeModal').classList.remove('show');
   document.getElementById('aiRecipeResult').style.display = 'none';
@@ -170,7 +174,14 @@ async function generateAiRecipe() {
   document.getElementById('aiRecipeResult').style.display = 'none';
 
   // Build user profile + body fat context
-  const p = currentProfile || {};
+  let p = currentProfile || {};
+  if (_targetAiRecipePatientId) {
+    try {
+      const { data: patData } = await supabase.from('profiles').select('*').eq('id', _targetAiRecipePatientId).maybeSingle();
+      if (patData) p = patData;
+    } catch(e) { console.warn('Failed to fetch patient context', e); }
+  }
+
   const userCtx = [
     p.age ? `idade: ${p.age} anos` : '',
     p.sex ? `sexo: ${p.sex === 'm' ? 'masculino' : 'feminino'}` : '',
@@ -221,7 +232,7 @@ function saveAiRecipe(data) {
   // Pre-fill the recipe form with AI-generated data
   closeAiRecipeModal();
   const form = document.getElementById('recipeAddForm');
-  if (!form.classList.contains('open')) toggleRecipeForm();
+  if (!form.classList.contains('open')) toggleRecipeForm(_targetAiRecipePatientId);
   showPanel('recipes', document.getElementById('nav-recipes'));
   setTimeout(() => {
     document.getElementById('newRecipeName').value = d.title || '';
@@ -560,9 +571,16 @@ function renderRecipes(filter) {
     return;
   }
 
-  grid.innerHTML = recipes.map(r => `
+  grid.innerHTML = recipes.map(r => {
+    const hasPhoto = r.photos && r.photos.length > 0;
+    const thumbContent = hasPhoto 
+      ? `<img src="${r.photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` 
+      : r.icon;
+    const bgStyle = hasPhoto ? 'background:transparent;' : `background:${r.kcal<250?'var(--green-pale)':r.kcal<350?'var(--yellow-pale)':'var(--orange-pale)'};`;
+
+    return `
     <div class="recipe-card" data-recipe-id="${String(r.id).replace(/"/g,'&quot;')}">
-      <div class="recipe-thumb" style="background:${r.kcal<250?'var(--green-pale)':r.kcal<350?'var(--yellow-pale)':'var(--orange-pale)'};">${r.icon}</div>
+      <div class="recipe-thumb" style="${bgStyle}">${thumbContent}</div>
       <div class="recipe-body">
         <div class="recipe-title">${r.title}</div>
         <div class="recipe-meta">
@@ -575,7 +593,8 @@ function renderRecipes(filter) {
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
   // Attach click events safely (avoids quote escaping issues with UUIDs)
   grid.querySelectorAll('.recipe-card[data-recipe-id]').forEach(card => {
     card.addEventListener('click', () => openRecipe(card.dataset.recipeId));

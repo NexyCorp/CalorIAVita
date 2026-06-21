@@ -345,7 +345,7 @@ async function _createPatientDirectBase() {
     name,
     email,
     role: 'patient',
-    plan: currentProfile?.plan === 'clinic' ? 'patient_clinic' : 'patient_pro',
+    plan: isNutritionistClinic() ? 'patient_clinic' : 'patient_pro',
     sex,
     age,
     weight,
@@ -424,6 +424,7 @@ async function submitForcePasswordChange() {
   if (!updErr && updData?.user) currentUser = updData.user;
 
   document.getElementById('forceChangePasswordModal').classList.remove('show');
+  document.getElementById('authOverlay').classList.add('hidden');
   showToast('<i class="fa-solid fa-circle-check ic-check"></i> Senha atualizada com sucesso!');
 }
 
@@ -771,7 +772,7 @@ async function createPatientDirect() {
 
   // Salva perfil básico
   const { error: profErr } = await supabase.from('profiles').upsert({
-    id: patientId, name, email, role:'patient', plan: currentProfile?.plan === 'clinic' ? 'patient_clinic' : 'patient_pro',
+    id: patientId, name, email, role:'patient', plan: isNutritionistClinic() ? 'patient_clinic' : 'patient_pro',
     sex, age, weight, height, avatar_url: avatarUrl,
     nutritionist_id: currentUser.id,
     updated_at: new Date().toISOString()

@@ -617,9 +617,12 @@ async function loadPatients() {
               ${p.body_fat_pct ? `<span>• %G: ${p.body_fat_pct}%</span>` : ''}
             </div>
           </div>
-          <div class="patient-actions" style="display:flex;gap:0.4rem;align-items:center;">
+          <div class="patient-actions" style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
+            <button class="btn-view-diary" onclick="openAiRecipeModal('${p.id}')" style="background:linear-gradient(135deg,var(--green-mid),#388e3c);color:white;border:none;">
+              🤖 IA Receita
+            </button>
             <button class="btn-view-diary" onclick="toggleRecipeForm('${p.id}')" style="background:var(--green-pale);color:var(--green-deep);">
-              <i class="fa-solid fa-utensils"></i> Receita
+              <i class="fa-solid fa-utensils"></i> Manual
             </button>
             <button class="btn-view-diary" onclick="viewPatientDiary('${p.id}', '${p.name || p.email}')">
               <i class="fa-solid fa-book"></i> Diário
@@ -1068,7 +1071,11 @@ async function saveProfile() {
   currentProfile = { ...currentProfile, name, sex, age, weight, height };
   renderSidebarUser();
   updateHomePanel();
-  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Perfil salvo!');
+  if (typeof showSuccessAnimated === 'function') {
+    showSuccessAnimated();
+  } else {
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Perfil salvo!');
+  }
 }
 
 
