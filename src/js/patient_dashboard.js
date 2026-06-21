@@ -24,13 +24,6 @@ function openPatientDashboard(id, name) {
 }
 window.openPatientDashboard = openPatientDashboard;
 
-function closePatientDashboard() {
-  const modal = document.getElementById('patientDashboardModal');
-  if (modal) modal.classList.remove('show');
-}
-window.closePatientDashboard = closePatientDashboard;
-
-
 function switchPdTab(tabId, btn) {
   document.querySelectorAll('.pd-tab').forEach(function(b) { b.classList.remove('active'); });
   document.querySelectorAll('.pd-content').forEach(function(c) { c.classList.remove('active'); });
