@@ -737,7 +737,6 @@ window.saveNewRecipe = typeof saveNewRecipe !== 'undefined' ? saveNewRecipe : un
 window.openRecipeDetails = typeof openRecipeDetails !== 'undefined' ? openRecipeDetails : undefined;
 window.printRecipePDF = typeof printRecipePDF !== 'undefined' ? printRecipePDF : undefined;
 window.closeRecipeModal = closeModal; // Expor como closeRecipeModal para evitar conflitos com outros closeModals se existirem
-window.shareRecipeAsPdf = shareRecipeAsPdf;
 window.addRecipeToDiary = addRecipeToDiary;
 window.openPatientGoalsModal = openPatientGoalsModal;
 window.toggleRecipeForm = toggleRecipeForm;
