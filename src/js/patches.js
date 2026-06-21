@@ -599,83 +599,59 @@ function printDiet() {
 // ═══════════════════════════════════════
 // FEATURE 5.1: DIETA IA TRACKING & SAVING
 // ═══════════════════════════════════════
-var _activeDietId = null;
 var _savedDietPlan = null;
 var _savedDietProgress = {};
 
 async function saveDietPlan() {
   if (!_lastGeneratedDiet) { showToast('Nenhuma dieta gerada para salvar', 'error'); return; }
   
-  let dietTitle = prompt("Dê um nome para esta Dieta IA:", "Dieta IA - " + new Date().toLocaleDateString('pt-BR'));
-  if (!dietTitle) return; // cancelado
-  
   _savedDietPlan = _lastGeneratedDiet;
-  _savedDietProgress = {}; 
-  _activeDietId = "local_" + Date.now(); // Temp ID if offline
+  _savedDietProgress = {}; // Reset progress when new diet plan is saved
   
   localStorage.setItem('cv_saved_diet_plan', JSON.stringify(_savedDietPlan));
   localStorage.setItem('cv_saved_diet_progress', JSON.stringify(_savedDietProgress));
-  localStorage.setItem('cv_active_diet_id', _activeDietId);
   
   showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Salvando plano...');
   
   if (currentUser) {
     const sb = window.getSupabase?.() || window._db;
     try {
-      // Set all other diets to inactive
-      await sb.from('user_diets').update({ is_active: false }).eq('user_id', currentUser.id);
-      
-      const { data, error } = await sb.from('user_diets').insert({
+      const { error } = await sb.from('dieta_ia_logs').upsert({
         user_id: currentUser.id,
-        title: dietTitle,
         diet_plan: _savedDietPlan,
-        is_active: true
-      }).select().single();
-      
-      if (!error && data) {
-        _activeDietId = data.id;
-        localStorage.setItem('cv_active_diet_id', _activeDietId);
-      }
-    } catch(e) {}
+        progress_tracking: _savedDietProgress
+      }, { onConflict: 'user_id' });
+      if (error) console.warn('[saveDietPlan DB error]', error.message);
+    } catch(e) {
+      console.warn('[saveDietPlan DB catch]', e);
+    }
   }
   
-  loadSavedDietsList();
   renderSavedDiet();
   closeDietGenModal();
   showPanel('dietaia', document.getElementById('nav-dietaia'));
-  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Dieta salva e ativada!', 'success');
+  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Plano salvo e acompanhamento iniciado!', 'success');
 }
 
 async function loadDietPlan() {
   try {
     const localPlan = localStorage.getItem('cv_saved_diet_plan');
     const localProgress = localStorage.getItem('cv_saved_diet_progress');
-    const localId = localStorage.getItem('cv_active_diet_id');
     if (localPlan) _savedDietPlan = JSON.parse(localPlan);
     if (localProgress) _savedDietProgress = JSON.parse(localProgress);
-    if (localId) _activeDietId = localId;
   } catch(e) {}
   
   if (currentUser) {
     const sb = window.getSupabase?.() || window._db;
     try {
-      // Carrega a dieta ativa
-      const { data, error } = await sb.from('user_diets').select('*').eq('user_id', currentUser.id).eq('is_active', true).maybeSingle();
+      const { data, error } = await sb.from('dieta_ia_logs').select('diet_plan,progress_tracking').eq('user_id', currentUser.id).maybeSingle();
       if (!error && data) {
-        _activeDietId = data.id;
-        _savedDietPlan = data.diet_plan;
-        
-        // Progress tracking column if available
+        if (data.diet_plan) _savedDietPlan = data.diet_plan;
         if (data.progress_tracking) _savedDietProgress = data.progress_tracking;
-        
-        localStorage.setItem('cv_saved_diet_plan', JSON.stringify(_savedDietPlan));
-        localStorage.setItem('cv_active_diet_id', _activeDietId);
-        if(data.progress_tracking) localStorage.setItem('cv_saved_diet_progress', JSON.stringify(_savedDietProgress));
       }
     } catch(e) {}
   }
   
-  loadSavedDietsList();
   renderSavedDiet();
 }
 
@@ -691,97 +667,17 @@ async function toggleDietFoodProgress(dayIdx, mealIdx, foodIdx, isChecked) {
   
   localStorage.setItem('cv_saved_diet_progress', JSON.stringify(_savedDietProgress));
   
-  if (currentUser && _activeDietId && !_activeDietId.startsWith('local_')) {
+  if (currentUser) {
     const sb = window.getSupabase?.() || window._db;
     try {
-      await sb.from('user_diets').update({ progress_tracking: _savedDietProgress }).eq('id', _activeDietId);
-    } catch(e) { console.warn("A coluna progress_tracking pode nao existir em user_diets, salvo apenas localmente."); }
+      await sb.from('dieta_ia_logs').update({
+        progress_tracking: _savedDietProgress
+      }).eq('user_id', currentUser.id);
+    } catch(e) {}
   }
   
   renderSavedDiet();
 }
-
-async function loadSavedDietsList() {
-  const listEl = document.getElementById('dietaiaSavedList');
-  const contentEl = document.getElementById('dietaiaListContent');
-  if (!listEl || !contentEl) return;
-  
-  if (!currentUser) {
-    listEl.style.display = 'none';
-    return;
-  }
-  
-  listEl.style.display = 'block';
-  const sb = window.getSupabase?.() || window._db;
-  try {
-    const { data, error } = await sb.from('user_diets').select('id, title, is_active, created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-    if (error || !data || data.length === 0) {
-      contentEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.9rem;">Nenhuma dieta salva ainda.</div>';
-      return;
-    }
-    
-    let html = '';
-    data.forEach(diet => {
-      const activeBadge = diet.is_active ? `<span style="background:var(--green-deep);color:white;font-size:0.6rem;padding:2px 6px;border-radius:10px;margin-left:8px;">ATIVA</span>` : '';
-      const dateStr = diet.created_at ? new Date(diet.created_at).toLocaleDateString('pt-BR') : '';
-      
-      html += `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); border:1px solid var(--border); padding:1rem; border-radius:8px; margin-bottom:0.75rem;">
-          <div>
-            <div style="font-weight:700; color:var(--green-deep);">${diet.title} ${activeBadge}</div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">Criada em: ${dateStr}</div>
-          </div>
-          <div style="display:flex; gap:0.5rem;">
-            ${!diet.is_active ? `<button onclick="activateDiet('${diet.id}')" style="background:var(--green-pale); color:var(--green-deep); border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;">Ativar</button>` : ''}
-            <button onclick="deleteDiet('${diet.id}')" style="background:#fee2e2; color:#dc2626; border:none; padding:0.4rem 0.8rem; border-radius:5px; font-weight:600; cursor:pointer; font-size:0.8rem;"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>
-      `;
-    });
-    contentEl.innerHTML = html;
-  } catch(e) {
-    contentEl.innerHTML = '<div style="color:red;font-size:0.9rem;">Erro ao carregar dietas salvas.</div>';
-  }
-}
-
-async function activateDiet(dietId) {
-  if (!currentUser) return;
-  showToast('Ativando dieta...', 'info');
-  const sb = window.getSupabase?.() || window._db;
-  
-  // Set all inactive
-  await sb.from('user_diets').update({ is_active: false }).eq('user_id', currentUser.id);
-  // Set active
-  await sb.from('user_diets').update({ is_active: true }).eq('id', dietId);
-  
-  loadDietPlan();
-}
-
-async function deleteDiet(dietId) {
-  if (!currentUser) return;
-  if (!confirm('Deseja realmente excluir esta dieta?')) return;
-  const sb = window.getSupabase?.() || window._db;
-  await sb.from('user_diets').delete().eq('id', dietId);
-  
-  if (dietId === _activeDietId) {
-    _savedDietPlan = null;
-    _activeDietId = null;
-    localStorage.removeItem('cv_saved_diet_plan');
-    localStorage.removeItem('cv_active_diet_id');
-    renderSavedDiet();
-  }
-  
-  loadSavedDietsList();
-}
-
-window.activateDiet = activateDiet;
-window.deleteDiet = deleteDiet;
-window.loadSavedDietsList = loadSavedDietsList;
-
-function closeActiveDiet() {
-  document.getElementById('dietaiaSavedPlan').style.display = 'none';
-}
-window.closeActiveDiet = closeActiveDiet;
 
 function renderSavedDiet() {
   const container = document.getElementById('dietaiaSavedPlan');

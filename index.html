@@ -1466,104 +1466,13 @@
           <label class="radio-opt"><input type="checkbox" value="esclerose_multipla"> Esclerose Múltipla</label>
           <label class="radio-opt"><input type="checkbox" value="crohn"> Doença de Crohn</label>
           <label class="radio-opt"><input type="checkbox" value="retocolite"> Retocolite Ulcerativa</label>
-          <label class="radio-opt"><input type="checkbox" value="celiaquia" id="cbCeliaquia"> Doença Celíaca</label>
+          <label class="radio-opt"><input type="checkbox" value="celiaquia"> Doença Celíaca</label>
           <label class="radio-opt"><input type="checkbox" value="hashimoto"> Tireoidite de Hashimoto</label>
           <label class="radio-opt"><input type="checkbox" value="psorase"> Psoríase</label>
           <label class="radio-opt"><input type="checkbox" value="sindrome_metabolica"> Síndrome Metabólica</label>
           <label class="radio-opt"><input type="checkbox" value="fibromialgia"> Fibromialgia</label>
-          <label class="radio-opt"><input type="checkbox" value="bariatrica" id="cbBariatrica"> Pós-Bariátrica</label>
         </div>
       </div>
-
-      <!-- ══ FORMULÁRIOS DINÂMICOS POR DOENÇA (aparecem ao marcar checkbox) ══ -->
-      <div id="dynFormDiabetes" style="display:none;margin-top:1rem;padding:0.9rem 1rem;background:linear-gradient(135deg,#fefce8,#fffbeb);border-radius:10px;border:1.5px solid #fde047;">
-        <div style="font-weight:800;font-size:0.82rem;color:#854d0e;margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.5px;"><i class="fa-solid fa-vial" style="margin-right:0.3rem;"></i>Diabetes — Campos Adicionais</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="form-field">
-            <label class="form-label">Uso de Insulina</label>
-            <select id="cpDiabetesInsulin" class="form-input">
-              <option value="">Selecione</option>
-              <option value="nao">Não usa</option>
-              <option value="sim_basal">Sim — Apenas Basal</option>
-              <option value="sim_bolus">Sim — Apenas Bolus</option>
-              <option value="sim_ambas">Sim — Basal + Bolus</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Glicemia média jejum (mg/dL)</label>
-            <input type="number" id="cpDiabetesGlicemia" class="form-input" placeholder="Ex: 110">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Última HbA1c (%)</label>
-            <input type="number" id="cpDiabetesHba1c" class="form-input" placeholder="Ex: 7.5" step="0.1">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Tempo de diagnóstico</label>
-            <input type="text" id="cpDiabetesTempo" class="form-input" placeholder="Ex: 5 anos">
-          </div>
-        </div>
-      </div>
-
-      <div id="dynFormHipertensao" style="display:none;margin-top:1rem;padding:0.9rem 1rem;background:linear-gradient(135deg,#fff1f2,#ffe4e6);border-radius:10px;border:1.5px solid #fca5a5;">
-        <div style="font-weight:800;font-size:0.82rem;color:#9f1239;margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.5px;"><i class="fa-solid fa-heart-pulse" style="margin-right:0.3rem;"></i>Hipertensão — Campos Adicionais</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="form-field">
-            <label class="form-label">Pressão arterial média</label>
-            <input type="text" id="cpHipertensaoPressao" class="form-input" placeholder="Ex: 130/80 mmHg">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Medicação anti-hipertensiva</label>
-            <input type="text" id="cpHipertensaoMed" class="form-input" placeholder="Ex: Losartana 50mg">
-          </div>
-        </div>
-      </div>
-
-      <div id="dynFormCeliaco" style="display:none;margin-top:1rem;padding:0.9rem 1rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:10px;border:1.5px solid #86efac;">
-        <div style="font-weight:800;font-size:0.82rem;color:#14532d;margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.5px;"><i class="fa-solid fa-wheat-awn-circle-exclamation" style="margin-right:0.3rem;"></i>Doença Celíaca — Campos Adicionais</div>
-        <div class="form-field">
-          <label class="form-label">Sintomas ao contato cruzado com glúten</label>
-          <input type="text" id="cpCeliacoSintomas" class="form-input" placeholder="Ex: diarreia, distensão, dor abdominal">
-        </div>
-        <div class="form-field" style="margin-top:0.5rem;">
-          <label class="form-label">Segue dieta 100% sem glúten?</label>
-          <select id="cpCeliacoDieta" class="form-input">
-            <option value="">Selecione</option>
-            <option value="sim_completo">Sim, totalmente</option>
-            <option value="parcial">Parcialmente</option>
-            <option value="nao">Não consegue manter</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="dynFormBariatrica" style="display:none;margin-top:1rem;padding:0.9rem 1rem;background:linear-gradient(135deg,#eef2ff,#e0e7ff);border-radius:10px;border:1.5px solid #a5b4fc;">
-        <div style="font-weight:800;font-size:0.82rem;color:#3730a3;margin-bottom:0.6rem;text-transform:uppercase;letter-spacing:0.5px;"><i class="fa-solid fa-star-of-life" style="margin-right:0.3rem;"></i>Pós-Bariátrica — Campos Adicionais</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="form-field">
-            <label class="form-label">Tipo de cirurgia</label>
-            <select id="cpBariatricaTipo" class="form-input">
-              <option value="">Selecione</option>
-              <option value="bypass">Bypass Gástrico (RYGB)</option>
-              <option value="sleeve">Gastrectomia Vertical (Sleeve)</option>
-              <option value="bandagem">Bandagem Gástrica</option>
-              <option value="duodenal">Switch Duodenal</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Tempo de cirurgia</label>
-            <input type="text" id="cpBariatricaTempo" class="form-input" placeholder="Ex: 2 anos e 3 meses">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Peso pré-cirurgia (kg)</label>
-            <input type="number" id="cpBariatricaPrePeso" class="form-input" placeholder="Ex: 130">
-          </div>
-          <div class="form-field">
-            <label class="form-label">Queixas atuais</label>
-            <input type="text" id="cpBariatricaQueixas" class="form-input" placeholder="Ex: dumping, refluxo">
-          </div>
-        </div>
-      </div>
-
-    </div>
 
       <div class="form-field" style="margin-top:0.75rem;">
         <label class="form-label">Outras doenças / condições (texto livre)</label>
@@ -2551,55 +2460,8 @@
 </div>
 
 
-<!-- ══ PATIENT DASHBOARD MODAL (Dossiê do Paciente) ══ -->
-<div class="modal" id="patientDashboardModal">
-  <div class="modal-content" style="max-width:800px; height:85vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
-    <div style="padding:1.2rem 1.5rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); flex-shrink:0;">
-      <div>
-        <div class="modal-title" id="pdName" style="margin:0;"><i class="fa-solid fa-folder-open ic-stethoscope"></i> Dossiê do Paciente</div>
-      </div>
-      <button class="modal-close" onclick="closeModal('patientDashboardModal')"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-
-    <div style="display:flex; border-bottom:1px solid var(--border); overflow-x:auto; padding:0 1.2rem; flex-shrink:0; gap:0.2rem;">
-      <button class="pd-tab active" onclick="switchPdTab('anamnese', this)"><i class="fa-solid fa-notes-medical"></i> Prontuário</button>
-      <button class="pd-tab" onclick="switchPdTab('diary', this)"><i class="fa-solid fa-book"></i> Diário &amp; Fotos</button>
-      <button class="pd-tab" onclick="switchPdTab('dietas', this)"><i class="fa-solid fa-robot"></i> Dietas IA</button>
-      <button class="pd-tab" onclick="switchPdTab('goals', this)"><i class="fa-solid fa-bullseye"></i> Metas</button>
-    </div>
-
-    <style>
-      .pd-tab { padding:0.8rem 1rem; border:none; background:transparent; font-family:'Syne',sans-serif; font-weight:700; color:var(--text-muted); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; font-size:0.82rem; gap:0.3rem; display:inline-flex; align-items:center; }
-      .pd-tab.active { color:var(--green-deep); border-bottom-color:var(--green-deep); }
-      .pd-tab:hover { color:var(--green-mid); }
-      .pd-content { padding:1.2rem 1.5rem; overflow-y:auto; flex-grow:1; display:none; }
-      .pd-content.active { display:block; }
-    </style>
-
-    <div class="pd-content active" id="pdTab-anamnese">
-      <div id="pdAnamneseData"><p style="color:var(--text-muted);">Carregando anamnese...</p></div>
-    </div>
-
-    <div class="pd-content" id="pdTab-diary">
-      <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap;">
-        <label style="font-size:0.82rem;font-weight:700;color:var(--text-muted);">Data:</label>
-        <input type="date" id="pdDiaryDate" class="form-input" style="width:180px;" onchange="loadPdDiary()">
-      </div>
-      <div id="pdDiaryContent"><p style="color:var(--text-muted);">Selecione uma data para ver o diário e fotos da Câmera IA.</p></div>
-    </div>
-
-    <div class="pd-content" id="pdTab-dietas">
-      <div id="pdDietasContent"><p style="color:var(--text-muted);">Carregando dietas...</p></div>
-    </div>
-
-    <div class="pd-content" id="pdTab-goals">
-      <div id="pdGoalsContent"><p style="color:var(--text-muted);">Carregando metas...</p></div>
-    </div>
-  </div>
-</div>
 
 <script src="/globals.js"></script>
 <script type="module" src="/src/main.js"></script>
-<script src="src/js/patient_dashboard.js"></script>
 </body>
 </html>
