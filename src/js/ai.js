@@ -43,8 +43,6 @@ async function callAiProxy(payload) {
         if (res.status === 401) throw new Error('401');
         if (res.status === 429) throw new Error('429');
         lastErr = await res.text().catch(()=>'');
-        console.error("Supabase Proxy Error:", lastErr);
-        throw new Error("Supabase proxy falhou: " + lastErr);
       }
     } catch (err) {
       if (err.message === '401' || err.message === '429') throw err;
