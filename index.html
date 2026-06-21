@@ -22,37 +22,37 @@
 <div id="authOverlay">
   <div class="auth-card">
     <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:56px;width:auto;display:block;"><span>Calor<span class="logo-accent">IA</span></span></div>
-    <p class="auth-tagline">Nutrição inteligente para uma vida mais saudável <i class="fa-solid fa-leaf ic-leaf"></i></p>
+    <p class="auth-tagline" data-i18n="auth_tagline">Nutrição inteligente para uma vida mais saudável <i class="fa-solid fa-leaf ic-leaf"></i></p>
     <div id="authError"></div>
-    <div id="authLoading">Entrando...</div>
+    <div id="authLoading" data-i18n="auth_loading">Entrando...</div>
 
     <!-- Step 1: Login/Register -->
     <div id="authStep1">
       <div class="auth-tabs">
-        <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Entrar</button>
-        <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">Cadastrar</button>
+        <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')" data-i18n="auth_tab_login">Entrar</button>
+        <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')" data-i18n="auth_tab_register">Cadastrar</button>
       </div>
 
       <div id="formLogin">
         <div class="form-field">
-          <label class="form-label">E-mail</label>
+          <label class="form-label" data-i18n="auth_email">E-mail</label>
           <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()">
         </div>
         <div class="form-field">
-          <label class="form-label">Senha</label>
+          <label class="form-label" data-i18n="auth_password">Senha</label>
           <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
         </div>
-        <button class="btn-primary" onclick="doLogin()">Entrar</button>
+        <button class="btn-primary" onclick="doLogin()" data-i18n="auth_tab_login">Entrar</button>
         <div style="text-align:center;margin-top:0.75rem;">
-          <button type="button" onclick="openForgotPassword()" style="background:none;border:none;color:var(--green-mid);font-size:0.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;">Esqueci minha senha</button>
+          <button type="button" onclick="openForgotPassword()" style="background:none;border:none;color:var(--green-mid);font-size:0.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline;" data-i18n="auth_forgot_pwd">Esqueci minha senha</button>
         </div>
-        <p class="auth-note" style="font-size:0.72rem;margin-top:0.4rem;">🔒 Dados protegidos pela <strong>LGPD</strong> (Lei 13.709/2018)</p>
+        <p class="auth-note" style="font-size:0.72rem;margin-top:0.4rem;" data-i18n="auth_lgpd">🔒 Dados protegidos pela <strong>LGPD</strong> (Lei 13.709/2018)</p>
       </div>
 
       <div id="formRegister" style="display:none;">
         <!-- Avatar selection -->
         <div class="form-field" style="text-align:center;margin-bottom:1.2rem;">
-          <label class="form-label" style="display:block;margin-bottom:0.7rem;">Foto de perfil <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
+          <label class="form-label" style="display:block;margin-bottom:0.7rem;"><span data-i18n="auth_avatar_label">Foto de perfil</span> <span style="color:var(--text-muted);font-weight:400;" data-i18n="auth_avatar_optional">(opcional)</span></label>
           <!-- Preview circle -->
           <div id="regAvatarPreview" onclick="document.getElementById('regAvatarFile').click()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:white;font-family:'Syne',sans-serif;margin:0 auto 0.9rem;overflow:hidden;cursor:pointer;border:3px solid var(--green-light);position:relative;">
             <span id="regAvatarInitial">?</span>
@@ -60,81 +60,81 @@
           <input type="file" id="regAvatarFile" accept="image/*" style="display:none;" onchange="handleRegAvatarUpload(event)">
           <!-- Three option buttons -->
           <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
-            <button type="button" class="reg-avatar-opt-btn" id="regOptPhoto" onclick="document.getElementById('regAvatarFile').click()"><i class="fa-solid fa-camera ic-camera"></i> Upload foto</button>
-            <button type="button" class="reg-avatar-opt-btn" id="regOptAvatars" onclick="toggleRegAvatarPicker()"><i class="fa-solid fa-palette ic-star"></i> Escolher avatar</button>
-            <button type="button" class="reg-avatar-opt-btn" id="regOptInitial" onclick="clearRegAvatar()"><i class="fa-solid fa-sparkles"></i> Só inicial</button>
+            <button type="button" class="reg-avatar-opt-btn" id="regOptPhoto" onclick="document.getElementById('regAvatarFile').click()"><i class="fa-solid fa-camera ic-camera"></i> <span data-i18n="auth_avatar_upload">Upload foto</span></button>
+            <button type="button" class="reg-avatar-opt-btn" id="regOptAvatars" onclick="toggleRegAvatarPicker()"><i class="fa-solid fa-palette ic-star"></i> <span data-i18n="auth_avatar_choose">Escolher avatar</span></button>
+            <button type="button" class="reg-avatar-opt-btn" id="regOptInitial" onclick="clearRegAvatar()"><i class="fa-solid fa-sparkles"></i> <span data-i18n="auth_avatar_initial">Só inicial</span></button>
           </div>
           <!-- Avatar picker grid -->
           <div id="regAvatarPicker" style="display:none;margin-top:0.8rem;background:var(--bg-main);border:1px solid var(--border);border-radius:12px;padding:0.8rem;">
-            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.6rem;">Escolha um avatar:</p>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 0.6rem;" data-i18n="auth_avatar_pick">Escolha um avatar:</p>
             <div id="regAvatarGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.5rem;"></div>
           </div>
         </div>
         <div class="form-field">
-          <label class="form-label">Nome completo</label>
+          <label class="form-label" data-i18n="auth_fullname">Nome completo</label>
           <input type="text" id="regName" class="form-input" placeholder="Seu nome" oninput="updateRegInitial()">
         </div>
         <div class="form-field">
-          <label class="form-label">E-mail</label>
+          <label class="form-label" data-i18n="auth_email">E-mail</label>
           <input type="email" id="regEmail" class="form-input" placeholder="seu@email.com">
         </div>
         <div class="form-field">
-          <label class="form-label">Senha</label>
+          <label class="form-label" data-i18n="auth_password">Senha</label>
           <input type="password" id="regPassword" class="form-input" placeholder="Mínimo 6 caracteres">
         </div>
-        <button class="btn-primary" onclick="doRegister()">Criar conta gratuita</button>
-        <p class="auth-note">Todos começam no plano Gratuito. Faça upgrade a qualquer momento.</p>
+        <button class="btn-primary" onclick="doRegister()" data-i18n="auth_register_btn">Criar conta gratuita</button>
+        <p class="auth-note" data-i18n="auth_free_note">Todos começam no plano Gratuito. Faça upgrade a qualquer momento.</p>
         <div id="emailConfirmBanner" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:0.9rem 1rem;margin-top:1rem;font-size:0.84rem;color:#1a4a1f;text-align:center;line-height:1.6;">
           <i class="fa-solid fa-envelope-circle-check" style="color:#2d7a35;font-size:1.2rem;"></i><br>
-          <strong>Verifique seu e-mail!</strong><br>
-          Enviamos um link de confirmação para o seu endereço de e-mail. Clique no link para ativar sua conta e poder entrar.
-          <br><button onclick="resendConfirmEmail()" style="background:none;border:none;color:var(--green-mid);font-size:0.8rem;cursor:pointer;text-decoration:underline;margin-top:0.3rem;">Reenviar e-mail de confirmação</button>
+          <strong data-i18n="auth_verify_email">Verifique seu e-mail!</strong><br>
+          <span data-i18n="auth_verify_email_desc">Enviamos um link de confirmação para o seu endereço de e-mail. Clique no link para ativar sua conta e poder entrar.</span>
+          <br><button onclick="resendConfirmEmail()" style="background:none;border:none;color:var(--green-mid);font-size:0.8rem;cursor:pointer;text-decoration:underline;margin-top:0.3rem;" data-i18n="auth_resend_email">Reenviar e-mail de confirmação</button>
         </div>
-        <p class="auth-note" style="margin-top:0.75rem;font-size:0.72rem;">🔒 Seus dados são protegidos pela <strong>LGPD</strong> (Lei 13.709/2018). Não compartilhamos suas informações com terceiros.</p>
+        <p class="auth-note" style="margin-top:0.75rem;font-size:0.72rem;" data-i18n="auth_lgpd_note">🔒 Seus dados são protegidos pela <strong>LGPD</strong> (Lei 13.709/2018). Não compartilhamos suas informações com terceiros.</p>
       </div>
     </div>
 
     <!-- Step 2: Onboarding (first login) -->
     <div id="onboardingStep" style="display:none;">
-      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;">Bem-vindo! Vamos começar <i class="fa-solid fa-leaf ic-leaf"></i></h3>
-      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;">Preencha seus dados para personalizar sua experiência. Você pode atualizar isso depois.</p>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;"><span data-i18n="onb_title">Bem-vindo! Vamos começar</span> <i class="fa-solid fa-leaf ic-leaf"></i></h3>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;" data-i18n="onb_desc">Preencha seus dados para personalizar sua experiência. Você pode atualizar isso depois.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
         <div class="form-field">
-          <label class="form-label">Sexo</label>
-          <select id="onbSex" class="form-select"><option value="f">Feminino</option><option value="m">Masculino</option><option value="o">Outro</option></select>
+          <label class="form-label" data-i18n="sex">Sexo</label>
+          <select id="onbSex" class="form-select"><option value="f" data-i18n="female">Feminino</option><option value="m" data-i18n="male">Masculino</option><option value="o" data-i18n="other_sex">Outro</option></select>
         </div>
         <div class="form-field">
-          <label class="form-label">Idade</label>
+          <label class="form-label" data-i18n="age">Idade (anos)</label>
           <input type="number" id="onbAge" class="form-input" placeholder="25" min="10" max="120">
         </div>
         <div class="form-field">
-          <label class="form-label">Peso (kg)</label>
+          <label class="form-label" data-i18n="weight">Peso (kg)</label>
           <input type="number" id="onbWeight" class="form-input" placeholder="70" min="20" max="500">
         </div>
         <div class="form-field">
-          <label class="form-label">Altura (cm)</label>
+          <label class="form-label" data-i18n="height">Altura (cm)</label>
           <input type="number" id="onbHeight" class="form-input" placeholder="170" min="100" max="250">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:0.8rem;">
         <div class="form-field">
-          <label class="form-label">Gordura Corporal (%)</label>
+          <label class="form-label" data-i18n="onb_body_fat">Gordura Corporal (%)</label>
           <input type="number" id="onbBodyFat" class="form-input" placeholder="Opcional" min="2" max="70" step="0.1" disabled style="opacity: 0.6;">
         </div>
         <div class="form-field" style="display:flex;align-items:center;gap:0.5rem;margin-top:1.8rem;">
           <input type="checkbox" id="onbBodyFatUnknown" checked onchange="document.getElementById('onbBodyFat').disabled = this.checked; document.getElementById('onbBodyFat').style.opacity = this.checked ? '0.6' : '1'; if(this.checked) document.getElementById('onbBodyFat').value=''">
-          <label for="onbBodyFatUnknown" style="font-size:0.85rem;cursor:pointer;user-select:none;">Não sei</label>
+          <label for="onbBodyFatUnknown" style="font-size:0.85rem;cursor:pointer;user-select:none;" data-i18n="onb_idk">Não sei</label>
         </div>
       </div>
       <div class="form-field" style="margin-top:0.5rem;">
-        <label class="form-label">Objetivo principal</label>
+        <label class="form-label" data-i18n="objective">Objetivo principal</label>
         <div class="goal-btns">
-          <button class="goal-btn active" data-goal="-500" onclick="selectOnbGoal(this)"><i class="fa-solid fa-fire ic-fire"></i> Emagrecer</button>
-          <button class="goal-btn" data-goal="0" onclick="selectOnbGoal(this)"><i class="fa-solid fa-scale-balanced ic-compare"></i> Manter</button>
-          <button class="goal-btn" data-goal="300" onclick="selectOnbGoal(this)"><i class="fa-solid fa-dumbbell ic-fire"></i> Ganhar</button>
+          <button class="goal-btn active" data-goal="-500" onclick="selectOnbGoal(this)"><i class="fa-solid fa-fire ic-fire"></i> <span data-i18n="lose">Emagrecer</span></button>
+          <button class="goal-btn" data-goal="0" onclick="selectOnbGoal(this)"><i class="fa-solid fa-scale-balanced ic-compare"></i> <span data-i18n="maintain">Manter</span></button>
+          <button class="goal-btn" data-goal="300" onclick="selectOnbGoal(this)"><i class="fa-solid fa-dumbbell ic-fire"></i> <span data-i18n="gain">Ganhar</span></button>
         </div>
       </div>
-      <button class="btn-primary" style="margin-top:1.2rem;" onclick="completeOnboarding()">Começar agora <i class="fa-solid fa-arrow-right ic-search"></i></button>
+      <button class="btn-primary" style="margin-top:1.2rem;" onclick="completeOnboarding()"><span data-i18n="onb_start_btn">Começar agora</span> <i class="fa-solid fa-arrow-right ic-search"></i></button>
     </div>
   </div>
 </div>
@@ -147,7 +147,7 @@
     <nav class="sidebar-nav">
       <div class="nav-group-label" data-i18n="nav_tools">Ferramentas</div>
       <button class="nav-item active" id="nav-home" onclick="showPanel('home',this)">
-        <span class="nav-icon"><i class="fa-solid fa-house ic-home"></i></span><span>Início</span>
+        <span class="nav-icon"><i class="fa-solid fa-house ic-home"></i></span><span data-i18n="nav_home">Início</span>
       </button>
       <button class="nav-item" id="nav-dietaia" onclick="showPanel('dietaia',this)">
         <span class="nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i></span><span data-i18n="nav_dietaia" style="font-weight:700;color:var(--orange-hot);">Dieta IA</span>
@@ -159,7 +159,7 @@
         <span class="nav-icon"><i class="fa-solid fa-book ic-diary"></i></span><span data-i18n="nav_diary">Diário</span>
       </button>
       <button class="nav-item" id="nav-water" onclick="showPanel('water',this)">
-        <span class="nav-icon"><i class="fa-solid fa-droplet ic-water"></i></span><span>Água</span>
+        <span class="nav-icon"><i class="fa-solid fa-droplet ic-water"></i></span><span data-i18n="water">Água</span>
       </button>
       <button class="nav-item" id="nav-goal" onclick="showPanel('goal',this)">
         <span class="nav-icon"><i class="fa-solid fa-bullseye ic-goal"></i></span><span data-i18n="nav_goal">Meta & Calculadora</span>
@@ -180,19 +180,19 @@
         <span class="nav-badge" id="patientNotifBadge" style="display:none;">!</span>
       </button>
       <button class="nav-item" id="nav-chat" style="display:none;" onclick="showPanel('chat',this);initChatPanel()">
-        <span class="nav-icon"><i class="fa-solid fa-comments ic-chat"></i></span><span>Canal</span>
+        <span class="nav-icon"><i class="fa-solid fa-comments ic-chat"></i></span><span data-i18n="nav_channel">Canal</span>
         <span class="nav-badge" id="chatNavBadge" style="display:none;"></span>
       </button>
 
-      <div class="nav-group-label" id="navGroupAdmin" style="display:none;">Admin</div>
+      <div class="nav-group-label" id="navGroupAdmin" style="display:none;" data-i18n="nav_admin">Admin</div>
       <button class="nav-item" id="nav-admin" style="display:none;" onclick="showPanel('admin',this)">
-        <span class="nav-icon"><i class="fa-solid fa-gear ic-admin"></i></span>Admin
+        <span class="nav-icon"><i class="fa-solid fa-gear ic-admin"></i></span><span data-i18n="nav_admin">Admin</span>
       </button>
     </nav>
     <div class="sidebar-footer">
       <div class="plan-chip-sidebar chip-free" id="sidebarPlanChip"><i class="fa-solid fa-seedling ic-leaf"></i> Gratuito</div>
       <div style="margin-bottom:0.5rem;font-size:0.75rem;color:rgba(255,255,255,0.5);" id="sidebarUserName"></div>
-      <button class="btn-upgrade-sidebar" id="sidebarUpgradeBtn" onclick="openUpgradeModal()">⬆ Fazer Upgrade</button>
+      <button class="btn-upgrade-sidebar" id="sidebarUpgradeBtn" onclick="openUpgradeModal()" data-i18n="upgrade_btn">⬆ Fazer Upgrade</button>
     </div>
   </aside>
 
@@ -229,7 +229,7 @@
         </button>
         <div class="dropdown-divider"></div>
         <button class="dropdown-item" onclick="forceRefreshProfile();closeDropdown()" title="Atualiza role e plano do banco de dados">
-          <span><i class="fa-solid fa-arrows-rotate ic-water"></i></span><span>Atualizar perfil</span>
+          <span><i class="fa-solid fa-arrows-rotate ic-water"></i></span><span data-i18n="menu_update_profile">Atualizar perfil</span>
         </button>
         <div class="dropdown-divider"></div>
         <button class="dropdown-item danger" onclick="doLogout();closeDropdown()">
@@ -301,7 +301,7 @@
           <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.75rem;">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
-                <span><i class="fa-solid fa-wheat-awn ic-carb"></i> Carbs</span><span id="homeCarbsVal">0g</span>
+                <span><i class="fa-solid fa-wheat-awn ic-carb"></i> <span data-i18n="carbs">Carbs</span></span><span id="homeCarbsVal">0g</span>
               </div>
               <div style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
                 <div id="homeCarbsBar" style="height:100%;background:#f59e0b;width:0%;border-radius:3px;transition:width 0.4s;"></div>
@@ -309,7 +309,7 @@
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
-                <span><i class="fa-solid fa-dumbbell ic-fire"></i> Proteínas</span><span id="homeProtVal">0g</span>
+                <span><i class="fa-solid fa-dumbbell ic-fire"></i> <span data-i18n="protein">Proteínas</span></span><span id="homeProtVal">0g</span>
               </div>
               <div style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
                 <div id="homeProtBar" style="height:100%;background:var(--green-mid);width:0%;border-radius:3px;transition:width 0.4s;"></div>
@@ -317,7 +317,7 @@
             </div>
             <div>
               <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:2px;">
-                <span><i class="fa-solid fa-droplet ic-water"></i> Gorduras</span><span id="homeFatVal">0g</span>
+                <span><i class="fa-solid fa-droplet ic-water"></i> <span data-i18n="fat">Gorduras</span></span><span id="homeFatVal">0g</span>
               </div>
               <div style="background:var(--border);height:6px;border-radius:3px;overflow:hidden;">
                 <div id="homeFatBar" style="height:100%;background:#ef4444;width:0%;border-radius:3px;transition:width 0.4s;"></div>
@@ -326,23 +326,23 @@
           </div>
         </div>
         <div class="card" style="margin-bottom:0;cursor:pointer;" onclick="showPanel('recipes',document.getElementById('nav-recipes'))">
-          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-utensils ic-recipes"></i> Receitas</div>
-          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;">Explore receitas saudáveis com informações nutricionais completas.</div>
-          <div style="margin-top:0.75rem;background:var(--green-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--green-deep);font-weight:600;">Ver receitas <i class="fa-solid fa-arrow-right ic-search"></i></div>
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-utensils ic-recipes"></i> <span data-i18n="nav_recipes">Receitas</span></div>
+          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;" data-i18n="home_recipes_desc">Explore receitas saudáveis com informações nutricionais completas.</div>
+          <div style="margin-top:0.75rem;background:var(--green-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--green-deep);font-weight:600;"><span data-i18n="home_recipes_btn">Ver receitas</span> <i class="fa-solid fa-arrow-right ic-search"></i></div>
         </div>
       </div>
 
       <!-- Compare + calculator side by side -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <div class="card" style="margin-bottom:0;cursor:pointer;" onclick="showPanel('compare',document.getElementById('nav-compare'))">
-          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-scale-balanced ic-compare"></i> Comparar</div>
-          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;">Compare dois alimentos lado a lado por 100g.</div>
-          <div style="margin-top:0.75rem;background:var(--yellow-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:#b8860b;font-weight:600;">Comparar agora <i class="fa-solid fa-arrow-right ic-search"></i></div>
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-scale-balanced ic-compare"></i> <span data-i18n="nav_compare">Comparar</span></div>
+          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;" data-i18n="home_compare_desc">Compare dois alimentos lado a lado por 100g.</div>
+          <div style="margin-top:0.75rem;background:var(--yellow-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:#b8860b;font-weight:600;"><span data-i18n="home_compare_btn">Comparar agora</span> <i class="fa-solid fa-arrow-right ic-search"></i></div>
         </div>
         <div class="card" style="margin-bottom:0;cursor:pointer;" onclick="showPanel('goal',document.getElementById('nav-goal'))">
-          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-calculator ic-goal"></i> Calculadora</div>
-          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;">Calcule seu metabolismo basal e meta calórica ideal.</div>
-          <div style="margin-top:0.75rem;background:var(--orange-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--orange-hot);font-weight:600;">Calcular <i class="fa-solid fa-arrow-right ic-search"></i></div>
+          <div class="card-title" style="font-size:1rem;"><i class="fa-solid fa-calculator ic-goal"></i> <span data-i18n="calc_title">Calculadora</span></div>
+          <div style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;" data-i18n="home_calc_desc">Calcule seu metabolismo basal e meta calórica ideal.</div>
+          <div style="margin-top:0.75rem;background:var(--orange-pale);border-radius:var(--radius-sm);padding:0.6rem 0.8rem;font-size:0.8rem;color:var(--orange-hot);font-weight:600;"><span data-i18n="home_calc_btn">Calcular</span> <i class="fa-solid fa-arrow-right ic-search"></i></div>
         </div>
       </div>
     </div>
@@ -604,8 +604,8 @@
     <!-- ══ WATER TRACKER PANEL ══ -->
     <div class="panel" id="panel-water">
       <div class="card" style="max-width:550px;margin:0 auto;text-align:center;">
-        <div class="card-title" style="justify-content:center;font-size:1.5rem;"><i class="fa-solid fa-droplet ic-water"></i> Acompanhamento de Água</div>
-        <div class="card-sub" style="margin-bottom:1.5rem;">Monitore seu consumo de água diário para se manter hidratado</div>
+        <div class="card-title" style="justify-content:center;font-size:1.5rem;"><i class="fa-solid fa-droplet ic-water"></i> <span data-i18n="water_tracker_title">Acompanhamento de Água</span></div>
+        <div class="card-sub" style="margin-bottom:1.5rem;" data-i18n="water_tracker_sub">Monitore seu consumo de água diário para se manter hidratado</div>
         
         <div class="water-bottle-card">
           <div class="water-bottle">
@@ -631,10 +631,10 @@
         </div>
 
         <div style="margin-top:1.5rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;">
-          <span style="font-size:0.85rem;font-weight:600;">Personalizado:</span>
+          <span style="font-size:0.85rem;font-weight:600;" data-i18n="water_custom">Personalizado:</span>
           <input type="number" id="customWaterInput" class="form-input" style="width:100px;padding:0.4rem 0.8rem;margin:0;" placeholder="350" min="10">
           <span style="font-weight:600;font-size:0.85rem;">ml</span>
-          <button class="btn-primary" onclick="addCustomWater()" style="padding:0.45rem 1rem;font-size:0.85rem;margin:0;width:auto;min-width:unset;border-radius:50px;">Adicionar</button>
+          <button class="btn-primary" onclick="addCustomWater()" style="padding:0.45rem 1rem;font-size:0.85rem;margin:0;width:auto;min-width:unset;border-radius:50px;"><span data-i18n="water_add">Adicionar</span></button>
         </div>
       </div>
     </div>
@@ -721,21 +721,21 @@
         <div class="card-sub" data-i18n="weekly_goal_sub">Acompanhe seu progresso ao longo da semana</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.2rem;">
           <div class="form-field" style="margin-bottom:0;">
-            <label class="form-label"><i class="fa-solid fa-fire ic-fire"></i> Meta diária (kcal)</label>
+            <label class="form-label"><i class="fa-solid fa-fire ic-fire"></i> <span data-i18n="goal_daily_kcal">Meta diária (kcal)</span></label>
             <input type="number" id="goalInput" class="form-input" value="2000" min="800" max="6000">
           </div>
           <div class="form-field" style="margin-bottom:0;">
-            <label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> Açúcar máx. (g/dia)</label>
+            <label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> <span data-i18n="goal_sugar_max">Açúcar máx. (g/dia)</span></label>
             <input type="number" id="goalSugarInput" class="form-input" value="25" min="0" max="200" placeholder="25g (OMS)">
           </div>
           <div class="form-field" style="margin-bottom:0;">
-            <label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> Água meta (ml/dia)</label>
+            <label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> <span data-i18n="goal_water_target">Água meta (ml/dia)</span></label>
             <input type="number" id="goalWaterInput" class="form-input" value="2000" min="500" max="6000" placeholder="2000ml">
           </div>
         </div>
-        <button class="btn-primary" style="width:auto;padding:0.82rem 1.8rem;margin-bottom:1.2rem;" onclick="saveGoal()">Salvar metas <i class="fa-solid fa-check ic-check"></i></button>
+        <button class="btn-primary" style="width:auto;padding:0.82rem 1.8rem;margin-bottom:1.2rem;" onclick="saveGoal()"><span data-i18n="goal_save_btn">Salvar metas</span> <i class="fa-solid fa-check ic-check"></i></button>
         <div class="weekly-grid" id="weeklyGrid"></div>
-        <div style="margin-top:1rem;background:var(--green-pale);border-radius:var(--radius-mid);padding:1rem;font-size:0.88rem;line-height:1.7;color:var(--text-muted);" id="goalInsight">Configure suas metas acima e acompanhe o progresso diário no Diário Alimentar.</div>
+        <div style="margin-top:1rem;background:var(--green-pale);border-radius:var(--radius-mid);padding:1rem;font-size:0.88rem;line-height:1.7;color:var(--text-muted);" id="goalInsight" data-i18n="goal_insight">Configure suas metas acima e acompanhe o progresso diário no Diário Alimentar.</div>
       </div>
     </div>
 
@@ -827,7 +827,7 @@
             <div class="card-sub" style="margin-bottom:0;" data-i18n="recipes_sub">Receitas saudáveis com valores nutricionais</div>
           </div>
           <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-            <button class="btn-add-recipe" id="aiRecipeBtn" onclick="openAiRecipeModal()" style="background:linear-gradient(135deg,var(--green-mid),#388e3c);color:white;border:none;">🤖 IA Cria Receita</button>
+            <button class="btn-add-recipe" id="aiRecipeBtn" onclick="openAiRecipeModal()" style="background:linear-gradient(135deg,var(--green-mid),#388e3c);color:white;border:none;"><span data-i18n="ai_recipe_btn">🤖 IA Cria Receita</span></button>
             <button class="btn-add-recipe" id="addRecipeBtn" onclick="toggleRecipeForm()" style="display:none;">+ <span data-i18n="add_recipe">Nova Receita</span></button>
           </div>
         </div>
@@ -1003,12 +1003,12 @@
 
       <!-- Pending nutritionist requests -->
       <div class="card">
-        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitações de Nutricionista</div>
+        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> <span data-i18n="admin_nut_req">Solicitações de Nutricionista</span></div>
         <select id="nutritionistRequestStatusFilter" class="form-select" style="max-width:220px;margin:0.5rem 0 1rem;" onchange="loadNutritionistRequests()">
-          <option value="pending">Pendentes</option>
-          <option value="approved">Aprovadas</option>
-          <option value="rejected">Negadas</option>
-          <option value="all">Todas</option>
+          <option value="pending" data-i18n="admin_filter_pending">Pendentes</option>
+          <option value="approved" data-i18n="admin_filter_approved">Aprovadas</option>
+          <option value="rejected" data-i18n="admin_filter_rejected">Negadas</option>
+          <option value="all" data-i18n="admin_filter_all">Todas</option>
         </select>
         <div id="pendingNutritionistsList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="loading">Carregando...</p></div>
       </div>
@@ -1017,29 +1017,29 @@
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
           <div>
-            <div class="card-title" style="font-size:1.1rem;margin-bottom:0;"><i class="fa-solid fa-bell" style="color:#ef9a9a;"></i> Avisos do Sistema</div>
-            <div class="card-sub" style="margin:0;">Envie avisos para um usuário específico ou para todos</div>
+            <div class="card-title" style="font-size:1.1rem;margin-bottom:0;"><i class="fa-solid fa-bell" style="color:#ef9a9a;"></i> <span data-i18n="admin_notices">Avisos do Sistema</span></div>
+            <div class="card-sub" style="margin:0;" data-i18n="admin_notices_sub">Envie avisos para um usuário específico ou para todos</div>
           </div>
           <button class="btn-primary" style="width:auto;padding:0.65rem 1.3rem;display:flex;align-items:center;gap:0.5rem;" onclick="openAdminNoticeModal()">
-            <i class="fa-solid fa-paper-plane" style="color:white!important;"></i> Novo Aviso
+            <i class="fa-solid fa-paper-plane" style="color:white!important;"></i> <span data-i18n="admin_new_notice">Novo Aviso</span>
           </button>
         </div>
-        <div id="adminNoticesList"><p style="color:var(--text-muted);font-size:0.88rem;">Nenhum aviso enviado ainda.</p></div>
+        <div id="adminNoticesList"><p style="color:var(--text-muted);font-size:0.88rem;" data-i18n="admin_no_notices">Nenhum aviso enviado ainda.</p></div>
       </div>
 
       <!-- Users table -->
       <div class="card">
-        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-users ic-patients"></i> Usuários</div>
-        <input type="text" class="admin-search" id="adminSearchInput" placeholder="Buscar por nome ou e-mail..." oninput="filterAdminTable()">
+        <div class="card-title" style="font-size:1.1rem;"><i class="fa-solid fa-users ic-patients"></i> <span data-i18n="admin_users_list">Usuários</span></div>
+        <input type="text" class="admin-search" id="adminSearchInput" data-i18n-ph="admin_search_ph" placeholder="Buscar por nome ou e-mail..." oninput="filterAdminTable()">
         <div style="overflow-x:auto;">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>Usuário</th><th>E-mail</th><th>Perfil</th><th>Plano</th><th>Desde</th><th>Ação</th>
+                <th data-i18n="admin_th_user">Usuário</th><th data-i18n="admin_th_email">E-mail</th><th data-i18n="admin_th_profile">Perfil</th><th data-i18n="admin_th_plan">Plano</th><th data-i18n="admin_th_since">Desde</th><th data-i18n="admin_th_action">Ação</th>
               </tr>
             </thead>
             <tbody id="adminTableBody">
-              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Carregando...</td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;" data-i18n="loading">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1156,15 +1156,15 @@
     <div class="bottom-nav-inner">
       <button class="bottom-nav-item active" id="bnav-home" onclick="showPanel('home',null);setBottomNav('home')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-house ic-home"></i></span>
-        <span class="bottom-nav-label">Início</span>
+        <span class="bottom-nav-label" data-i18n="nav_home">Início</span>
       </button>
       <button class="bottom-nav-item" id="bnav-dietaia" onclick="showPanel('dietaia',null);setBottomNav('dietaia')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i></span>
-        <span class="bottom-nav-label" style="color:var(--orange-hot)">Dieta IA</span>
+        <span class="bottom-nav-label" data-i18n="nav_dietaia" style="color:var(--orange-hot)">Dieta IA</span>
       </button>
       <button class="bottom-nav-item" id="bnav-search" onclick="showPanel('search',null);setBottomNav('search')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span>
-        <span class="bottom-nav-label">Pesquisar</span>
+        <span class="bottom-nav-label" data-i18n="nav_search">Pesquisar</span>
       </button>
       <button class="bottom-nav-item" id="bnav-diary" onclick="showPanel('diary',null);setBottomNav('diary')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-book ic-diary"></i></span>
