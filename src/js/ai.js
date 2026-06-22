@@ -15,6 +15,20 @@ const FALLBACK_GROQ_KEYS = [
   '', '', '' 
 ].filter(key => key && key.trim().length > 0);
 
+// Chave HuggingFace para análise de imagens (CameraIA)
+// Obtenha em: https://huggingface.co/settings/tokens
+// IMPORTANTE: aceite os termos do modelo em: https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct
+const HF_KEY = ''; // ← Substitua pela sua chave HuggingFace
+const HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
+const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
+
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
+const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
+const GROQ_MODEL_VISION    = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão principal
+const GROQ_MODEL_VISION_FB = 'meta-llama/llama-4-maverick-17b-128e-instruct'; // visão fallback
+
+
 let currentGroqKeyIndex = 0;
 let isUsingFallbackPool = false;
 
