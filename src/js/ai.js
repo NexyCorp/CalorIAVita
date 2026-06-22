@@ -3,9 +3,10 @@
 // ═══════════════════════════════════════
 const GROQ_KEYS = [
   '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',
-  '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', // Chave 2 (Preencha aqui)
+  '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',
   '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',
-  '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'  // Chave 3 (Preencha aqui)
+  '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',
+  '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'  
 ];
 let currentGroqKeyIndex = 0;
 
