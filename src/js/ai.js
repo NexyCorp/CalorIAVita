@@ -6,7 +6,7 @@
 // │  PRODUÇÃO (Cloudflare Pages):                                   │
 // │  As chaves ficam em Secrets no Cloudflare Dashboard.            │
 // │  Settings → Environment Variables → adicione como Secret:       │
-// │    GROQ_KEY_1 / GROQ_KEY_2 / GROQ_KEY_3 / HF_KEY               │
+// │    GROQ_KEY_1 / GROQ_KEY_2 / GROQ_KEY_3 / GROQ_KEY_4 / HF_KEY   │
 // │  O cliente chama /api/ai — as chaves NUNCA chegam ao browser.   │
 // │                                                                  │
 // │  DESENVOLVIMENTO LOCAL (npm run dev):                            │

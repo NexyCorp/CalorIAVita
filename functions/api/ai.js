@@ -76,8 +76,8 @@ async function groqFetch(keys, model, messages, maxTokens = 6000) {
 
 // ─── Handler: texto ────────────────────────────────────────────────────────────
 async function handleText(body, env) {
-  const keys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3].filter(k => k && k.length > 10);
-  if (keys.length === 0) return errResp('Nenhuma chave Groq configurada no Cloudflare (GROQ_KEY_1/2/3).', 401);
+  const keys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3, env.GROQ_KEY_4].filter(k => k && k.length > 10);
+  if (keys.length === 0) return errResp('Nenhuma chave Groq configurada no Cloudflare (GROQ_KEY_1/2/3/4).', 401);
 
   const { messages, maxTokens = 6000, useLarge } = body;
   const tokenLimit = useLarge ? 8192 : maxTokens;
@@ -169,7 +169,7 @@ async function handleVision(body, env) {
   }
 
   // ── Groq Vision fallback ─────────────────────────────────────────────────
-  const keys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3].filter(k => k && k.length > 10);
+  const keys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3, env.GROQ_KEY_4].filter(k => k && k.length > 10);
   if (keys.length === 0) return errResp('Nenhuma chave configurada para análise de imagem.', 401);
 
   const messages = [
