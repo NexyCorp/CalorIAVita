@@ -8,27 +8,42 @@ const GROQ_KEYS = [
   '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',
   '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'  
 ];
+// Automatically filters out Rhian's empty placeholders
+const FALLBACK_GROQ_KEYS = [
+  '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',
+  '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',
+  '', '', '' 
+].filter(key => key && key.trim().length > 0);
+
 let currentGroqKeyIndex = 0;
-
-// Chave HuggingFace para análise de imagens (CameraIA)
-// Obtenha em: https://huggingface.co/settings/tokens
-// IMPORTANTE: aceite os termos do modelo em: https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct
-const HF_KEY = ''; // ← Substitua pela sua chave HuggingFace
-const HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
-const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
-
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
-const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
-const GROQ_MODEL_VISION    = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão principal
-const GROQ_MODEL_VISION_FB = 'meta-llama/llama-4-maverick-17b-128e-instruct'; // visão fallback
+let isUsingFallbackPool = false;
 
 function getGroqKey() {
-  return GROQ_KEYS[currentGroqKeyIndex] || GROQ_KEYS[0];
+  const currentPool = isUsingFallbackPool ? FALLBACK_GROQ_KEYS : GROQ_KEYS;
+  return currentPool[currentGroqKeyIndex] || GROQ_KEYS[0];
 }
 
 function rotateGroqKey() {
-  currentGroqKeyIndex = (currentGroqKeyIndex + 1) % GROQ_KEYS.length;
+  currentGroqKeyIndex++;
+
+  if (!isUsingFallbackPool) {
+    // If we exceed the main pool, permanently switch to the fallback pool
+    if (currentGroqKeyIndex >= GROQ_KEYS.length) {
+      if (FALLBACK_GROQ_KEYS.length > 0) {
+        isUsingFallbackPool = true;
+        currentGroqKeyIndex = 0;
+        console.warn("[Groq] Primary keys exhausted due to rate limits. Switching to Fallback Pool.");
+      } else {
+        // Wrap around main if no fallbacks exist
+        currentGroqKeyIndex = 0;
+      }
+    }
+  } else {
+    // Wrap around within the fallback pool if it also hits limits
+    if (currentGroqKeyIndex >= FALLBACK_GROQ_KEYS.length) {
+      currentGroqKeyIndex = 0;
+    }
+  }
 }
 
 function extractJSON(text) {
