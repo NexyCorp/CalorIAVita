@@ -2,12 +2,9 @@
 // GROQ & HUGGINGFACE (Visão) API
 // ═══════════════════════════════════════
 const GROQ_KEYS = [
-  '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',
-  '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',
-  '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',
-  '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',
-  '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'  
-];
+  import.meta.env.VITE_GROQ_API_KEY_1,
+  import.meta.env.VITE_GROQ_API_KEY_2
+].filter(k => k && k.length > 0);
 // Automatically filters out Rhian's empty placeholders
 const FALLBACK_GROQ_KEYS = [
   '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',
