@@ -3,9 +3,11 @@
 // ═══════════════════════════════════════
 const GROQ_KEYS = [
   import.meta.env.VITE_GROQ_API_KEY_1,
-  import.meta.env.VITE_GROQ_API_KEY_2
+  import.meta.env.VITE_GROQ_API_KEY_2,
+  import.meta.env.VITE_GROQ_API_KEY_3,
+  import.meta.env.VITE_GROQ_API_KEY_4
 ].filter(k => k && k.length > 0);
-// Automatically filters out Rhian's empty placeholders
+// Automatically filters out empty placeholders
 const FALLBACK_GROQ_KEYS = [
   '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',
   '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',
@@ -17,7 +19,8 @@ const FALLBACK_GROQ_KEYS = [
 // Chave HuggingFace para análise de imagens (CameraIA)
 // Obtenha em: https://huggingface.co/settings/tokens
 // IMPORTANTE: aceite os termos do modelo em: https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct
-const HF_KEY = ''; // ← Substitua pela sua chave HuggingFace
+const HF_KEY = import.meta.env.VITE_HF_KEY || ''; // lida do Cloudflare/GitHub Secrets
+
 const HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
 const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
 
