@@ -1,48 +1,43 @@
-name: Build & Deploy to Cloudflare Pages
+name: CI – Verificar Build
+
+# O Cloudflare Pages já faz o deploy automático a partir do GitHub.
+# Este workflow apenas verifica se o build do Vite funciona corretamente,
+# injetando os secrets como variáveis de ambiente para o build.
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     env:
-      # Variáveis de ambiente injetadas no build do Vite a partir dos GitHub Secrets
-      VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      # Injeta os GitHub Secrets como variáveis VITE_* para o build
+      VITE_SUPABASE_URL:      ${{ secrets.SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-      VITE_GROQ_API_KEY_1: ${{ secrets.GROQ_API_KEY_1 }}
-      VITE_GROQ_API_KEY_2: ${{ secrets.GROQ_API_KEY_2 }}
-      VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      VITE_GROQ_API_KEY_1:    ${{ secrets.GROQ_API_KEY_1 }}
+      VITE_GROQ_API_KEY_2:    ${{ secrets.GROQ_API_KEY_2 }}
+      VITE_GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
 
     steps:
-      # 1️⃣ Baixar o código
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Configurar Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
 
-      # 3️⃣ Instalar dependências
       - name: Install dependencies
         run: npm ci
 
-      # 4️⃣ Build com Vite (as variáveis VITE_* serão embutidas no bundle)
-      - name: Build
+      - name: Build (Vite)
         run: npm run build
-
-      # 5️⃣ Deploy para Cloudflare Pages
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: caloria-vite
-          directory: dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        # ✅ O Cloudflare Pages (caloriav3) faz o deploy automaticamente
+        # a partir deste commit via integração direta com o GitHub.
