@@ -9,12 +9,8 @@ const GROQ_KEYS = [
 ].filter(k => k && k.length > 0);
 // Automatically filters out empty placeholders
 const FALLBACK_GROQ_KEYS = [
-  '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',
-  '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',
-  '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',
-  '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', 
-  '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' 
-].filter(key => key && key.trim().length > 0);
+  // Removido por segurança: Chaves devem vir sempre das variáveis de ambiente VITE_*
+];
 
 // Chave HuggingFace para análise de imagens (CameraIA)
 // Obtenha em: https://huggingface.co/settings/tokens
