@@ -691,6 +691,7 @@ Retorne JSON com esta estrutura exata:
 }
 
 // Expor funções para o escopo global
+window.clearDiary = clearDiary;
 window.initDiaryDate = initDiaryDate;
 window.renderDiaryDate = renderDiaryDate;
 window.changeDiaryDate = changeDiaryDate;
