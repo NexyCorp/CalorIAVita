@@ -986,6 +986,49 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
       window._diseaseFormState._aiSections = data.sections;
     }
 
+    // Pre-populate values if they exist
+    let preExistingData = {};
+    try {
+      const { data: anamnese } = await supabase.from('patient_anamnese').select('diseases_other').eq('patient_id', patientId).maybeSingle();
+      if (anamnese?.diseases_other) {
+        const searchTag = '[' + (diseases[0] || 'custom').toUpperCase() + ' FORM]';
+        const tagIdx = anamnese.diseases_other.indexOf(searchTag);
+        if (tagIdx !== -1) {
+          const jsonStartIdx = anamnese.diseases_other.indexOf('{', tagIdx);
+          if (jsonStartIdx !== -1) {
+            let braceCount = 0;
+            let jsonEndIdx = -1;
+            for (let i = jsonStartIdx; i < anamnese.diseases_other.length; i++) {
+              if (anamnese.diseases_other[i] === '{') braceCount++;
+              else if (anamnese.diseases_other[i] === '}') {
+                braceCount--;
+                if (braceCount === 0) {
+                  jsonEndIdx = i + 1;
+                  break;
+                }
+              }
+            }
+            if (jsonEndIdx !== -1) {
+              preExistingData = JSON.parse(anamnese.diseases_other.slice(jsonStartIdx, jsonEndIdx));
+            }
+          }
+        }
+      }
+    } catch(e) {
+      console.warn('[pre-populate existing]', e);
+    }
+
+    data.sections.forEach(section => {
+      (section.questions||[]).forEach(q => {
+        const el = document.getElementById(q.id);
+        if (el && preExistingData[q.id]) {
+          const valObj = preExistingData[q.id];
+          const val = typeof valObj === 'object' && valObj !== null ? valObj.value : valObj;
+          el.value = val;
+        }
+      });
+    });
+
     document.getElementById('diseaseFormModal').classList.add('show');
     showToast('<i class="fa-solid fa-circle-check ic-check"></i> Formulário específico gerado pela IA!');
   } catch(e) {

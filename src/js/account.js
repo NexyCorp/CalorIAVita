@@ -220,6 +220,14 @@ function openCreatePatientModal() {
   if (imgEl) imgEl.remove();
   document.getElementById('cpError').style.display = 'none';
   // Reset patient type panel and disease form suggestions
+  if (window._diseaseFormState) {
+    window._diseaseFormState.formData = {};
+    window._diseaseFormState.disease = null;
+    window._diseaseFormState.patientId = null;
+    window._diseaseFormState._aiSections = null;
+  }
+  _diseaseFormCurrentPatientId = null;
+
   const typePanel = document.getElementById('cpPatientTypePanel');
   if (typePanel) typePanel.style.display = 'none';
   const suggDiv = document.getElementById('cpDiseaseFormSuggestions');
@@ -643,7 +651,18 @@ function collectPatientAnamneseData() {
     // Histórico clínico
     diseases_general:        diseasesGeneral,
     diseases_chronic_auto:   diseasesChronicAuto,
-    diseases_other:          document.getElementById('cpDiseasesOther')?.value.trim() || null,
+    diseases_other:          (() => {
+      let other = document.getElementById('cpDiseasesOther')?.value.trim() || '';
+      if (window._diseaseFormState && window._diseaseFormState.formData) {
+        Object.entries(window._diseaseFormState.formData).forEach(([disKey, disData]) => {
+          const tag = '[' + disKey.toUpperCase() + ' FORM]';
+          if (!other.includes(tag)) {
+            other += '\n\n' + tag + '\n' + JSON.stringify(disData, null, 2);
+          }
+        });
+      }
+      return other.trim() || null;
+    })(),
     family_history:          familyHistory,
     surgeries:               document.getElementById('cpSurgeries')?.value.trim() || null,
     hospitalizations:        document.getElementById('cpHospitalizations')?.value.trim() || null,
@@ -1318,19 +1337,38 @@ function cpCheckDiseaseFormSuggestions() {
   const diseaseFormMap = {
     'diabetes_t2':    { label: '📋 Diabetes T2',        key: 'diabetes_t2',     name: 'Diabetes Tipo 2' },
     'diabetes_t1':    { label: '📋 Diabetes T1',        key: 'diabetes_t1',     name: 'Diabetes Tipo 1' },
+    'prediabetes':    { label: '📋 Pré-Diabetes',       key: 'prediabetes',     name: 'Pré-Diabetes' },
     'hipertensao':    { label: '📋 Hipertensão',        key: 'hipertensao',     name: 'Hipertensão Arterial' },
     'obesidade':      { label: '📋 Obesidade',          key: 'obesidade',       name: 'Obesidade' },
+    'sobrepeso':      { label: '📋 Sobrepeso',          key: 'sobrepeso',       name: 'Sobrepeso' },
     'dislipidemia':   { label: '📋 Dislipidemia',       key: 'dislipidemia',    name: 'Dislipidemia' },
     'insuf_renal':    { label: '📋 Doença Renal',       key: 'insuf_renal',     name: 'Insuficiência Renal' },
     'celiaquia':      { label: '📋 Doença Celíaca',     key: 'celiaquia',       name: 'Doença Celíaca' },
-    'crohn':          { label: '📋 Crohn/Retocolite',   key: 'crohn',           name: 'Doença de Crohn / Retocolite' },
-    'retocolite':     { label: '📋 Crohn/Retocolite',   key: 'crohn',           name: 'Doença de Crohn / Retocolite' },
+    'crohn':          { label: '📋 Doença de Crohn',    key: 'crohn',           name: 'Doença de Crohn' },
+    'retocolite':     { label: '📋 Retocolite Ulc.',    key: 'retocolite',      name: 'Retocolite Ulcerativa' },
     'sop':            { label: '📋 SOP',                key: 'sop',             name: 'Síndrome do Ovário Policístico' },
     'cancer':         { label: '📋 Oncologia',          key: 'cancer',          name: 'Oncologia Nutricional' },
     'steatose':       { label: '📋 Esteatose Hepática', key: 'steatose',        name: 'Esteatose Hepática' },
     'hipotireoidismo':{ label: '📋 Hipotireoidismo',    key: 'hipotireoidismo', name: 'Hipotireoidismo' },
+    'hipertireoidismo':{ label: '📋 Hipertireoidismo',   key: 'hipertireoidismo',name: 'Hipertireoidismo' },
     'sarcopenia':     { label: '📋 Sarcopenia',         key: 'sarcopenia',      name: 'Sarcopenia' },
     'anemia':         { label: '📋 Anemia',             key: 'anemia',          name: 'Anemia' },
+    'osteoporose':    { label: '📋 Osteoporose',        key: 'osteoporose',     name: 'Osteoporose' },
+    'gota':           { label: '📋 Gota',               key: 'gota',            name: 'Gota' },
+    'insuf_cardiaca': { label: '📋 Insuf. Cardíaca',    key: 'insuf_cardiaca',  name: 'Insuficiência Cardíaca' },
+    'gastrite_ulcera':{ label: '📋 Gastrite/Úlcera',    key: 'gastrite_ulcera', name: 'Gastrite / Úlcera' },
+    'refluxo':        { label: '📋 Refluxo/DRGE',       key: 'refluxo',         name: 'Refluxo / DRGE' },
+    'constipacao':    { label: '📋 Constipação',        key: 'constipacao',     name: 'Constipação Crônica' },
+    'sii':            { label: '📋 SII/Cólon Irrit.',    key: 'sii',             name: 'Síndrome do Cólon Irritável' },
+    'desnutricao':    { label: '📋 Desnutrição',        key: 'desnutricao',     name: 'Desnutrição' },
+    'endometriose':   { label: '📋 Endometriose',       key: 'endometriose',    name: 'Endometriose' },
+    'artrite_reumatoide': { label: '📋 Artrite Reum.',  key: 'artrite_reumatoide', name: 'Artrite Reumatoide' },
+    'lupus':          { label: '📋 Lúpus',              key: 'lupus',           name: 'Lúpus' },
+    'esclerose_multipla': { label: '📋 Escl. Múltipla', key: 'esclerose_multipla', name: 'Esclerose Múltipla' },
+    'hashimoto':      { label: '📋 Hashimoto',          key: 'hashimoto',       name: 'Tireoidite de Hashimoto' },
+    'psorase':        { label: '📋 Psoríase',           key: 'psorase',         name: 'Psoríase' },
+    'sindrome_metabolica': { label: '📋 Sindr. Metabólica', key: 'sindrome_metabolica', name: 'Síndrome Metabólica' },
+    'fibromialgia':   { label: '📋 Fibromialgia',       key: 'fibromialgia',    name: 'Fibromialgia' }
   };
 
   const relevant = checked.filter(d => diseaseFormMap[d]);
@@ -1620,31 +1658,69 @@ const _diseaseQuestionBanks = {
 
 let _diseaseFormCurrentPatientId = null;
 
-function openDiseaseForm(diseaseKey, diseaseName) {
-  const questions = _diseaseQuestionBanks[diseaseKey];
-  if (!questions) { showToast('Formulário não disponível para esta condição.', 'error'); return; }
+async function openDiseaseForm(diseaseKey, diseaseName) {
+  const content = document.getElementById('diseaseFormContent');
+  const titleEl = document.getElementById('diseaseFormTitle');
+  const subtitleEl = document.getElementById('diseaseFormSubtitle');
+  const loadingEl = document.getElementById('diseaseFormLoading');
+  const actionsEl = document.getElementById('diseaseFormActions');
 
   _diseaseFormState.disease = diseaseKey;
   _diseaseFormState.patientId = _diseaseFormCurrentPatientId;
 
-  document.getElementById('diseaseFormTitle').innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> ${questions.title}`;
-  document.getElementById('diseaseFormSubtitle').textContent = 'Perguntas específicas para ' + diseaseName + ' — recomendadas para um prontuário completo';
-  document.getElementById('diseaseFormLoading').style.display = 'none';
-  document.getElementById('diseaseFormContent').style.display = 'block';
-  document.getElementById('diseaseFormActions').style.display = 'flex';
+  titleEl.innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> ${diseaseName} — Avaliação Específica`;
+  subtitleEl.textContent = 'Carregando formulário...';
+
+  let questions = _diseaseQuestionBanks[diseaseKey];
+
+  if (!questions) {
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (content) content.style.display = 'none';
+    if (actionsEl) actionsEl.style.display = 'none';
+    document.getElementById('diseaseFormModal').classList.add('show');
+
+    try {
+      showToast('<i class="fa-solid fa-robot ic-chat"></i> Gerando formulário com IA...', 'success');
+      const data = await askClaude(
+        `Como nutricionista clínica, liste as perguntas específicas mais importantes para a anamnese de um paciente com: ${diseaseName}. Retorne JSON: { "title": "string", "sections": [{ "name": "string", "questions": [{ "id": "q1", "label": "string", "type": "text|select|number|textarea", "options": ["opt1"] }] }] }. Máximo 12 perguntas distribuídas em até 3 seções.`,
+        'Você é especialista em nutrição clínica. Retorne SOMENTE JSON válido sem markdown.'
+      );
+
+      if (!data || !data.sections) throw new Error('Resposta inválida da IA');
+
+      questions = {
+        title: data.title || `${diseaseName} — Avaliação Específica`,
+        sections: data.sections
+      };
+      _diseaseFormState._aiSections = data.sections;
+    } catch (e) {
+      showToast('Erro ao gerar formulário via IA: ' + e.message, 'error');
+      if (loadingEl) loadingEl.style.display = 'none';
+      closeDiseaseFormModal();
+      return;
+    }
+  } else {
+    _diseaseFormState._aiSections = null;
+  }
+
+  if (loadingEl) loadingEl.style.display = 'none';
+  if (content) content.style.display = 'block';
+  if (actionsEl) actionsEl.style.display = 'flex';
+
+  titleEl.innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> ${questions.title}`;
+  subtitleEl.textContent = 'Perguntas específicas para ' + diseaseName + ' — recomendadas para um prontuário completo';
 
   // Build form HTML
-  const content = document.getElementById('diseaseFormContent');
   content.innerHTML = questions.sections.map(section => `
     <div class="patient-form-section" style="margin-bottom:0.75rem;">
-      <div class="patient-form-section-title"><i class="fa-solid fa-circle-dot ic-goal"></i> ${section.title}</div>
+      <div class="patient-form-section-title"><i class="fa-solid fa-circle-dot ic-goal"></i> ${section.title || section.name}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;">
         ${section.questions.map(q => {
           let input = '';
-          if (q.type === 'select') {
+          if (q.type === 'select' && q.options) {
             input = `<select id="${q.id}" class="form-select">${q.options.map(o => `<option>${o}</option>`).join('')}</select>`;
           } else if (q.type === 'textarea') {
-            input = `<textarea id="${q.id}" class="form-input" rows="2" placeholder="${q.ph||''}"></textarea>`;
+            input = `<textarea id="${q.id}" class="form-input" rows="2" style="grid-column: 1 / -1;" placeholder="${q.ph||''}"></textarea>`;
           } else {
             input = `<input type="${q.type||'text'}" id="${q.id}" class="form-input" placeholder="${q.ph||''}" ${q.step?`step="${q.step}"`:''}${q.min?` min="${q.min}"`:''}${q.max?` max="${q.max}"`:''}>`; 
           }
@@ -1654,6 +1730,56 @@ function openDiseaseForm(diseaseKey, diseaseName) {
       </div>
     </div>
   `).join('');
+
+  // Pre-populate values if they exist
+  let preExistingData = {};
+  if (_diseaseFormCurrentPatientId) {
+    const { data: anamnese } = await supabase.from('patient_anamnese').select('diseases_other').eq('patient_id', _diseaseFormCurrentPatientId).maybeSingle();
+    if (anamnese?.diseases_other) {
+      const searchTag = '[' + diseaseKey.toUpperCase() + ' FORM]';
+      const tagIdx = anamnese.diseases_other.indexOf(searchTag);
+      if (tagIdx !== -1) {
+        const jsonStartIdx = anamnese.diseases_other.indexOf('{', tagIdx);
+        if (jsonStartIdx !== -1) {
+          let braceCount = 0;
+          let jsonEndIdx = -1;
+          for (let i = jsonStartIdx; i < anamnese.diseases_other.length; i++) {
+            if (anamnese.diseases_other[i] === '{') braceCount++;
+            else if (anamnese.diseases_other[i] === '}') {
+              braceCount--;
+              if (braceCount === 0) {
+                jsonEndIdx = i + 1;
+                break;
+              }
+            }
+          }
+          if (jsonEndIdx !== -1) {
+            try {
+              preExistingData = JSON.parse(anamnese.diseases_other.slice(jsonStartIdx, jsonEndIdx));
+            } catch(e) {
+              console.warn('Failed to parse pre-existing form data', e);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (_diseaseFormState.formData && _diseaseFormState.formData[diseaseKey]) {
+    preExistingData = { ...preExistingData, ..._diseaseFormState.formData[diseaseKey] };
+  }
+
+  // Set input values
+  questions.sections.forEach(section => {
+    section.questions.forEach(q => {
+      const el = document.getElementById(q.id);
+      if (el && preExistingData[q.id]) {
+        const valObj = preExistingData[q.id];
+        const val = typeof valObj === 'object' && valObj !== null ? valObj.value : valObj;
+        el.value = val;
+      }
+    });
+  });
 
   document.getElementById('diseaseFormModal').classList.add('show');
 }
@@ -1685,16 +1811,52 @@ async function saveDiseaseFormData() {
     });
   });
 
+  // Keep in session state
+  if (!_diseaseFormState.formData) _diseaseFormState.formData = {};
+  _diseaseFormState.formData[disease] = data;
+
   showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Salvando dados específicos...');
 
   if (patientId) {
-    // Save to patient_anamnese as a JSON blob in a special field
+    // 1. Fetch current anamnese to get existing diseases_other
+    const { data: existing } = await supabase.from('patient_anamnese').select('diseases_other').eq('patient_id', patientId).maybeSingle();
+    let currentDiseasesOther = existing?.diseases_other || '';
+
+    // Remove existing form block of the same disease if it exists
+    const searchTag = '[' + disease.toUpperCase() + ' FORM]';
+    const tagIdx = currentDiseasesOther.indexOf(searchTag);
+    if (tagIdx !== -1) {
+      const jsonStartIdx = currentDiseasesOther.indexOf('{', tagIdx);
+      if (jsonStartIdx !== -1) {
+        let braceCount = 0;
+        let jsonEndIdx = -1;
+        for (let i = jsonStartIdx; i < currentDiseasesOther.length; i++) {
+          if (currentDiseasesOther[i] === '{') braceCount++;
+          else if (currentDiseasesOther[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              jsonEndIdx = i + 1;
+              break;
+            }
+          }
+        }
+        if (jsonEndIdx !== -1) {
+          currentDiseasesOther = currentDiseasesOther.slice(0, tagIdx) + currentDiseasesOther.slice(jsonEndIdx);
+        }
+      }
+    }
+
+    currentDiseasesOther = currentDiseasesOther.trim();
+    const newBlock = `\n\n[${disease.toUpperCase()} FORM]\n${JSON.stringify(data, null, 2)}`;
+    const finalDiseasesOther = (currentDiseasesOther + newBlock).trim();
+
     const { error } = await supabase.from('patient_anamnese').upsert({
       patient_id: patientId,
       nutritionist_id: currentUser?.id,
-      diseases_other: (document.getElementById('cpDiseasesOther')?.value || '') + '\n\n[' + disease.toUpperCase() + ' FORM]\n' + JSON.stringify(data, null, 2),
+      diseases_other: finalDiseasesOther,
       updated_at: new Date().toISOString()
     }, { onConflict: 'patient_id' });
+
     if (error) {
       console.warn('[saveDiseaseFormData]', error);
       showToast('Erro ao salvar formulário de doenças: ' + (error.message || error.code), 'error');
