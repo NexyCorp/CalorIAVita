@@ -950,8 +950,14 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
 
     // Build modal content
     const titleEl = document.getElementById('diseaseFormTitle');
-    const bodyEl  = document.getElementById('diseaseFormBody');
+    const bodyEl  = document.getElementById('diseaseFormContent');
     if (!titleEl || !bodyEl) { showToast('Modal de formulário não encontrado.', 'error'); return; }
+
+    const loadingEl = document.getElementById('diseaseFormLoading');
+    if (loadingEl) loadingEl.style.display = 'none';
+    bodyEl.style.display = 'block';
+    const actionsEl = document.getElementById('diseaseFormActions');
+    if (actionsEl) actionsEl.style.display = 'flex';
 
     titleEl.textContent = data.title || `Formulário — ${patientName}`;
 

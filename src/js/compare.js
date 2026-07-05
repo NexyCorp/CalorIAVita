@@ -101,6 +101,7 @@ function toggleRecipeForm(defaultPatientId = null) {
   const form = document.getElementById('recipeAddForm');
   form.classList.toggle('open');
   if (form.classList.contains('open')) {
+    showPanel('recipes', document.getElementById('nav-recipes'));
     // Set default visibility based on role
     if (isProfessional()) {
       loadPatientsForRecipe().then(() => {
@@ -542,7 +543,7 @@ async function submitRecipe() {
 }
 
 function getVisibleRecipes() {
-  const all = [...recipesData, ...userRecipes.filter(r => r.approved || r.source === 'mine' || r.source === 'private')];
+  const all = [...recipesData, ...userRecipes.filter(r => r.approved || r.source === 'mine' || r.source === 'private' || r.author_id === currentUser?.id)];
   if (!currentProfile) return [];
   // Patients see only recipes sent to them by their nutritionist
   if (currentProfile.role === 'patient') {
