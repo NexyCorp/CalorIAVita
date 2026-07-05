@@ -697,23 +697,57 @@ async function openPatientDossier(patientId, patientName) {
 
     function formatDiseasesOther(val) {
       if (!val) return null;
-      if (!val.includes('[') || !val.includes('FORM]')) {
-        return val.replace(/\n/g, '<br>');
-      }
-
-      const regex = /\[([A-Z0-9_-]+)\s+FORM\]\s*(\{[\s\S]*?\})/gi;
-      let html = '';
-      let lastIndex = 0;
-      let match;
       
-      while ((match = regex.exec(val)) !== null) {
-        const textBefore = val.slice(lastIndex, match.index).trim();
+      let html = '';
+      let currentIndex = 0;
+      
+      while (true) {
+        const tagIndex = val.indexOf('[', currentIndex);
+        if (tagIndex === -1) {
+          break;
+        }
+        
+        const closeTagIndex = val.indexOf(' FORM]', tagIndex);
+        if (closeTagIndex === -1 || closeTagIndex > val.indexOf('\n', tagIndex)) {
+          html += val.slice(currentIndex, tagIndex + 1).replace(/\n/g, '<br>');
+          currentIndex = tagIndex + 1;
+          continue;
+        }
+        
+        const textBefore = val.slice(currentIndex, tagIndex).trim();
         if (textBefore) {
           html += `<div>${textBefore.replace(/\n/g, '<br>')}</div>`;
         }
         
-        const formName = match[1];
-        const jsonStr = match[2];
+        const formName = val.slice(tagIndex + 1, closeTagIndex).trim();
+        const jsonStartIndex = val.indexOf('{', closeTagIndex);
+        if (jsonStartIndex === -1) {
+          currentIndex = closeTagIndex + 6;
+          continue;
+        }
+        
+        let braceCount = 0;
+        let jsonEndIndex = -1;
+        for (let i = jsonStartIndex; i < val.length; i++) {
+          if (val[i] === '{') {
+            braceCount++;
+          } else if (val[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              jsonEndIndex = i + 1;
+              break;
+            }
+          }
+        }
+        
+        if (jsonEndIndex === -1) {
+          const jsonStr = val.slice(jsonStartIndex);
+          html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-card);padding:0.4rem;border-radius:4px;overflow-x:auto;color:var(--text-main);border:1px solid var(--border);">${jsonStr}</pre></div>`;
+          currentIndex = val.length;
+          break;
+        }
+        
+        const jsonStr = val.slice(jsonStartIndex, jsonEndIndex);
         try {
           const data = JSON.parse(jsonStr);
           html += `
@@ -746,12 +780,15 @@ async function openPatientDossier(patientId, patientName) {
         } catch(e) {
           html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-card);padding:0.4rem;border-radius:4px;overflow-x:auto;color:var(--text-main);border:1px solid var(--border);">${jsonStr}</pre></div>`;
         }
-        lastIndex = regex.lastIndex;
+        
+        currentIndex = jsonEndIndex;
       }
       
-      const remainingText = val.slice(lastIndex).trim();
-      if (remainingText) {
-        html += `<div>${remainingText.replace(/\n/g, '<br>')}</div>`;
+      if (currentIndex < val.length) {
+        const remainingText = val.slice(currentIndex).trim();
+        if (remainingText) {
+          html += `<div>${remainingText.replace(/\n/g, '<br>')}</div>`;
+        }
       }
       
       return html;
