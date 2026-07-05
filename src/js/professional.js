@@ -683,9 +683,73 @@ async function openPatientDossier(patientId, patientName) {
     const p = profile || {};
     const a = anamnese || {};
 
+    function formatHabitValue(val) {
+      if (!val && val !== 0) return '—';
+      const s = String(val).trim().toLowerCase();
+      if (s === 'nao') return 'Não';
+      if (s === 'sim') return 'Sim';
+      if (s === 'yes') return 'Sim';
+      if (s === 'no') return 'Não';
+      if (s === 'ex') return 'Ex-fumante';
+      if (s === 'social') return 'Socialmente';
+      return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+    }
+
+    function formatDiseasesOther(val) {
+      if (!val) return null;
+      if (!val.includes('[') || !val.includes('FORM]')) {
+        return val.replace(/\n/g, '<br>');
+      }
+
+      const regex = /\[([A-Z0-9_-]+)\s+FORM\]\s*(\{[\s\S]*?\})/gi;
+      let html = '';
+      let lastIndex = 0;
+      let match;
+      
+      while ((match = regex.exec(val)) !== null) {
+        const textBefore = val.slice(lastIndex, match.index).trim();
+        if (textBefore) {
+          html += `<div>${textBefore.replace(/\n/g, '<br>')}</div>`;
+        }
+        
+        const formName = match[1];
+        const jsonStr = match[2];
+        try {
+          const data = JSON.parse(jsonStr);
+          html += `
+            <div style="margin:0.5rem 0;padding:0.75rem;background:var(--bg-body, #f4f6f9);border-radius:var(--radius-sm);border-left:4px solid var(--green-mid);box-shadow:0 1px 2px rgba(0,0,0,0.05);width:100%;">
+              <strong style="color:var(--green-deep);display:block;margin-bottom:0.4rem;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;">Formulário — ${formName}</strong>
+              <div style="display:grid;grid-template-columns:1fr;gap:0.4rem;font-size:0.82rem;">
+                ${Object.entries(data).map(([qId, qObj]) => {
+                  const label = typeof qObj === 'object' && qObj !== null ? qObj.label : qId;
+                  const rawVal = typeof qObj === 'object' && qObj !== null ? qObj.value : qObj;
+                  return `
+                    <div style="border-bottom:1px dashed var(--border);padding-bottom:0.25rem;">
+                      <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:0.1rem;">${label}</div>
+                      <div style="font-weight:600;color:var(--text-main);">${formatHabitValue(rawVal)}</div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        } catch(e) {
+          html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-body, #f4f6f9);padding:0.4rem;border-radius:4px;overflow-x:auto;">${jsonStr}</pre></div>`;
+        }
+        lastIndex = regex.lastIndex;
+      }
+      
+      const remainingText = val.slice(lastIndex).trim();
+      if (remainingText) {
+        html += `<div>${remainingText.replace(/\n/g, '<br>')}</div>`;
+      }
+      
+      return html;
+    }
+
     function row(label, value) {
       if (!value && value !== 0) return '';
-      return `<tr><td style="padding:4px 12px 4px 0;color:var(--text-muted);white-space:nowrap;font-weight:600;">${label}</td><td style="padding:4px 0;">${value}</td></tr>`;
+      return `<tr><td style="padding:4px 12px 4px 0;color:var(--text-muted);white-space:nowrap;font-weight:600;vertical-align:top;">${label}</td><td style="padding:4px 0;vertical-align:top;">${value}</td></tr>`;
     }
     function section(title, rows) {
       const content = rows.filter(Boolean).join('');
@@ -743,7 +807,7 @@ async function openPatientDossier(patientId, patientName) {
       section('🏥 Histórico Clínico', [
         row('Doenças gerais', arr(a.diseases_general)),
         row('Doenças crônicas/auto', arr(a.diseases_chronic_auto)),
-        row('Outras doenças', a.diseases_other || null),
+        row('Outras doenças', formatDiseasesOther(a.diseases_other)),
         row('Histórico familiar', arr(a.family_history)),
         row('Cirurgias', a.surgeries || null),
         row('Hospitalizações', a.hospitalizations || null),
@@ -751,17 +815,17 @@ async function openPatientDossier(patientId, patientName) {
       section('💊 Medicamentos e Hábitos', [
         row('Medicamentos', a.medications || null),
         row('Suplementos', a.supplements || null),
-        row('Adoçante', a.sweetener === 'yes' ? `Sim (${a.sweetener_type || '?'})` : a.sweetener === 'no' ? 'Não' : null),
-        row('Tabagismo', a.smoking || null),
-        row('Álcool', a.alcohol || null),
+        row('Adoçante', a.sweetener === 'yes' ? `Sim (${a.sweetener_type || '?'})` : a.sweetener === 'no' ? 'Não' : formatHabitValue(a.sweetener)),
+        row('Tabagismo', formatHabitValue(a.smoking)),
+        row('Álcool', formatHabitValue(a.alcohol)),
         row('Ingestão hídrica', a.water_intake || null),
         row('Tempo nas refeições', a.eating_time_min ? a.eating_time_min + ' min' : null),
-        row('Hábito intestinal', a.bowel_habit || null),
-        row('Local das refeições', a.meal_location || null),
-        row('Companhia nas refeições', a.eating_company || null),
-        row('Disfagia', a.dysphagia || null),
-        row('Azia/refluxo', a.heartburn || null),
-        row('Dietas anteriores', a.prev_diets || null),
+        row('Hábito intestinal', formatHabitValue(a.bowel_habit)),
+        row('Local das refeições', formatHabitValue(a.meal_location)),
+        row('Companhia nas refeições', formatHabitValue(a.eating_company)),
+        row('Disfagia', formatHabitValue(a.dysphagia)),
+        row('Azia/refluxo', formatHabitValue(a.heartburn)),
+        row('Dietas anteriores', formatHabitValue(a.prev_diets)),
         row('Aversões alimentares', a.food_aversions || null),
         row('Preferências alimentares', a.food_preferences || null),
         row('Alergias', arr(a.allergies)),

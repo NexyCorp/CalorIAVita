@@ -1679,7 +1679,9 @@ async function saveDiseaseFormData() {
   questions.sections.forEach(section => {
     section.questions.forEach(q => {
       const el = document.getElementById(q.id);
-      if (el) data[q.id] = el.value;
+      if (el) {
+        data[q.id] = { label: q.label || q.id, value: el.value };
+      }
     });
   });
 
