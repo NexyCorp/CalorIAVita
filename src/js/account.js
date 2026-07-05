@@ -1665,8 +1665,14 @@ function closeDiseaseFormModal() {
 async function saveDiseaseFormData() {
   const disease = _diseaseFormState.disease;
   const patientId = _diseaseFormState.patientId;
-  const questions = _diseaseQuestionBanks[disease];
-  if (!questions) return;
+  let questions = _diseaseQuestionBanks[disease];
+  if (!questions && _diseaseFormState._aiSections) {
+    questions = { sections: _diseaseFormState._aiSections };
+  }
+  if (!questions) {
+    showToast('Estrutura de perguntas não encontrada.', 'error');
+    return;
+  }
 
   // Collect all form data
   const data = {};
@@ -1687,7 +1693,11 @@ async function saveDiseaseFormData() {
       diseases_other: (document.getElementById('cpDiseasesOther')?.value || '') + '\n\n[' + disease.toUpperCase() + ' FORM]\n' + JSON.stringify(data, null, 2),
       updated_at: new Date().toISOString()
     }, { onConflict: 'patient_id' });
-    if (error) console.warn('[saveDiseaseFormData]', error);
+    if (error) {
+      console.warn('[saveDiseaseFormData]', error);
+      showToast('Erro ao salvar formulário de doenças: ' + (error.message || error.code), 'error');
+      return;
+    }
   }
 
   closeDiseaseFormModal();
