@@ -717,24 +717,34 @@ async function openPatientDossier(patientId, patientName) {
         try {
           const data = JSON.parse(jsonStr);
           html += `
-            <div style="margin:0.5rem 0;padding:0.75rem;background:var(--bg-body, #f4f6f9);border-radius:var(--radius-sm);border-left:4px solid var(--green-mid);box-shadow:0 1px 2px rgba(0,0,0,0.05);width:100%;">
-              <strong style="color:var(--green-deep);display:block;margin-bottom:0.4rem;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.5px;">Formulário — ${formName}</strong>
-              <div style="display:grid;grid-template-columns:1fr;gap:0.4rem;font-size:0.82rem;">
-                ${Object.entries(data).map(([qId, qObj]) => {
-                  const label = typeof qObj === 'object' && qObj !== null ? qObj.label : qId;
-                  const rawVal = typeof qObj === 'object' && qObj !== null ? qObj.value : qObj;
-                  return `
-                    <div style="border-bottom:1px dashed var(--border);padding-bottom:0.25rem;">
-                      <div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:0.1rem;">${label}</div>
-                      <div style="font-weight:600;color:var(--text-main);">${formatHabitValue(rawVal)}</div>
-                    </div>
-                  `;
-                }).join('')}
+            <div style="margin: 0.8rem 0; width: 100%;">
+              <div style="font-weight: 800; color: var(--green-deep); font-size: 0.82rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Formulário — ${formName}
               </div>
+              <table style="width: 100%; border-collapse: collapse; border: 1px solid var(--border); font-size: 0.82rem; background: var(--bg-card, #ffffff);">
+                <thead>
+                  <tr style="background: var(--bg-body, #f4f6f9); border-bottom: 1px solid var(--border);">
+                    <th style="padding: 6px 10px; text-align: left; font-weight: 700; color: var(--text-main); border-right: 1px solid var(--border); width: 60%;">Pergunta</th>
+                    <th style="padding: 6px 10px; text-align: left; font-weight: 700; color: var(--text-main);">Resposta</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${Object.entries(data).map(([qId, qObj]) => {
+                    const label = typeof qObj === 'object' && qObj !== null ? qObj.label : qId;
+                    const rawVal = typeof qObj === 'object' && qObj !== null ? qObj.value : qObj;
+                    return `
+                      <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 6px 10px; color: var(--text-muted); border-right: 1px solid var(--border); vertical-align: middle; line-height: 1.4;">${label}</td>
+                        <td style="padding: 6px 10px; font-weight: 600; color: var(--text-main); vertical-align: middle;">${formatHabitValue(rawVal)}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
             </div>
           `;
         } catch(e) {
-          html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-body, #f4f6f9);padding:0.4rem;border-radius:4px;overflow-x:auto;">${jsonStr}</pre></div>`;
+          html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-card);padding:0.4rem;border-radius:4px;overflow-x:auto;color:var(--text-main);border:1px solid var(--border);">${jsonStr}</pre></div>`;
         }
         lastIndex = regex.lastIndex;
       }
