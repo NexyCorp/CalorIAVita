@@ -942,10 +942,10 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
     if (!data || !data.sections) throw new Error('Resposta inválida da IA');
 
     // Store state
-    if (typeof _diseaseFormState !== 'undefined') {
-      _diseaseFormState.disease = diseases[0] || 'custom';
-      _diseaseFormState.patientId = patientId;
-      _diseaseFormState.patientName = patientName;
+    if (typeof window._diseaseFormState !== 'undefined') {
+      window._diseaseFormState.disease = diseases[0] || 'custom';
+      window._diseaseFormState.patientId = patientId;
+      window._diseaseFormState.patientName = patientName;
     }
 
     // Build modal content
@@ -982,8 +982,8 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
     `).join('');
 
     // Store sections for save
-    if (typeof _diseaseFormState !== 'undefined') {
-      _diseaseFormState._aiSections = data.sections;
+    if (typeof window._diseaseFormState !== 'undefined') {
+      window._diseaseFormState._aiSections = data.sections;
     }
 
     document.getElementById('diseaseFormModal').classList.add('show');

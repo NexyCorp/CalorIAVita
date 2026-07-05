@@ -1306,7 +1306,7 @@ function cpDetectPatientType() {
 // MELHORIA 5: FORMULÁRIOS ESPECÍFICOS POR DOENÇA (IA)
 // ═══════════════════════════════════════
 
-const _diseaseFormState = { disease: null, patientId: null, patientName: null, formData: {} };
+const _diseaseFormState = window._diseaseFormState = { disease: null, patientId: null, patientName: null, formData: {} };
 
 // Called when diseases are checked in the create patient form
 function cpCheckDiseaseFormSuggestions() {
