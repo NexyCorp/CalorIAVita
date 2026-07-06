@@ -18,8 +18,8 @@ function updateLogos() {
   // Update favicon and apple-touch-icon
   const faviconEl = document.getElementById('dynamic-favicon');
   const appleIconEl = document.getElementById('dynamic-apple-icon');
-  if (faviconEl) faviconEl.href = LOGO_LIGHT_B64;
-  if (appleIconEl) appleIconEl.href = LOGO_LIGHT_B64;
+  if (faviconEl) faviconEl.href = src;
+  if (appleIconEl) appleIconEl.href = src;
   // Update PWA manifest dynamically with correct icon
   try {
     const manifest = {
