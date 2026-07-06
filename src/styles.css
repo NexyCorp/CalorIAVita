@@ -467,14 +467,16 @@ i.fa-hourglass-half { color: #ffb74d; }
 .lp-nav.scrolled .lp-nav-hamburger span { background: #b5f05a; }
 
 .lp-nav-logo {
-  font-family: 'Unbounded', 'Syne', sans-serif; font-size: 1.05rem; font-weight: 900;
-  color: #0d5c1f; letter-spacing: -1px; text-decoration: none;
+  font-size: 1.05rem; font-weight: 900;
+  letter-spacing: -1px; text-decoration: none;
   display: flex; align-items: center; gap: 0.5rem;
 }
-.lp-nav-logo .lp-logo-ia {
-  background: #0d5c1f; color: #b5f05a;
-  padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.82rem;
-}
+.lp-brand-calor { color: #0d5c1f; }
+.lp-brand-ia { color: #d4a017; }
+
+/* Handle scrolled states colors */
+.lp-nav.scrolled .lp-brand-calor { color: #c8e6c9 !important; }
+.lp-nav.scrolled .lp-brand-ia { color: #ffd54f !important; }
 .lp-nav-links { display: flex; align-items: center; gap: 2rem; }
 .lp-nav-links a {
   font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600;
@@ -1038,6 +1040,12 @@ i.fa-hourglass-half { color: #ffb74d; }
 [data-theme="dark"] .lp-nav-logo,
 [data-theme="dark"] .lp-nav-links a {
   color: #ede7d5 !important;
+}
+[data-theme="dark"] .lp-brand-calor {
+  color: #c8e6c9 !important;
+}
+[data-theme="dark"] .lp-brand-ia {
+  color: #ffd54f !important;
 }
 [data-theme="dark"] .lp-nav-links a:hover {
   color: #b5f05a !important;
