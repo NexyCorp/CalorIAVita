@@ -2814,29 +2814,29 @@ function closeLgpdModal() {
       @media(max-width: 400px) { .spec-grid { grid-template-columns: 1fr; } }
     </style>
     <div class="spec-grid">
+      <button class="spec-card nut-type-select-btn" data-type="nutricionistas" onclick="selectNutType(this)">
+        <span class="spec-icon">🥦</span><span class="spec-title">Nutricionistas</span><span class="spec-desc">Alimentação, dietas e macros</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="bariatrica" onclick="selectNutType(this)">
+        <span class="spec-icon">🩺</span><span class="spec-title">Bariátrica</span><span class="spec-desc">Acompanhamento pré e pós cirúrgico</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="esporte" onclick="selectNutType(this)">
+        <span class="spec-icon">🏋️</span><span class="spec-title">Esporte</span><span class="spec-desc">Performance, hipertrofia e atletas</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="personal_trainer" onclick="selectNutType(this)">
+        <span class="spec-icon">👟</span><span class="spec-title">Personal Trainer</span><span class="spec-desc">Treinos físicos e metabólicos</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="fisioterapeuta" onclick="selectNutType(this)">
+        <span class="spec-icon">🧬</span><span class="spec-title">Fisioterapeutas</span><span class="spec-desc">Reabilitação física e funcional</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="estetica" onclick="selectNutType(this)">
+        <span class="spec-icon">✨</span><span class="spec-title">Estética</span><span class="spec-desc">Tratamentos corporais e beleza</span>
+      </button>
       <button class="spec-card nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
-        <span class="spec-icon">🏥</span><span class="spec-title">Nutrição Clínica</span><span class="spec-desc">Doenças crônicas, internação</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
-        <span class="spec-icon">🏋️</span><span class="spec-title">Nutrição Esportiva</span><span class="spec-desc">Performance, hipertrofia</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
-        <span class="spec-icon">👶</span><span class="spec-title">Pediatria</span><span class="spec-desc">Crianças, de 0 a 18 anos</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="gestante" onclick="selectNutType(this)">
-        <span class="spec-icon">🤰</span><span class="spec-title">Gestação & Lactação</span><span class="spec-desc">Pré-natal, amamentação</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="oncologia" onclick="selectNutType(this)">
-        <span class="spec-icon">🎗️</span><span class="spec-title">Oncologia</span><span class="spec-desc">Pacientes oncológicos</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="renal" onclick="selectNutType(this)">
-        <span class="spec-icon">🫘</span><span class="spec-title">Nefrologia</span><span class="spec-desc">Doenças renais e crônicas</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="cardio" onclick="selectNutType(this)">
-        <span class="spec-icon">❤️</span><span class="spec-title">Cardiologia</span><span class="spec-desc">Risco e saúde cardiovascular</span>
+        <span class="spec-icon">🏥</span><span class="spec-title">Nutrição Clínica</span><span class="spec-desc">Doenças crônicas e internação</span>
       </button>
       <button class="spec-card nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
-        <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Educação e reeducação alimentar</span>
+        <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Saúde geral e prevenção</span>
       </button>
     </div>
     <button class="btn-primary" onclick="saveNutType()">Salvar especialidade</button>

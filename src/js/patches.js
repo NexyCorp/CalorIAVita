@@ -274,14 +274,14 @@ async function suggestDiseaseFormForPatient(patientId, diseases) {
 let _currentNutType = null;
 
 const NUT_SPECIALTY_META = {
-  clinica:    { label:'Nutrição Clínica',    icon:'🏥', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas','lab_glucose','lab_chol_total','lab_creatinine'] },
-  esportiva:  { label:'Nutrição Esportiva',  icon:'🏋️', badge:'specialty-sports',   metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
-  pediatria:  { label:'Nutrição Pediátrica', icon:'👶', badge:'specialty-pediatric', metrics:['peso_idade','estatura_idade','IMC_idade','aleitamento','desenvolvimento'] },
-  gestante:   { label:'Gestação & Lactação', icon:'🤰', badge:'specialty-pregnant',  metrics:['ganho_peso_gestacional','semana_gestacional','dpp','nausea','suplementos'] },
-  oncologia:  { label:'Oncologia',           icon:'🎗️', badge:'specialty-oncology',  metrics:['estado_nutricional','perda_peso','apetite','quimio_radioterapia','fadiga'] },
-  renal:      { label:'Nefrologia',          icon:'🫘', badge:'specialty-renal',     metrics:['potassio','fosforo','sodio','creatinina','ureia','dialise','restricao_proteina'] },
-  cardio:     { label:'Cardiologia',         icon:'❤️', badge:'specialty-cardio',    metrics:['colesterol','triglicerides','pressao','sodio','gordura_saturada','omega3'] },
-  geral:      { label:'Geral / Preventiva',  icon:'🌿', badge:'specialty-clinic',    metrics:['IMC','CC','habitos_gerais','hidratacao'] },
+  nutricionistas:    { label:'Nutricionista',      icon:'🥦', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas'] },
+  bariatrica:        { label:'Bariátrica',         icon:'🩺', badge:'specialty-renal',     metrics:['IMC','CC','lab_glucose','lab_chol_total','lab_creatinine'] },
+  esporte:           { label:'Esporte',            icon:'🏋️', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
+  personal_trainer:  { label:'Personal Trainer',   icon:'👟', badge:'specialty-cardio',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','hidratacao'] },
+  fisioterapeuta:    { label:'Fisioterapeuta',     icon:'🧬', badge:'specialty-oncology',  metrics:['IMC','CB','muscle_mass_kg','hidratacao'] },
+  estetica:          { label:'Estética',           icon:'✨', badge:'specialty-pregnant',  metrics:['IMC','CC','CQ','RCQ','pregas'] },
+  clinica:           { label:'Nutrição Clínica',   icon:'🏥', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas','lab_glucose','lab_chol_total','lab_creatinine'] },
+  geral:             { label:'Geral / Preventiva', icon:'🌿', badge:'specialty-clinic',    metrics:['IMC','CC','habitos_gerais','hidratacao'] }
 };
 
 function openNutTypeModal() {
