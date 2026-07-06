@@ -2800,7 +2800,8 @@ function closeLgpdModal() {
     <div class="modal-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Minha Especialidade</div>
     <p class="modal-sub">Selecionar sua área principal personaliza os formulários de anamnese e as métricas de acompanhamento.</p>
     <style>
-      .spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1.5rem; }
+      .spec-group-title { font-family:'Syne',sans-serif; font-weight:800; font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin: 1rem 0 0.5rem; letter-spacing:0.5px; }
+      .spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem; }
       .spec-card {
         background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius-mid);
         padding: 1rem; text-align: left; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2813,33 +2814,56 @@ function closeLgpdModal() {
       .spec-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.3; }
       @media(max-width: 400px) { .spec-grid { grid-template-columns: 1fr; } }
     </style>
-    <div class="spec-grid">
-      <button class="spec-card nut-type-select-btn" data-type="nutricionistas" onclick="selectNutType(this)">
-        <span class="spec-icon">🥦</span><span class="spec-title">Nutricionistas</span><span class="spec-desc">Alimentação, dietas e macros</span>
+    
+    <div class="spec-group-title">Cargo Principal</div>
+    <div class="spec-grid" style="grid-template-columns: 1fr;">
+      <button class="spec-card nut-type-select-btn" data-type="nutricionistas" onclick="selectNutType(this);toggleNutSubfields(this.classList.contains('active'))" style="flex-direction:row;align-items:center;gap:1rem;">
+        <span class="spec-icon">🥦</span>
+        <div style="flex:1;">
+          <span class="spec-title">Nutricionista</span>
+          <span class="spec-desc">Alimentação, dietas e acompanhamento nutricional</span>
+        </div>
       </button>
+    </div>
+
+    <!-- Sub-especialidades de Nutricionista -->
+    <div id="nutSubfieldsContainer" style="display:none;background:var(--bg-card);border:2px dashed var(--border);border-radius:var(--radius-mid);padding:1rem;margin-bottom:1rem;">
+      <div class="spec-group-title" style="margin-top:0;">Áreas de Atuação (Nutrição)</div>
+      <div class="spec-grid">
+        <button class="spec-card nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
+          <span class="spec-icon">🏥</span><span class="spec-title">Clínica</span><span class="spec-desc">Patologias e exames laboratoriais</span>
+        </button>
+        <button class="spec-card nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
+          <span class="spec-icon">🚴</span><span class="spec-title">Esportiva</span><span class="spec-desc">Hipertrofia, metas e rendimento</span>
+        </button>
+        <button class="spec-card nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
+          <span class="spec-icon">👶</span><span class="spec-title">Pediatria</span><span class="spec-desc">Acompanhamento infantil</span>
+        </button>
+        <button class="spec-card nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
+          <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Qualidade de vida básica</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="spec-group-title">Outras Especialidades</div>
+    <div class="spec-grid">
       <button class="spec-card nut-type-select-btn" data-type="bariatrica" onclick="selectNutType(this)">
         <span class="spec-icon">🩺</span><span class="spec-title">Bariátrica</span><span class="spec-desc">Acompanhamento pré e pós cirúrgico</span>
       </button>
       <button class="spec-card nut-type-select-btn" data-type="esporte" onclick="selectNutType(this)">
-        <span class="spec-icon">🏋️</span><span class="spec-title">Esporte</span><span class="spec-desc">Performance, hipertrofia e atletas</span>
+        <span class="spec-icon">🏋️</span><span class="spec-title">Esporte / Atletas</span><span class="spec-desc">Performance e preparação</span>
       </button>
       <button class="spec-card nut-type-select-btn" data-type="personal_trainer" onclick="selectNutType(this)">
-        <span class="spec-icon">👟</span><span class="spec-title">Personal Trainer</span><span class="spec-desc">Treinos físicos e metabólicos</span>
+        <span class="spec-icon">👟</span><span class="spec-title">Personal Trainer</span><span class="spec-desc">Treinamento físico e antropometria</span>
       </button>
       <button class="spec-card nut-type-select-btn" data-type="fisioterapeuta" onclick="selectNutType(this)">
-        <span class="spec-icon">🧬</span><span class="spec-title">Fisioterapeutas</span><span class="spec-desc">Reabilitação física e funcional</span>
+        <span class="spec-icon">🧬</span><span class="spec-title">Fisioterapeutas</span><span class="spec-desc">Reabilitação física e metabólica</span>
       </button>
       <button class="spec-card nut-type-select-btn" data-type="estetica" onclick="selectNutType(this)">
         <span class="spec-icon">✨</span><span class="spec-title">Estética</span><span class="spec-desc">Tratamentos corporais e beleza</span>
       </button>
-      <button class="spec-card nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
-        <span class="spec-icon">🏥</span><span class="spec-title">Nutrição Clínica</span><span class="spec-desc">Doenças crônicas e internação</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
-        <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Saúde geral e prevenção</span>
-      </button>
     </div>
-    <button class="btn-primary" onclick="saveNutType()">Salvar especialidade</button>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="saveNutType()">Salvar especialidade</button>
   </div>
 </div>
 

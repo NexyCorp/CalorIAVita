@@ -275,13 +275,15 @@ let _currentNutType = null;
 
 const NUT_SPECIALTY_META = {
   nutricionistas:    { label:'Nutricionista',      icon:'🥦', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas'] },
+  clinica:           { label:'Nutrição Clínica',   icon:'🏥', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas','lab_glucose','lab_chol_total','lab_creatinine'] },
+  esportiva:         { label:'Nutrição Esportiva',  icon:'🏋️', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
+  pediatria:         { label:'Nutrição Pediátrica', icon:'👶', badge:'specialty-pediatric', metrics:['IMC','CC','pregas'] },
+  geral:             { label:'Geral / Preventiva', icon:'🌿', badge:'specialty-clinic',    metrics:['IMC','CC','habitos_gerais','hidratacao'] },
   bariatrica:        { label:'Bariátrica',         icon:'🩺', badge:'specialty-renal',     metrics:['IMC','CC','lab_glucose','lab_chol_total','lab_creatinine'] },
   esporte:           { label:'Esporte',            icon:'🏋️', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
   personal_trainer:  { label:'Personal Trainer',   icon:'👟', badge:'specialty-cardio',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','hidratacao'] },
   fisioterapeuta:    { label:'Fisioterapeuta',     icon:'🧬', badge:'specialty-oncology',  metrics:['IMC','CB','muscle_mass_kg','hidratacao'] },
-  estetica:          { label:'Estética',           icon:'✨', badge:'specialty-pregnant',  metrics:['IMC','CC','CQ','RCQ','pregas'] },
-  clinica:           { label:'Nutrição Clínica',   icon:'🏥', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas','lab_glucose','lab_chol_total','lab_creatinine'] },
-  geral:             { label:'Geral / Preventiva', icon:'🌿', badge:'specialty-clinic',    metrics:['IMC','CC','habitos_gerais','hidratacao'] }
+  estetica:          { label:'Estética',           icon:'✨', badge:'specialty-pregnant',  metrics:['IMC','CC','CQ','RCQ','pregas'] }
 };
 
 function openNutTypeModal() {
@@ -289,9 +291,25 @@ function openNutTypeModal() {
   document.querySelectorAll('.nut-type-select-btn').forEach(b => {
     b.classList.toggle('active', currentTypes.includes(b.dataset.type));
   });
+  // Check if nutricionistas is active on load
+  const isNutActive = currentTypes.includes('nutricionistas');
+  toggleNutSubfields(isNutActive);
   document.getElementById('nutTypeModal').classList.add('show');
 }
 function closeNutTypeModal() { document.getElementById('nutTypeModal').classList.remove('show'); }
+
+window.toggleNutSubfields = function(show) {
+  const container = document.getElementById('nutSubfieldsContainer');
+  if (container) {
+    container.style.display = show ? 'block' : 'none';
+    if (!show) {
+      // De-select subfields if nutricionistas is turned off
+      container.querySelectorAll('.nut-type-select-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+    }
+  }
+};
 
 function selectNutType(btn) {
   btn.classList.toggle('active');
