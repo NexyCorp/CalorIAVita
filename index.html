@@ -8,18 +8,428 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CalorIA">
 <meta name="theme-color" content="#2a5c30">
-<title>CalorIA — Nutrição Inteligentes</title>
+<title>CalorIA Verde — Plataforma Nutricional com IA</title>
+<meta name="description" content="Plataforma de nutrição inteligente com IA para profissionais de saúde e seus pacientes.">
 <link rel="icon" type="image/png" id="dynamic-favicon" href="">
 <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
 <link rel="manifest" id="dynamic-manifest" href="">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
 
-<!-- AUTH OVERLAY -->
-<div id="authOverlay">
+<!-- ═══ LOADING OVERLAY ═══ -->
+<div id="loadingOverlay">
+  <div class="loading-logo-wrap">
+    <div class="loading-logo-ring"></div>
+    <div class="loading-logo-ring-2"></div>
+    <div class="loading-logo-text">Calor<span>IA</span></div>
+  </div>
+  <div class="loading-tagline">Nutrição Inteligente</div>
+  <div class="loading-dots">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<!-- ═══ LANDING PAGE ═══ -->
+<div id="landingPage" class="hidden">
+
+  <!-- Cursor customizado -->
+  <div class="lp-cursor-dot" id="lpCursorDot"></div>
+  <div class="lp-cursor-ring" id="lpCursorRing"></div>
+
+  <!-- Mobile Menu -->
+  <div class="lp-mobile-menu" id="lpMobileMenu">
+    <span class="lp-mobile-close" id="lpMobileClose">✕</span>
+    <a href="#lp-funcionalidades" onclick="closeLpMenu()">Funcionalidades</a>
+    <a href="#lp-como-funciona" onclick="closeLpMenu()">Como funciona</a>
+    <a href="#lp-planos" onclick="closeLpMenu()">Planos</a>
+    <a href="#lp-faq" onclick="closeLpMenu()">FAQ</a>
+    <button class="lp-btn-primary" onclick="closeLpMenu();openAuthOverlay()" style="margin-top:1rem;">Começar agora ↗</button>
+  </div>
+
+  <!-- NAV -->
+  <nav class="lp-nav" id="lpNav">
+    <a href="#" class="lp-nav-logo">Calor<span class="lp-logo-ia">IA</span> Verde</a>
+    <div class="lp-nav-links">
+      <a href="#lp-funcionalidades">Funcionalidades</a>
+      <a href="#lp-como-funciona">Como funciona</a>
+      <a href="#lp-planos">Planos</a>
+      <a href="#lp-faq">FAQ</a>
+    </div>
+    <button class="lp-nav-cta" onclick="openAuthOverlay()">Entrar / Cadastrar ↗</button>
+    <div class="lp-nav-hamburger" id="lpHamburger">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="lp-hero" id="lp-home">
+    <div class="lp-hero-bg-blob"></div>
+    <div class="lp-hero-bg-lines"></div>
+    <div class="lp-hero-decor-circle"></div>
+
+    <div class="lp-hero-left">
+      <div class="lp-hero-tag lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-tag-dot"></span>
+        Plataforma Nutricional com IA — 2025
+      </div>
+      <h1 class="lp-hero-headline lp-reveal" style="transition-delay:0.2s">
+        Nutrição<br>
+        <span class="hl-verde">inteligente</span><br>
+        para <span class="hl-mark">profissionais</span><br>
+        <span class="hl-outline">de verdade.</span>
+      </h1>
+      <p class="lp-hero-body lp-reveal" style="transition-delay:0.3s">
+        CalorIA Verde é a plataforma que você indica para seus pacientes — e ainda gerencia o progresso de todos em um painel unificado. IA de nutrição + acompanhamento em tempo real.
+      </p>
+      <div class="lp-hero-actions lp-reveal" style="transition-delay:0.4s">
+        <button class="lp-btn-primary" onclick="openAuthOverlay()">Começar agora ↗</button>
+        <a href="https://celadon-llama-666ed4.netlify.app/#app" class="lp-btn-ghost" target="_blank">Ver demonstração</a>
+      </div>
+      <div class="lp-hero-stats lp-reveal" style="transition-delay:0.5s">
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">120+</div>
+          <div class="lp-stat-label">Profissionais ativos</div>
+        </div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">4.9★</div>
+          <div class="lp-stat-label">Avaliação média</div>
+        </div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">900K+</div>
+          <div class="lp-stat-label">Alimentos na base</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-hero-right lp-reveal-right" style="transition-delay:0.25s">
+      <div class="lp-dashboard-mockup">
+        <div class="lp-dash-topbar">
+          <div class="lp-dash-dots"><span></span><span></span><span></span></div>
+          <div class="lp-dash-title">Painel do Profissional — CalorIA Verde</div>
+        </div>
+        <div class="lp-dash-body">
+          <div class="lp-dash-section-title">Pacientes ativos hoje</div>
+          <div class="lp-dash-patient-card">
+            <div class="lp-dash-avatar">ML</div>
+            <div class="lp-dash-info">
+              <div class="lp-dash-name">Maria Lima</div>
+              <div class="lp-dash-sub">1.840 kcal · meta: 1.900 kcal</div>
+            </div>
+            <div class="lp-dash-badge lp-badge-ok">No alvo</div>
+          </div>
+          <div class="lp-dash-patient-card">
+            <div class="lp-dash-avatar" style="background:linear-gradient(135deg,#e84c2b,#ff7555)">JS</div>
+            <div class="lp-dash-info">
+              <div class="lp-dash-name">João Silva</div>
+              <div class="lp-dash-sub">2.430 kcal · meta: 2.100 kcal</div>
+            </div>
+            <div class="lp-dash-badge lp-badge-no">Acima</div>
+          </div>
+          <div class="lp-dash-patient-card">
+            <div class="lp-dash-avatar" style="background:linear-gradient(135deg,#d4a017,#f5c842)">AC</div>
+            <div class="lp-dash-info">
+              <div class="lp-dash-name">Ana Costa</div>
+              <div class="lp-dash-sub">680 kcal · meta: 1.800 kcal</div>
+            </div>
+            <div class="lp-dash-badge lp-badge-at">Atenção</div>
+          </div>
+          <div class="lp-dash-kpi-row">
+            <div class="lp-dash-kpi"><div class="lp-dash-kpi-num">14</div><div class="lp-dash-kpi-label">Pacientes</div></div>
+            <div class="lp-dash-kpi"><div class="lp-dash-kpi-num">92%</div><div class="lp-dash-kpi-label">Adesão</div></div>
+            <div class="lp-dash-kpi"><div class="lp-dash-kpi-num">6</div><div class="lp-dash-kpi-label">Planos</div></div>
+          </div>
+          <div class="lp-dash-ai-chip">
+            <div style="font-size:1.4rem;">🤖</div>
+            <div class="lp-dash-ai-text"><strong>IA detectou:</strong> João ultrapassou a meta calórica por 3 dias seguidos. Recomendação automática gerada.</div>
+          </div>
+        </div>
+      </div>
+      <div class="lp-float-pill lp-p1"><div class="lp-pdot"></div>IA analisa por foto 📷</div>
+      <div class="lp-float-pill lp-p2"><div class="lp-pdot"></div>Diário em tempo real 🔄</div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="lp-marquee-strip">
+    <div class="lp-marquee-track">
+      <div class="lp-marquee-item"><span>📸</span> Câmera IA <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥦</span> 900K+ Alimentos <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📊</span> Painel do Profissional <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>⚡</span> Cálculo de TMB e TDEE <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥗</span> Receitas saudáveis <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🔒</span> LGPD compliant <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📱</span> 100% responsivo <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🏥</span> Ideal para clínicas <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📸</span> Câmera IA <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥦</span> 900K+ Alimentos <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📊</span> Painel do Profissional <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>⚡</span> Cálculo de TMB e TDEE <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥗</span> Receitas saudáveis <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🔒</span> LGPD compliant <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📱</span> 100% responsivo <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🏥</span> Ideal para clínicas <span class="lp-marquee-sep">◆</span></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="lp-features" id="lp-funcionalidades">
+    <div class="lp-features-bg-text">NUTRIÇÃO</div>
+    <div class="lp-features-hdr">
+      <div class="lp-section-badge lp-reveal">Funcionalidades</div>
+      <h2 class="lp-section-h lp-reveal">Tudo que o profissional<br><em>precisa</em> em um lugar só.</h2>
+    </div>
+    <div class="lp-feat-grid">
+      <div class="lp-fc lp-fc-1 lp-reveal-left">
+        <div class="lp-fc-chip">⭐ Destaque principal</div>
+        <div class="lp-fc-title">Painel de pacientes com acompanhamento em tempo real</div>
+        <p class="lp-fc-body">Veja o diário alimentar de cada paciente, receba alertas inteligentes quando alguém ultrapassa ou fica abaixo da meta calórica, e acompanhe a evolução semanal sem precisar pedir foto por WhatsApp.</p>
+        <div><div class="lp-fc-num">14+</div><div class="lp-fc-num-label">pacientes por profissional</div></div>
+      </div>
+      <div class="lp-fc lp-fc-2 lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-fc-icon">📷</span>
+        <div class="lp-fc-title">Câmera IA identifica alimentos</div>
+        <p class="lp-fc-body">O paciente fotografa o prato e a IA retorna automaticamente calorias, macros e informações nutricionais completas.</p>
+      </div>
+      <div class="lp-fc lp-fc-3 lp-reveal" style="transition-delay:0.15s">
+        <span class="lp-fc-icon">🔍</span>
+        <div class="lp-fc-title">Base com 900 mil+ alimentos</div>
+        <p class="lp-fc-body">Dados TACO e USDA integrados. Busca em português com resultados por porção.</p>
+        <div class="lp-nutrient-bar">
+          <div class="lp-nt-row"><span class="lp-nt-label">Proteína</span><div class="lp-nt-track"><div class="lp-nt-fill lp-nf-prot" style="width:62%"></div></div><span class="lp-nt-val">26g</span></div>
+          <div class="lp-nt-row"><span class="lp-nt-label">Carboidr.</span><div class="lp-nt-track"><div class="lp-nt-fill lp-nf-carb" style="width:48%"></div></div><span class="lp-nt-val">20g</span></div>
+          <div class="lp-nt-row"><span class="lp-nt-label">Gordura</span><div class="lp-nt-track"><div class="lp-nt-fill lp-nf-gord" style="width:30%"></div></div><span class="lp-nt-val">12g</span></div>
+        </div>
+      </div>
+      <div class="lp-fc lp-fc-4 lp-reveal" style="transition-delay:0.05s">
+        <span class="lp-fc-icon">⚡</span>
+        <div class="lp-fc-title" style="color:white;">Calculadora TMB + TDEE</div>
+        <p class="lp-fc-body" style="color:rgba(255,255,255,0.6)">Harris-Benedict com ajuste por nível de atividade. Distribui macros automaticamente.</p>
+      </div>
+      <div class="lp-fc lp-fc-5 lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-fc-icon">📖</span>
+        <div class="lp-fc-title">Diário alimentar por refeição</div>
+        <p class="lp-fc-body">Café, almoço, lanche e jantar com barra de progresso de macros em tempo real.</p>
+      </div>
+      <div class="lp-fc lp-fc-6 lp-reveal" style="transition-delay:0.15s">
+        <span class="lp-fc-icon">⚖️</span>
+        <div class="lp-fc-title" style="color:white;">Comparador de alimentos</div>
+        <p class="lp-fc-body" style="color:rgba(255,255,255,0.85)">Compare dois alimentos lado a lado em calorias, proteínas, carboidratos e gorduras.</p>
+      </div>
+      <div class="lp-fc lp-fc-7 lp-reveal" style="transition-delay:0.05s">
+        <span class="lp-fc-icon">🥗</span>
+        <div class="lp-fc-title" style="color:white;">Receitas saudáveis com IA</div>
+        <p class="lp-fc-body" style="color:rgba(255,255,255,0.8)">Receitas filtradas por objetivo e geradas por inteligência artificial sob demanda.</p>
+      </div>
+      <div class="lp-fc lp-fc-8 lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-fc-icon">📋</span>
+        <div class="lp-fc-title">Planos alimentares personalizados</div>
+        <p class="lp-fc-body">Monte e envie planos detalhados para cada paciente com um clique.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="lp-how" id="lp-como-funciona">
+    <div class="lp-section-badge lp-reveal">Como funciona</div>
+    <h2 class="lp-section-h lp-reveal" style="margin-top:0.5rem">Em 4 passos você já está<br><em>usando com seus pacientes</em></h2>
+    <div class="lp-how-grid">
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.05s">
+        <div class="lp-step-num-circle">1</div>
+        <div class="lp-step-title">Crie sua conta de profissional</div>
+        <p class="lp-step-body">Cadastre-se como profissional de saúde. Menos de 2 minutos.</p>
+      </div>
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.12s">
+        <div class="lp-step-num-circle">2</div>
+        <div class="lp-step-title">Convide seus pacientes</div>
+        <p class="lp-step-body">Envie o link pelo WhatsApp. O paciente cria a conta e já fica vinculado a você.</p>
+      </div>
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.2s">
+        <div class="lp-step-num-circle">3</div>
+        <div class="lp-step-title">Configure as metas individuais</div>
+        <p class="lp-step-body">Defina calorias e macros para cada paciente dentro do painel.</p>
+      </div>
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.28s">
+        <div class="lp-step-num-circle">4</div>
+        <div class="lp-step-title">Acompanhe em tempo real</div>
+        <p class="lp-step-body">Veja o diário de todos os pacientes, receba alertas e intervenha quando necessário.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROVA SOCIAL -->
+  <section class="lp-social-proof">
+    <div class="lp-section-badge lp-reveal" style="color:#b5f05a">Números que provam</div>
+    <h2 class="lp-section-h lp-reveal" style="color:#fff;margin-top:0.5rem">Resultados <em style="color:#b5f05a">reais</em> de profissionais</h2>
+    <div class="lp-sp-grid">
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.05s"><div class="lp-sp-num">120+</div><div class="lp-sp-label">Profissionais ativos na plataforma</div></div>
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.1s"><div class="lp-sp-num">900K+</div><div class="lp-sp-label">Alimentos na base de dados</div></div>
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.15s"><div class="lp-sp-num">4.9★</div><div class="lp-sp-label">Avaliação média dos usuários</div></div>
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.2s"><div class="lp-sp-num">98%</div><div class="lp-sp-label">Taxa de satisfação dos pacientes</div></div>
+    </div>
+  </section>
+
+  <!-- PREÇOS -->
+  <section class="lp-pricing" id="lp-planos">
+    <div class="lp-pricing-hdr">
+      <div class="lp-section-badge lp-reveal" style="margin:0 auto 1rem;">Planos</div>
+      <h2 class="lp-section-h lp-reveal">Escolha o plano <em>ideal</em></h2>
+    </div>
+    <div class="lp-pricing-grid">
+      <!-- Gratuito -->
+      <div class="lp-plan-card lp-reveal">
+        <div class="lp-plan-name">Gratuito</div>
+        <div class="lp-plan-price">R$0</div>
+        <div class="lp-plan-period">/mês — para sempre</div>
+        <div class="lp-plan-desc">Ideal para começar a registrar sua alimentação e aprender sobre nutrição.</div>
+        <ul class="lp-plan-features">
+          <li><span class="lp-plan-check">✓</span>Diário alimentar</li>
+          <li><span class="lp-plan-check">✓</span>Busca de alimentos</li>
+          <li><span class="lp-plan-check">✓</span>Calculadora calórica</li>
+          <li><span class="lp-plan-check">✓</span>Receitas básicas</li>
+        </ul>
+        <button class="lp-btn-plan" onclick="openAuthOverlay()">Começar grátis</button>
+      </div>
+      <!-- Standard Pro (featured) -->
+      <div class="lp-plan-card featured lp-reveal" style="transition-delay:0.1s">
+        <div class="lp-plan-featured-badge">MAIS POPULAR</div>
+        <div class="lp-plan-name">Standard Pro</div>
+        <div class="lp-plan-price">R$25</div>
+        <div class="lp-plan-period">/mês</div>
+        <div class="lp-plan-desc">Para usuários que querem o melhor da plataforma para sua própria saúde.</div>
+        <ul class="lp-plan-features">
+          <li><span class="lp-plan-check">✓</span>Tudo do Gratuito</li>
+          <li><span class="lp-plan-check">✓</span>Câmera IA ilimitada</li>
+          <li><span class="lp-plan-check">✓</span>Dieta IA personalizada</li>
+          <li><span class="lp-plan-check">✓</span>Relatório em PDF</li>
+          <li><span class="lp-plan-check">✓</span>Histórico avançado</li>
+        </ul>
+        <button class="lp-btn-plan" onclick="openAuthOverlay()">Assinar agora</button>
+      </div>
+      <!-- Professional -->
+      <div class="lp-plan-card lp-reveal" style="transition-delay:0.2s">
+        <div class="lp-plan-name">Professional</div>
+        <div class="lp-plan-price">R$100+</div>
+        <div class="lp-plan-period">/mês</div>
+        <div class="lp-plan-desc">Para nutricionistas, personal trainers e outros profissionais de saúde que atendem pacientes.</div>
+        <ul class="lp-plan-features">
+          <li><span class="lp-plan-check">✓</span>Tudo do Standard Pro</li>
+          <li><span class="lp-plan-check">✓</span>Painel de pacientes</li>
+          <li><span class="lp-plan-check">✓</span>Canal direto com pacientes</li>
+          <li><span class="lp-plan-check">✓</span>Prontuário clínico</li>
+          <li><span class="lp-plan-check">✓</span>Planos alimentares</li>
+        </ul>
+        <button class="lp-btn-plan" onclick="openAuthOverlay()">Solicitar acesso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEPOIMENTOS -->
+  <section class="lp-testi">
+    <div class="lp-section-badge lp-reveal">Depoimentos</div>
+    <h2 class="lp-section-h lp-reveal">O que dizem os <em>profissionais</em></h2>
+    <div class="lp-testi-grid">
+      <div class="lp-testi-card lp-reveal" style="transition-delay:0.05s">
+        <div class="lp-testi-stars">★★★★★</div>
+        <p class="lp-testi-text">"Transformou completamente meu consultório. Antes eu precisava de 3 apps diferentes — agora tudo está em um lugar só. Meus pacientes adoram o diário por foto."</p>
+        <div class="lp-testi-author">
+          <div class="lp-testi-av">AM</div>
+          <div><div class="lp-testi-name">Ana Martins</div><div class="lp-testi-role">Nutricionista Clínica — SP</div></div>
+        </div>
+      </div>
+      <div class="lp-testi-card lp-reveal" style="transition-delay:0.1s">
+        <div class="lp-testi-stars">★★★★★</div>
+        <p class="lp-testi-text">"A câmera IA é incrível! Meus pacientes finalmente conseguem registrar as refeições sem complicação. A adesão ao tratamento aumentou muito."</p>
+        <div class="lp-testi-author">
+          <div class="lp-testi-av">RC</div>
+          <div><div class="lp-testi-name">Ricardo Costa</div><div class="lp-testi-role">Endocrinologista — RJ</div></div>
+        </div>
+      </div>
+      <div class="lp-testi-card lp-reveal" style="transition-delay:0.15s">
+        <div class="lp-testi-stars">★★★★★</div>
+        <p class="lp-testi-text">"O painel em tempo real me permite intervir antes que o problema vire uma crise. Já indiquei para todos os colegas do consultório."</p>
+        <div class="lp-testi-author">
+          <div class="lp-testi-av">FS</div>
+          <div><div class="lp-testi-name">Fernanda Souza</div><div class="lp-testi-role">Nutricionista Esportiva — MG</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="lp-faq-section" id="lp-faq">
+    <div class="lp-section-badge lp-reveal">FAQ</div>
+    <h2 class="lp-section-h lp-reveal">Perguntas <em>frequentes</em></h2>
+    <div class="lp-faq-list">
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          O plano gratuito tem limite de uso?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">O plano gratuito inclui o diário alimentar, busca de alimentos e calculadora calórica sem limite de dias. Funcionalidades avançadas como câmera IA ilimitada e dieta personalizada requerem upgrade.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Como funciona o acesso dos meus pacientes?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Você convida o paciente por e-mail ou cria a conta diretamente pelo painel. Ele recebe acesso Pro automaticamente enquanto estiver vinculado a você, sem custo adicional para o paciente.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Meus dados e os dos pacientes são seguros?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Sim. Todos os dados são armazenados com criptografia e a plataforma é 100% compatível com a LGPD (Lei 13.709/2018). Não compartilhamos informações com terceiros.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Posso cancelar a qualquer momento?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Sim. Não há fidelidade. Você pode cancelar ou fazer downgrade a qualquer momento pelo próprio painel de configurações.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Funciona em celular?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Sim! A plataforma é 100% responsiva e funciona perfeitamente em qualquer dispositivo — smartphone, tablet ou computador. Você pode até instalar como app no seu celular (PWA).</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="lp-cta-final">
+    <div class="lp-cta-final-bg"></div>
+    <div class="lp-cta-final-deco"></div>
+    <div class="lp-cta-final-tag lp-reveal">🚀 Começar é gratuito</div>
+    <h2 class="lp-cta-final-h lp-reveal">Leve sua prática profissional para o <em>próximo nível</em></h2>
+    <p class="lp-cta-final-sub lp-reveal">Junte-se a mais de 120 profissionais que já transformaram seus consultórios com a CalorIA Verde.</p>
+    <div class="lp-cta-final-actions lp-reveal">
+      <button class="lp-btn-primary" onclick="openAuthOverlay()">Criar conta grátis ↗</button>
+      <button class="lp-btn-ghost" onclick="openAuthOverlay()">Já tenho conta — Entrar</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="lp-footer">
+    <div class="lp-footer-logo">Calor<span class="ia">IA</span> Verde</div>
+    <div class="lp-footer-links">
+      <a href="#lp-funcionalidades">Funcionalidades</a>
+      <a href="#lp-como-funciona">Como funciona</a>
+      <a href="#lp-planos">Planos</a>
+      <a href="#lp-faq">FAQ</a>
+    </div>
+    <div class="lp-footer-copy">© 2025 CalorIA Verde · LGPD compliant · Todos os direitos reservados</div>
+  </footer>
+
+</div><!-- /landingPage -->
+
+<!-- ═══ AUTH OVERLAY ═══ -->
+<div id="authOverlay" class="hidden">
   <div class="auth-card">
     <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:56px;width:auto;display:block;"><span>Calor<span class="logo-accent">IA</span></span></div>
     <p class="auth-tagline" data-i18n="auth_tagline">Nutrição inteligente para uma vida mais saudável <i class="fa-solid fa-leaf ic-leaf"></i></p>

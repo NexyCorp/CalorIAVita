@@ -213,9 +213,9 @@ function renderSidebarUser() {
     if (isAdmin()) return '<i class="fa-solid fa-gear ic-admin"></i> Admin';
     if (isProfessionalGold()) return '<i class="fa-solid fa-hospital ic-stethoscope"></i> Prof. Gold';
     if (isProfessionalBasic()) return '<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Prof. Basic';
-    if (isPatientGold()) return '<i class="fa-solid fa-star ic-star"></i> Paciente+';
+    if (isPatientGold()) return '<i class="fa-solid fa-star ic-star"></i> Paciente Gold';
     if (isPatient()) return '<i class="fa-solid fa-star ic-star"></i> Paciente';
-    if (isStandardPro()) return '<i class="fa-solid fa-star ic-star"></i> Pro';
+    if (isStandardPro()) return '<i class="fa-solid fa-star ic-star"></i> Standard Pro';
     return '<i class="fa-solid fa-seedling ic-leaf"></i> Gratuito';
   }
   function _getPlanClass() {
@@ -230,9 +230,9 @@ function renderSidebarUser() {
     if (isAdmin()) return 'Admin';
     if (isProfessionalGold()) return 'Prof. Gold';
     if (isProfessionalBasic()) return 'Prof. Basic';
-    if (isPatientGold()) return 'Paciente+';
+    if (isPatientGold()) return 'Paciente Gold';
     if (isPatient()) return 'Paciente';
-    if (isStandardPro()) return 'Pro';
+    if (isStandardPro()) return 'Standard Pro';
     return 'Gratuito';
   }
   function _getPlanBadgeClass() {

@@ -13,5 +13,6 @@ import './js/professional.js';
 import './js/admin.js';
 import './js/account.js';
 import './js/patches.js';
+import './js/landing.js';
 
 console.log('[CalorIA] Entrada principal carregada e módulos ES importados com sucesso!');

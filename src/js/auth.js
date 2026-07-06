@@ -454,6 +454,10 @@ async function initApp(user) {
 
 function showApp(user) {
   document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('landingPage').classList.add('hidden');
+  // Hide loading overlay with a short delay for smoothness
+  const lo = document.getElementById('loadingOverlay');
+  if (lo) setTimeout(() => lo.classList.add('hidden'), 400);
   document.getElementById('appShell').classList.add('visible');
   document.getElementById('appShell').style.display = 'flex';
   startProfileRealtime(user.id);
@@ -564,9 +568,15 @@ function applyProfileUpdate(newData) {
     _cookieDel(_CV_COOKIE);
     _appInitialized = false; _initAppRunning = false;
     currentUser = null; currentProfile = null;
-    document.getElementById('authOverlay').classList.remove('hidden');
+    // Hide loading overlay, show landing page instead of auth
+    const lo = document.getElementById('loadingOverlay');
+    if (lo) lo.classList.add('hidden');
+    document.getElementById('landingPage').classList.remove('hidden');
+    document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('appShell').classList.remove('visible');
     document.getElementById('appShell').style.display = 'none';
+    // Init landing page JS
+    if (typeof initLandingPage === 'function') initLandingPage();
   }
 });
 
@@ -587,10 +597,21 @@ setTimeout(() => {
       setAuthLoading(false);
       _loadAppDataInBackground();
     } else {
+      // No user — show landing page
       setAuthLoading(false);
+      const lo = document.getElementById('loadingOverlay');
+      if (lo) lo.classList.add('hidden');
+      document.getElementById('landingPage').classList.remove('hidden');
+      document.getElementById('authOverlay').classList.add('hidden');
+      if (typeof initLandingPage === 'function') initLandingPage();
     }
   }
 }, 8000);
+
+// ═══ GLOBAL HELPERS FOR LANDING PAGE ═══
+window.openAuthOverlay = function() {
+  document.getElementById('authOverlay').classList.remove('hidden');
+};
 
 // Expor funções e variáveis para o escopo global
 window.switchAuthTab = switchAuthTab;
@@ -609,3 +630,4 @@ window.completeOnboarding = completeOnboarding;
 window.doLogout = doLogout;
 window.initApp = initApp;
 window.forceRefreshProfile = forceRefreshProfile;
+window.showApp = showApp;
