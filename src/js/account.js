@@ -1791,10 +1791,7 @@ function closeDiseaseFormModal() {
 async function saveDiseaseFormData() {
   const disease = _diseaseFormState.disease;
   const patientId = _diseaseFormState.patientId;
-  let questions = _diseaseQuestionBanks[disease];
-  if (!questions && _diseaseFormState._aiSections) {
-    questions = { sections: _diseaseFormState._aiSections };
-  }
+  let questions = _diseaseFormState._aiSections ? { sections: _diseaseFormState._aiSections } : _diseaseQuestionBanks[disease];
   if (!questions) {
     showToast('Estrutura de perguntas não encontrada.', 'error');
     return;

@@ -586,7 +586,15 @@ async function loadPatients() {
           ...(a.diseases_chronic_auto || [])
         ];
         if (a.diseases_other) {
-          anamneseMap[a.patient_id].push(a.diseases_other);
+          let cleanedOther = a.diseases_other;
+          const formIdx = cleanedOther.indexOf('[');
+          if (formIdx !== -1) {
+            cleanedOther = cleanedOther.slice(0, formIdx);
+          }
+          cleanedOther = cleanedOther.trim();
+          if (cleanedOther) {
+            anamneseMap[a.patient_id].push(cleanedOther);
+          }
         }
       });
     }
