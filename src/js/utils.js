@@ -764,8 +764,15 @@ function setLanguage(lang) {
 function initTheme() {
   const saved = localStorage.getItem('cv_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
-  document.getElementById('themeBtn').innerHTML = saved === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
-  setTimeout(updateLogos, 50);
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) {
+    themeBtn.innerHTML = saved === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
+  }
+  const lpThemeBtn = document.getElementById('lpThemeBtn');
+  if (lpThemeBtn) {
+    lpThemeBtn.innerHTML = saved === 'dark' ? '☀️' : '🌙';
+  }
+  if (typeof updateLogos === 'function') setTimeout(updateLogos, 50);
 }
 
 function toggleTheme() {
@@ -773,8 +780,15 @@ function toggleTheme() {
   const next = cur === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('cv_theme', next);
-  document.getElementById('themeBtn').innerHTML = next === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
-  updateLogos();
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) {
+    themeBtn.innerHTML = next === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
+  }
+  const lpThemeBtn = document.getElementById('lpThemeBtn');
+  if (lpThemeBtn) {
+    lpThemeBtn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+  }
+  if (typeof updateLogos === 'function') updateLogos();
 }
 initTheme();
 

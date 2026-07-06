@@ -51,14 +51,20 @@
 
   <!-- NAV -->
   <nav class="lp-nav" id="lpNav">
-    <a href="#" class="lp-nav-logo">Calor<span class="lp-logo-ia">IA</span> Verde</a>
+    <a href="#" class="lp-nav-logo" style="display:flex;align-items:center;gap:0.5rem;">
+      <img class="app-logo-img" src="" alt="CalorIA" style="height:32px;width:auto;display:block;">
+      Calor<span class="lp-logo-ia">IA</span> Verde
+    </a>
     <div class="lp-nav-links">
       <a href="#lp-funcionalidades">Funcionalidades</a>
       <a href="#lp-como-funciona">Como funciona</a>
       <a href="#lp-planos">Planos</a>
       <a href="#lp-faq">FAQ</a>
     </div>
-    <button class="lp-nav-cta" onclick="openAuthOverlay()">Entrar / Cadastrar ↗</button>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <button id="lpThemeBtn" onclick="toggleTheme()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;padding:0.25rem;">🌙</button>
+      <button class="lp-nav-cta" onclick="openAuthOverlay()">Entrar / Cadastrar ↗</button>
+    </div>
     <div class="lp-nav-hamburger" id="lpHamburger">
       <span></span><span></span><span></span>
     </div>
@@ -416,7 +422,10 @@
 
   <!-- FOOTER -->
   <footer class="lp-footer">
-    <div class="lp-footer-logo">Calor<span class="ia">IA</span> Verde</div>
+    <div class="lp-footer-logo" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+      <img class="app-logo-img" src="" alt="CalorIA" style="height:28px;width:auto;display:block;">
+      Calor<span class="ia">IA</span> Verde
+    </div>
     <div class="lp-footer-links">
       <a href="#lp-funcionalidades">Funcionalidades</a>
       <a href="#lp-como-funciona">Como funciona</a>
@@ -429,7 +438,7 @@
 </div><!-- /landingPage -->
 
 <!-- ═══ AUTH OVERLAY ═══ -->
-<div id="authOverlay" class="hidden">
+<div id="authOverlay" class="hidden" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="auth-card">
     <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:56px;width:auto;display:block;"><span>Calor<span class="logo-accent">IA</span></span></div>
     <p class="auth-tagline" data-i18n="auth_tagline">Nutrição inteligente para uma vida mais saudável <i class="fa-solid fa-leaf ic-leaf"></i></p>

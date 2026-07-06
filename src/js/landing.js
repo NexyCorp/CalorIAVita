@@ -13,7 +13,7 @@ window.initLandingPage = function() {
       const elementTop = el.getBoundingClientRect().top;
       const elementVisible = 100;
       if (elementTop < windowHeight - elementVisible) {
-        el.classList.add('active');
+        el.classList.add('visible');
       }
     });
   };
