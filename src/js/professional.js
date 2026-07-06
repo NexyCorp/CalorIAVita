@@ -997,15 +997,33 @@ async function refreshAdminUsers() {
 }
 
 function renderAdminTable(users) {
-  const roleLabels = { standard:'Padrão', patient:'Paciente', nutricionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
-  const planLabels = { 
-    free:'Gratuito', pro:'Pro (Basic)', gold:'Prof. Gold', admin:'Admin',
-    patient_pro: 'Paciente+', patient_clinic: 'Paciente Gold'
-  };
-  const planBadge = { 
-    free:'badge-free', pro:'badge-pro', gold:'badge-clinic', admin:'badge-admin',
-     patient_pro:'badge-pro', patient_clinic:'badge-clinic'
-  };
+  const roleLabels = { standard:'Padrão', patient:'Paciente', professional:'Profissional', nutritionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
+
+  // Label depende de role + plan para distinguir Standard Pro de Prof. Basic (ambos usam plan='pro')
+  function getPlanLabel(role, plan) {
+    if (plan === 'admin')  return 'Admin';
+    if (plan === 'free')   return 'Gratuito';
+    if (plan === 'gold' || plan === 'clinic') return 'Prof. Gold';
+    if (plan === 'pro') {
+      return (role === 'professional' || role === 'nutritionist') ? 'Prof. Basic' : 'Standard Pro';
+    }
+    if (plan === 'patient_gold'  || plan === 'patient_clinic') return 'Paciente Gold';
+    if (plan === 'patient_basic' || plan === 'patient_pro')    return 'Paciente Basic';
+    if (plan === 'standard_pro') return 'Standard Pro';
+    if (plan === 'nutritionist_pro')    return 'Prof. Basic';
+    if (plan === 'nutritionist_clinic') return 'Prof. Gold';
+    return plan || 'Gratuito';
+  }
+  function getPlanBadge(role, plan) {
+    if (plan === 'admin') return 'badge-admin';
+    if (plan === 'gold' || plan === 'clinic') return 'badge-clinic';
+    if (plan === 'pro') return (role === 'professional' || role === 'nutritionist') ? 'badge-clinic' : 'badge-pro';
+    if (plan === 'patient_gold' || plan === 'patient_clinic') return 'badge-clinic';
+    if (plan === 'patient_basic' || plan === 'patient_pro')   return 'badge-pro';
+    if (plan === 'standard_pro' || plan === 'nutritionist_pro' || plan === 'nutritionist_clinic') return 'badge-pro';
+    return 'badge-free';
+  }
+
   const tbody = document.getElementById('adminTableBody');
   if (!tbody) return;
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum usuário.</td></tr>'; return; }
@@ -1015,6 +1033,9 @@ function renderAdminTable(users) {
     try { if (u.created_at) date = new Date(u.created_at).toLocaleDateString('pt-BR'); } catch(e){}
     if (date === 'Invalid Date' || date === 'Data Inválida') date = '—';
     const safePlan = u.plan || 'free';
+    const safeRole = u.role || 'standard';
+    const planLabel = getPlanLabel(safeRole, safePlan);
+    const planBadgeClass = getPlanBadge(safeRole, safePlan);
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:0.5rem;">
         <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:white;flex-shrink:0;">${initials}</div>
@@ -1022,27 +1043,28 @@ function renderAdminTable(users) {
       </div></td>
       <td style="color:var(--text-muted);font-size:0.8rem;">${u.email||'—'}</td>
       <td><select class="plan-select" id="roleSel-${u.id}" style="min-width:100px;">
-        <option value="standard" ${(u.role||'standard')==='standard'?'selected':''}>Padrão</option>
-        <option value="patient" ${u.role==='patient'?'selected':''}>Paciente</option>
-        <option value="nutritionist" ${u.role==='nutritionist'?'selected':''}>Nutricionista</option>
-        <option value="personal_trainer" ${u.role==='personal_trainer'?'selected':''}>Personal</option>
-        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+        <option value="standard" ${safeRole==='standard'?'selected':''}>Padrão</option>
+        <option value="patient" ${safeRole==='patient'?'selected':''}>Paciente</option>
+        <option value="professional" ${safeRole==='professional'?'selected':''}>Profissional</option>
+        <option value="personal_trainer" ${safeRole==='personal_trainer'?'selected':''}>Personal</option>
+        <option value="admin" ${safeRole==='admin'?'selected':''}>Admin</option>
       </select></td>
-      <td><span class="plan-badge-inline ${planBadge[safePlan] || 'badge-free'}">${planLabels[safePlan] || safePlan}</span></td>
+      <td><span class="plan-badge-inline ${planBadgeClass}">${planLabel}</span></td>
       <td style="color:var(--text-muted);font-size:0.78rem;">${date}</td>
       <td><div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
         <select class="plan-select" id="planSel-${u.id}">
-          <option value="free" ${safePlan==='free'?'selected':''}>Gratuito</option>
-          <option value="patient_pro" ${safePlan==='patient_pro'?'selected':''}>Paciente+</option>
-          <option value="patient_clinic" ${safePlan==='patient_clinic'?'selected':''}>Paciente Gold</option>
-          <option value="pro" ${safePlan==='pro'?'selected':''}>Prof. Basic (R$100)</option>
-          <option value="gold" ${safePlan==='gold'?'selected':''}>Prof. Gold (R$197)</option>
-          <option value="admin" ${safePlan==='admin'?'selected':''}>Admin</option>
+          <option value="free"          ${safePlan==='free'?'selected':''}>Gratuito</option>
+          <option value="pro"           ${safePlan==='pro'?'selected':''}>Standard Pro / Prof. Basic</option>
+          <option value="gold"          ${safePlan==='gold'?'selected':''}>Prof. Gold (R$197)</option>
+          <option value="patient_basic" ${safePlan==='patient_basic'||safePlan==='patient_pro'?'selected':''}>Paciente Basic</option>
+          <option value="patient_gold"  ${safePlan==='patient_gold'||safePlan==='patient_clinic'?'selected':''}>Paciente Gold</option>
+          <option value="admin"         ${safePlan==='admin'?'selected':''}>Admin</option>
         </select>
         <button class="btn-save-plan" onclick="savePlan('${u.id}')">Salvar</button>
       </div></td>
     </tr>`;
   }).join('');
+
 }
 
 function filterAdminTable() {

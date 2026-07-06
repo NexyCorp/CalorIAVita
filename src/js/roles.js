@@ -12,13 +12,15 @@ function getUserRole() { return currentProfile?.role || 'standard'; }
 // patient vinculado a Professional Basic → plan:'patient_basic',   role:'patient'
 // patient vinculado a Professional Gold  → plan:'patient_gold', role:'patient'
 
+// ── Nota: legado (patient_clinic, nutritionist role, clinic plan) mantido como fallback ──
 function isStandardFree()       { return getUserRole()==='standard' && getUserPlan()==='free'; }
 function isStandardPro()        { return getUserRole()==='standard' && (getUserPlan()==='pro'||getUserPlan()==='standard_pro'); }
 function isPatient()            { return getUserRole()==='patient'; }
-function isPatientGold()        { return getUserRole()==='patient' && (getUserPlan()==='patient_gold'||getUserPlan()==='patient_clinic'||getUserPlan()==='gold'); }
-function isProfessionalGold()   { return getUserRole()==='professional' && (getUserPlan()==='gold'||getUserPlan()==='admin'); }
-function isProfessionalBasic()  { return getUserRole()==='professional' && getUserPlan()==='pro'; }
-function isProfessional()       { return ['professional','admin'].includes(getUserRole()); }
+function isPatientBasic()       { return getUserRole()==='patient' && (getUserPlan()==='patient_basic'||getUserPlan()==='patient_pro'); } // basic = vinculado a Prof. Basic
+function isPatientGold()        { return getUserRole()==='patient' && (getUserPlan()==='patient_gold'||getUserPlan()==='patient_clinic'||getUserPlan()==='gold'); } // gold = vinculado a Prof. Gold
+function isProfessionalGold()   { return (getUserRole()==='professional'||getUserRole()==='nutritionist') && (getUserPlan()==='gold'||getUserPlan()==='clinic'||getUserPlan()==='admin'); }
+function isProfessionalBasic()  { return (getUserRole()==='professional'||getUserRole()==='nutritionist') && getUserPlan()==='pro'; }
+function isProfessional()       { return ['professional','nutritionist','admin'].includes(getUserRole()); }
 function isAdmin()              { return getUserRole()==='admin' || getUserPlan()==='admin'; }
 function isGold()               { return isProfessionalGold() || isAdmin(); }
 // Aliases de compatibilidade (isNutritionistClinic = Professional Gold, isNutritionistPro = Professional Basic)
@@ -32,7 +34,7 @@ function isPro() {
   if (isProfessional()) return true;     // profissionais sempre têm acesso pro ao menos
   if (isPatient()) return true;          // pacientes vinculados têm acesso ao app
   const p = getUserPlan();
-  return p==='pro'||p==='clinic'||p==='standard_pro'||p==='nutritionist_pro'||p==='nutritionist_clinic';
+  return p==='pro'||p==='gold'||p==='clinic'||p==='standard_pro'||p==='nutritionist_pro'||p==='nutritionist_clinic';
 }
 
 // Funções de acesso por feature
