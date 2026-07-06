@@ -353,7 +353,7 @@ async function _createPatientDirectBase() {
     name,
     email,
     role: 'patient',
-    plan: isNutritionistClinic() ? 'patient_clinic' : 'patient_pro',
+    plan: isProfessionalGold() ? 'patient_gold' : 'patient_basic',
     sex,
     age,
     weight,
@@ -791,7 +791,7 @@ async function createPatientDirect() {
 
   // Salva perfil básico
   const { error: profErr } = await supabase.from('profiles').upsert({
-    id: patientId, name, email, role:'patient', plan: isNutritionistClinic() ? 'patient_clinic' : 'patient_pro',
+    id: patientId, name, email, role:'patient', plan: isProfessionalGold() ? 'patient_gold' : 'patient_basic',
     sex, age, weight, height, avatar_url: avatarUrl,
     nutritionist_id: currentUser.id,
     updated_at: new Date().toISOString()

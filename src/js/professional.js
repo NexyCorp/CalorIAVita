@@ -991,7 +991,7 @@ async function refreshAdminUsers() {
   const stTot = document.getElementById('statTotal'); if(stTot) stTot.textContent = allAdminUsers.length;
   const stProf = document.getElementById('statProf'); if(stProf) stProf.textContent = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
   const stPro = document.getElementById('statPro'); if(stPro) stPro.textContent = allAdminUsers.filter(u=>u.plan==='pro').length;
-  const stClinic = document.getElementById('statClinic'); if(stClinic) stClinic.textContent = allAdminUsers.filter(u=>u.plan==='clinic').length;
+  const stClinic = document.getElementById('statClinic'); if(stClinic) stClinic.textContent = allAdminUsers.filter(u=>u.role==='professional'&&u.plan==='gold').length;
   const stPat = document.getElementById('statPatients'); if(stPat) stPat.textContent = allAdminUsers.filter(u=>u.role==='patient').length;
   renderAdminTable(allAdminUsers);
 }
@@ -999,11 +999,11 @@ async function refreshAdminUsers() {
 function renderAdminTable(users) {
   const roleLabels = { standard:'Padrão', patient:'Paciente', nutricionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
   const planLabels = { 
-    free:'Gratuito', pro:'Pro', clinic:'Clínica', admin:'Admin',
-    patient_pro: 'Paciente+', patient_clinic: 'Paciente Clínica'
+    free:'Gratuito', pro:'Pro (Basic)', gold:'Prof. Gold', admin:'Admin',
+    patient_pro: 'Paciente+', patient_clinic: 'Paciente Gold'
   };
   const planBadge = { 
-    free:'badge-free', pro:'badge-pro', clinic:'badge-clinic', admin:'badge-admin',
+    free:'badge-free', pro:'badge-pro', gold:'badge-clinic', admin:'badge-admin',
      patient_pro:'badge-pro', patient_clinic:'badge-clinic'
   };
   const tbody = document.getElementById('adminTableBody');
@@ -1034,9 +1034,9 @@ function renderAdminTable(users) {
         <select class="plan-select" id="planSel-${u.id}">
           <option value="free" ${safePlan==='free'?'selected':''}>Gratuito</option>
           <option value="patient_pro" ${safePlan==='patient_pro'?'selected':''}>Paciente+</option>
-          <option value="patient_clinic" ${safePlan==='patient_clinic'?'selected':''}>Paciente Clínica</option>
-          <option value="pro" ${safePlan==='pro'?'selected':''}>Pro</option>
-          <option value="clinic" ${safePlan==='clinic'?'selected':''}>Clínica</option>
+          <option value="patient_clinic" ${safePlan==='patient_clinic'?'selected':''}>Paciente Gold</option>
+          <option value="pro" ${safePlan==='pro'?'selected':''}>Prof. Basic (R$100)</option>
+          <option value="gold" ${safePlan==='gold'?'selected':''}>Prof. Gold (R$197)</option>
           <option value="admin" ${safePlan==='admin'?'selected':''}>Admin</option>
         </select>
         <button class="btn-save-plan" onclick="savePlan('${u.id}')">Salvar</button>
@@ -1109,7 +1109,7 @@ async function loadUpgradeRequests() {
     return;
   }
 
-  const planLabels = { pro:'Pro', clinic:'Clinica' };
+  const planLabels = { free:'Gratuito', pro:'Prof. Basic', gold:'Prof. Gold' };
   el.innerHTML = data.map(req => {
     let created = '—';
     try { if (req.created_at) created = new Date(req.created_at).toLocaleString('pt-BR'); } catch(e){}
@@ -1415,15 +1415,21 @@ function switchUpgradeTab(tab) {
 async function requestUpgrade(plan) {
   const planNames = {
     pro: 'Standard Pro (R$25/mes)',
-    nutritionist_pro: 'Nutricionista Pro (R$59/mes)',
-    nutritionist_clinic: 'Nutricionista Clínica (R$99/mes)',
-    clinic: 'Nutricionista Clínica (R$99/mes)'
+    professional_basic: 'Professional Basic (R$100/mes)',
+    professional_gold:  'Professional Gold (R$197/mes)',
+    // legado
+    nutritionist_pro: 'Professional Basic (R$100/mes)',
+    nutritionist_clinic: 'Professional Gold (R$197/mes)',
+    clinic: 'Professional Gold (R$197/mes)'
   };
   const planFeatures = {
     pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
-    nutritionist_pro: ['Tudo do Standard Pro','Painel de pacientes (até 15)','Cadastrar pacientes diretamente','Enviar receitas aos pacientes','Chat com pacientes','Metas personalizadas por paciente','Relatórios nutricionais em PDF'],
-    nutritionist_clinic: ['Tudo do Nutricionista Pro','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica','Paciente vê dados avançados','Planos alimentares personalizados','Assinatura de documentos','Perfil profissional público'],
-    clinic: ['Tudo do Nutricionista Pro','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica','Paciente vê dados avançados','Planos alimentares personalizados','Perfil profissional público']
+    professional_basic: ['Tudo do Standard Pro','Painel de pacientes','Cadastrar pacientes diretamente','Enviar receitas manuais aos pacientes','Dossie do paciente','Relatórios nutricionais em PDF'],
+    professional_gold:  ['Tudo do Professional Basic','Canal direto com pacientes','DietaIA personalizada','ReceitaIA para pacientes','Prontuário clínico completo','Relatório de evolução clínica','Planos alimentares personalizados'],
+    // legado: mantidos para solicitacoes antigas gravadas no banco
+    nutritionist_pro: ['Tudo do Standard Pro','Painel de pacientes (até 15)','Cadastrar pacientes diretamente','Enviar receitas aos pacientes','Metas personalizadas por paciente','Relatórios nutricionais em PDF'],
+    nutritionist_clinic: ['Tudo do Professional Basic','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica','Paciente vê dados avançados','Planos alimentares personalizados','Assinatura de documentos','Perfil profissional público'],
+    clinic: ['Tudo do Professional Basic','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica']  
   };
   closeUpgradeModal();
   showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Enviando solicitacao...');
@@ -1476,7 +1482,7 @@ async function initChatPanel() {
     document.getElementById('chatSubtitle').textContent = t('chat_subtitle_prof');
     const nutBadge = document.getElementById('chatNutBadge');
     if (nutBadge) {
-      if (isNutritionistClinic()) { nutBadge.innerHTML = t('chat_clinic_badge'); nutBadge.style.cssText += 'display:inline-block;background:#1de9b6;color:#004d40;'; }
+      if (isProfessionalGold()) { nutBadge.innerHTML = t('chat_clinic_badge'); nutBadge.style.cssText += 'display:inline-block;background:#1de9b6;color:#004d40;'; }
       else { nutBadge.innerHTML = t('chat_pro_badge'); nutBadge.style.cssText += 'display:inline-block;background:#ffd54f;color:#333;'; }
     }
     const { data: links } = await supabase.from('professional_patients').select('patient_id').eq('professional_id', currentUser.id);
@@ -1491,7 +1497,7 @@ async function initChatPanel() {
     _chatPatientId = currentUser.id;
     const { data: nut } = await supabase.from('profiles').select('name,plan').eq('id', currentProfile.nutritionist_id).single();
     document.getElementById('chatPartnerName').textContent = nut?.name || t('chat_default_partner');
-    if (nut?.plan === 'clinic' || nut?.plan === 'nutritionist_clinic') {
+    if (nut?.plan === 'gold') {
       const b = document.getElementById('chatNutBadge');
       if (b) { b.innerHTML = t('chat_clinic_badge'); b.style.cssText+='display:inline-block;background:#1de9b6;color:#004d40;'; }
     }

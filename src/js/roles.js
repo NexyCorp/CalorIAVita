@@ -5,28 +5,31 @@ function getUserPlan() { return currentProfile?.plan || 'free'; }
 function getUserRole() { return currentProfile?.role || 'standard'; }
 
 // ── Hierarquia de planos ──────────────────────────────────
-// standard free   → plan:'free',  role:'standard'
-// standard pro    → plan:'pro',   role:'standard'
-// nutritionist pro  → plan:'pro',   role:'nutritionist'
-// nutritionist clinic → plan:'clinic', role:'nutritionist'
-// patient vinculado a nut_pro   → plan:'patient_pro',  role:'patient'
-// patient vinculado a nut_clinic → plan:'patient_clinic', role:'patient'
-// (legado: patients criados antes ainda usam plan:'pro' — tratado como patient_pro)
+// standard free      → plan:'free',  role:'standard'
+// standard pro       → plan:'pro',   role:'standard'
+// Professional Basic → plan:'pro',   role:'professional'
+// Professional Gold  → plan:'gold',  role:'professional'
+// patient vinculado a Professional Basic → plan:'patient_basic',   role:'patient'
+// patient vinculado a Professional Gold  → plan:'patient_gold', role:'patient'
 
 function isStandardFree()       { return getUserRole()==='standard' && getUserPlan()==='free'; }
 function isStandardPro()        { return getUserRole()==='standard' && (getUserPlan()==='pro'||getUserPlan()==='standard_pro'); }
 function isPatient()            { return getUserRole()==='patient'; }
-function isPatientClinic()      { return getUserRole()==='patient' && (getUserPlan()==='patient_clinic'||getUserPlan()==='clinic'); }
-function isNutritionistPro()    { return getUserRole()==='nutritionist' && (getUserPlan()==='pro'||getUserPlan()==='nutritionist_pro') && !isNutritionistClinic(); }
-function isNutritionistClinic() { return getUserRole()==='nutritionist' && (getUserPlan()==='clinic'||getUserPlan()==='nutritionist_clinic'||getUserPlan()==='admin'); }
-function isProfessional()       { return ['nutritionist','personal_trainer','admin'].includes(getUserRole()); }
+function isPatientGold()        { return getUserRole()==='patient' && (getUserPlan()==='patient_gold'||getUserPlan()==='patient_clinic'||getUserPlan()==='gold'); }
+function isProfessionalGold()   { return getUserRole()==='professional' && (getUserPlan()==='gold'||getUserPlan()==='admin'); }
+function isProfessionalBasic()  { return getUserRole()==='professional' && getUserPlan()==='pro'; }
+function isProfessional()       { return ['professional','admin'].includes(getUserRole()); }
 function isAdmin()              { return getUserRole()==='admin' || getUserPlan()==='admin'; }
-function isClinic()             { return isNutritionistClinic() || isAdmin(); }
+function isGold()               { return isProfessionalGold() || isAdmin(); }
+// Aliases de compatibilidade (isNutritionistClinic = Professional Gold, isNutritionistPro = Professional Basic)
+function isNutritionistClinic() { return isProfessionalGold(); }
+function isNutritionistPro()    { return isProfessionalBasic(); }
+function isPatientClinic()      { return isPatientGold(); }
 
 // isPro() = tem pelo menos o plano standard pro (ou superior)
 function isPro() {
   if (isAdmin()) return true;
-  if (isProfessional()) return true;     // nutricionistas sempre têm acesso pro ao menos
+  if (isProfessional()) return true;     // profissionais sempre têm acesso pro ao menos
   if (isPatient()) return true;          // pacientes vinculados têm acesso ao app
   const p = getUserPlan();
   return p==='pro'||p==='clinic'||p==='standard_pro'||p==='nutritionist_pro'||p==='nutritionist_clinic';
@@ -39,17 +42,17 @@ function canUseRecipes()       { return !isStandardFree(); }
 function canAddRecipe()        { return isStandardPro()||isProfessional()||isAdmin(); }
 function canUseCompare()       { return true; } // todos
 function canUsePatientPanel()  { return isProfessional()||isAdmin(); }
-function canUseClinicFeatures(){ return isNutritionistClinic()||isAdmin(); } // prontuário, relatórios clínicos
+function canUseClinicFeatures(){ return isProfessionalGold()||isAdmin(); } // prontuário, relatórios clínicos
 function canUsePdfReport()     { return isStandardPro()||isProfessional()||isAdmin(); }
-function canSeeNutritionistReports() { return isPatientClinic(); } // paciente clinic vê mais dados
+function canSeeNutritionistReports() { return isPatientGold(); } // paciente gold vê mais dados
 
 const PLAN_LIMITS = {
   free:              { patients:0,  cameraMonth:3,   label:'Gratuito' },
   pro:               { patients:15, cameraMonth:999, label:'Pro' },
   standard_pro:      { patients:0,  cameraMonth:999, label:'Pro' },
-  nutritionist_pro:  { patients:15, cameraMonth:999, label:'Nutricionista Pro' },
-  nutritionist_clinic:{ patients:999,cameraMonth:999,label:'Nutricionista Clínica' },
-  clinic:            { patients:999,cameraMonth:999, label:'Clínica' },
+  professional_basic:  { patients:15, cameraMonth:999, label:'Professional Basic' },
+  professional_gold:{ patients:999,cameraMonth:999,label:'Professional Gold' },
+  gold:              { patients:999,cameraMonth:999, label:'Gold' },
   admin:             { patients:999,cameraMonth:999, label:'Admin' }
 };
 
@@ -70,19 +73,19 @@ function setupRoleUI() {
 
   document.getElementById('nav-prof').style.display = isProf ? 'flex' : 'none';
   document.getElementById('navGroupPro').style.display = isProf ? 'block' : 'none';
-  // Chat nav: visible for CLINIC nutritionists AND patients linked to a clinic nutritionist (not for Pro nutritionists)
-  const showChat = isNutritionistClinic() || isPatientClinic();
+  // Chat nav: visible for Professional Gold AND patients linked to a Gold nutritionist
+  const showChat = isProfessionalGold() || isPatientGold();
   document.getElementById('nav-chat').style.display = showChat ? 'flex' : 'none';
 
-  // Nutritionist type badge in sidebar
+  // Professional plan badge in sidebar
   const planChip = document.getElementById('sidebarPlanChip');
-  if (planChip && role === 'nutritionist') {
-    if (isNutritionistClinic()) {
+  if (planChip && role === 'professional') {
+    if (isProfessionalGold()) {
       planChip.style.outline = '2px solid #4db6ac';
-      planChip.title = 'Nutricionista Clínica — acesso completo';
+      planChip.title = 'Professional Gold — acesso completo';
     } else {
       planChip.style.outline = '2px solid #ffd54f';
-      planChip.title = 'Nutricionista Pro — até 15 pacientes';
+      planChip.title = 'Professional Basic — painel de pacientes';
     }
   } else {
     if (planChip) planChip.style.outline = '';
@@ -110,7 +113,7 @@ function setupRoleUI() {
 
   // Hide upgrade button for high plans / show become nutritionist for pro standard
   const plan = getUserPlan();
-  const hideUpgrade = plan === 'clinic' || plan === 'admin' || isNutritionistClinic() || isNutritionistPro() || isPatient();
+  const hideUpgrade = plan === 'gold' || plan === 'admin' || isProfessionalGold() || isProfessionalBasic() || isPatient();
   const sidebarUpgradeBtn = document.getElementById('sidebarUpgradeBtn');
   if (hideUpgrade) {
     sidebarUpgradeBtn.style.display = 'none';
@@ -154,10 +157,10 @@ function applyPlanRestrictions() {
   const role = getUserRole();
   let planLabel = 'Gratuito';
   if (isAdmin()) planLabel = 'Admin';
-  else if (isNutritionistClinic()) planLabel = 'Nutricionista Clínica';
-  else if (isNutritionistPro()) planLabel = 'Nutricionista Pro';
-  else if (isPatientClinic()) planLabel = 'Paciente Clínica';
-  else if (isPatient()) planLabel = 'Paciente Pro';
+  else if (isProfessionalGold()) planLabel = 'Professional Gold';
+  else if (isProfessionalBasic()) planLabel = 'Professional Basic';
+  else if (isPatientGold()) planLabel = 'Paciente+';
+  else if (isPatient()) planLabel = 'Paciente';
   else if (isStandardPro()) planLabel = 'Standard Pro';
 
   // Mostrar paywall nos panels se free
@@ -206,34 +209,34 @@ function renderSidebarUser() {
   // Gera label do plano baseado no role + plan
   function _getPlanLabel() {
     if (isAdmin()) return '<i class="fa-solid fa-gear ic-admin"></i> Admin';
-    if (isNutritionistClinic()) return '<i class="fa-solid fa-hospital ic-stethoscope"></i> Nut. Clínica';
-    if (isNutritionistPro()) return '<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Nut. Pro';
-    if (isPatientClinic()) return '<i class="fa-solid fa-star ic-star"></i> Paciente+';
+    if (isProfessionalGold()) return '<i class="fa-solid fa-hospital ic-stethoscope"></i> Prof. Gold';
+    if (isProfessionalBasic()) return '<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Prof. Basic';
+    if (isPatientGold()) return '<i class="fa-solid fa-star ic-star"></i> Paciente+';
     if (isPatient()) return '<i class="fa-solid fa-star ic-star"></i> Paciente';
     if (isStandardPro()) return '<i class="fa-solid fa-star ic-star"></i> Pro';
     return '<i class="fa-solid fa-seedling ic-leaf"></i> Gratuito';
   }
   function _getPlanClass() {
     if (isAdmin()) return 'chip-admin';
-    if (isNutritionistClinic()) return 'chip-clinic';
-    if (isNutritionistPro()) return 'chip-pro';
+    if (isProfessionalGold()) return 'chip-clinic';
+    if (isProfessionalBasic()) return 'chip-pro';
     if (isPatient()) return 'chip-pro';
     if (isStandardPro()) return 'chip-pro';
     return 'chip-free';
   }
   function _getPlanBadgeText() {
     if (isAdmin()) return 'Admin';
-    if (isNutritionistClinic()) return 'Nut. Clínica';
-    if (isNutritionistPro()) return 'Nut. Pro';
-    if (isPatientClinic()) return 'Paciente+';
+    if (isProfessionalGold()) return 'Prof. Gold';
+    if (isProfessionalBasic()) return 'Prof. Basic';
+    if (isPatientGold()) return 'Paciente+';
     if (isPatient()) return 'Paciente';
     if (isStandardPro()) return 'Pro';
     return 'Gratuito';
   }
   function _getPlanBadgeClass() {
     if (isAdmin()) return 'badge-admin';
-    if (isNutritionistClinic()||isNutritionistPro()) return 'badge-clinic';
-    if (isPatient()||isStandardPro()) return 'badge-pro';
+    if (isProfessionalGold()||isProfessionalBasic()) return 'badge-clinic';
+    if (isPatientGold()||isPatient()||isStandardPro()) return 'badge-pro';
     return 'badge-free';
   }
 
@@ -314,12 +317,15 @@ window.getUserRole = getUserRole;
 window.isStandardFree = isStandardFree;
 window.isStandardPro = isStandardPro;
 window.isPatient = isPatient;
+window.isPatientGold = isPatientGold;
 window.isPatientClinic = isPatientClinic;
-window.isNutritionistPro = isNutritionistPro;
-window.isNutritionistClinic = isNutritionistClinic;
+window.isProfessionalBasic = isProfessionalBasic;
+window.isProfessionalGold = isProfessionalGold;
+window.isNutritionistPro = isNutritionistPro;       // alias → isProfessionalBasic
+window.isNutritionistClinic = isNutritionistClinic; // alias → isProfessionalGold
 window.isProfessional = isProfessional;
 window.isAdmin = isAdmin;
-window.isClinic = isClinic;
+window.isGold = isGold;
 window.isPro = isPro;
 window.canUseDiary = canUseDiary;
 window.canUseCamera = canUseCamera;
