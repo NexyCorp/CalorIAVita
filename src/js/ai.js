@@ -398,7 +398,8 @@ function addToDiaryFromSearch() {
     kcal: Math.round(lastSearchResult.calories),
     carbs: lastSearchResult.carbs||0,
     prot: lastSearchResult.protein||0,
-    fat: lastSearchResult.fat||0
+    fat: lastSearchResult.fat||0,
+    sugar: lastSearchResult.sugar||0
   });
   showPanel('diary', null);
   setBottomNav('diary');

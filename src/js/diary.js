@@ -113,18 +113,19 @@ async function saveEditItem(mealKey, idx) {
   let kcal = item.kcal, carbs = item.carbs, prot = item.prot, fat = item.fat;
   if (newName !== item.name || newQty !== (item.qty||100)) {
     try {
-      const data = await askClaude(`JSON: name, calories, carbs, protein, fat para "${newName}" em ${newQty} ${newUnit}.`, 'Retorne SOMENTE JSON válido.');
+      const data = await askClaude(`JSON: name, calories, carbs, protein, fat, sugar para "${newName}" em ${newQty} ${newUnit}.`, 'Retorne SOMENTE JSON válido.');
       kcal = Math.round(data.calories || data.calorias || data.kcal || 0);
       carbs = data.carbs || data.carboidratos || data.carbohydrates || 0;
       prot = data.protein || data.proteinas || data.prot || 0;
       fat = data.fat || data.gorduras || 0;
+      sugar = data.sugar || data.acucar || 0;
     } catch(e) {}
   }
 
-  const updated = { ...item, name:newName, qty:newQty, unit:newUnit, kcal, carbs, prot, fat };
+  const updated = { ...item, name:newName, qty:newQty, unit:newUnit, kcal, carbs, prot, fat, sugar };
   if (item.id) {
     await _sb().from('diary_entries').update({
-      food_name:newName, kcal, carbs, protein:prot, fat, qty:newQty, unit:newUnit
+      food_name:newName, kcal, carbs, protein:prot, fat, sugar, qty:newQty, unit:newUnit
     }).eq('id', item.id);
   }
   diary[mealKey][idx] = updated;
@@ -279,7 +280,7 @@ async function diaryAddFood() {
 
   try {
     const data = await askClaude(
-      `JSON: name, calories, carbs, protein, fat para "${q}" em ${qty} ${unit}.`,
+      `JSON: name, calories, carbs, protein, fat, sugar para "${q}" em ${qty} ${unit}.`,
       'Retorne SOMENTE JSON válido.'
     );
     await addToDiaryMeal(meal, {
@@ -288,6 +289,7 @@ async function diaryAddFood() {
       carbs: data.carbs || data.carboidratos || data.carbohydrates || 0,
       prot: data.protein || data.proteinas || data.prot || 0,
       fat: data.fat || data.gorduras || 0,
+      sugar: data.sugar || data.acucar || 0,
       qty, unit
     });
     document.getElementById('diaryAddInput').value = '';
@@ -582,7 +584,15 @@ async function addCamToDiary() {
       }
     } catch (e) { console.warn('Falha ao salvar foto:', e); }
   }
-  addToDiaryMeal(_camMeal, { name:lastCamResult.foodName, kcal:Math.round(lastCamResult.calories||0), carbs:lastCamResult.carbs||0, prot:lastCamResult.protein||0, fat:lastCamResult.fat||0, photoUrl });
+  addToDiaryMeal(_camMeal, {
+    name: lastCamResult.foodName,
+    kcal: Math.round(lastCamResult.calories || 0),
+    carbs: lastCamResult.carbs || 0,
+    prot: lastCamResult.protein || 0,
+    fat: lastCamResult.fat || 0,
+    sugar: lastCamResult.sugar || 0,
+    photoUrl
+  });
   showPanel('diary', null); setBottomNav('diary');
 }
 

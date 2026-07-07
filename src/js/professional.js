@@ -666,9 +666,14 @@ async function openPatientDossier(patientId, patientName) {
     modal.innerHTML = `
       <div class="modal-box" style="max-width:680px;width:95vw;max-height:90vh;overflow-y:auto;text-align:left;">
         <button class="modal-close" onclick="document.getElementById('patientDossierModal').classList.remove('show')">✕</button>
-        <div class="modal-title" style="border-bottom:2px solid var(--border);padding-bottom:1rem;margin-bottom:1.2rem;">
-          <i class="fa-solid fa-folder-open" style="color:#3949ab;"></i>
-          <span id="dossierPatientTitle">Dossiê do Paciente</span>
+        <div class="modal-title" style="border-bottom:2px solid var(--border);padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center;padding-right:2rem;">
+          <span style="display:flex;align-items:center;gap:0.5rem;">
+            <i class="fa-solid fa-folder-open" style="color:#3949ab;"></i>
+            <span id="dossierPatientTitle">Dossiê do Paciente</span>
+          </span>
+          <button class="btn-print no-print" onclick="printDossierPDF()" style="margin:0;padding:0.4rem 1rem;font-size:0.75rem;border-radius:50px;background:var(--green-deep);color:white;border:none;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">
+            <i class="fa-solid fa-file-pdf" style="color:white!important;margin-right:0.3rem;"></i> Exportar PDF
+          </button>
         </div>
         <div id="dossierContent" style="font-size:0.88rem;line-height:1.7;color:var(--text-main);">Carregando...</div>
       </div>
@@ -1722,5 +1727,65 @@ window.uploadChatPhoto = uploadChatPhoto;
 window.subscribeChat = subscribeChat;
 window.loadPatients = loadPatients;
 window.openPatientDossier = openPatientDossier;
+
+window.printDossierPDF = function() {
+  const content = document.getElementById('dossierContent')?.innerHTML;
+  const title = document.getElementById('dossierPatientTitle')?.textContent || 'Dossiê do Paciente';
+  if (!content || content.includes('Carregando')) {
+    showToast('Carregue os dados do dossiê primeiro', 'error');
+    return;
+  }
+  
+  const logoSrc = typeof getLogoSrc === 'function' ? getLogoSrc() : LOGO_LIGHT_B64;
+  const logoHtml = `<img src="${logoSrc}" width="52" height="52" style="border-radius:8px;">`;
+  
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title} — CalorIA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    @media print { body { margin: 0; } .no-print { display: none !important; } }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 28px; color: #1a2e1b; background: #fff; }
+    .header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #2a5c30; padding-bottom: 16px; margin-bottom: 20px; }
+    .brand { font-family:'Playfair Display',serif; font-size: 1.6rem; font-weight: 900; font-style:italic; color: #2a5c30; letter-spacing: -0.5px; }
+    .brand span { color: #ffb300; }
+    .header-sub { font-size: 0.78rem; color: #888; margin-top: 2px; }
+    h1 { font-family:'Playfair Display',serif; font-size: 1.7rem; font-weight: 900; color: #1a4a1f; margin-bottom: 20px; }
+    .btn-print { display: block; margin: 16px auto 24px; padding: 12px 32px; background: #2a5c30; color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-print:hover { background: #1a4a1f; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    td { padding: 6px 12px 6px 0; vertical-align: top; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    .footer { margin-top: 32px; font-size: 0.72rem; color: #888; border-top: 1px solid #ddd; padding-top: 14px; }
+    .lgpd-note { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
+    /* Custom layouts styles */
+    table th { padding: 6px 10px; text-align: left; font-weight: 700; background: #f4f6f9; border-bottom: 1px solid #ddd; }
+  </style>
+  </head><body>
+  <div class="header">
+    ${logoHtml}
+    <div>
+      <div class="brand">Calor<span>IA</span></div>
+      <div class="header-sub">Plataforma de Nutrição Inteligente</div>
+    </div>
+  </div>
+  <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
+  <h1>${title}</h1>
+  <div class="dossier-print-content">
+    ${content}
+  </div>
+  <div class="footer">
+    <span>Documento gerado automaticamente pela plataforma CalorIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+  </div>
+  <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+  } else {
+    showToast('Habilite os popups para visualizar a exportação de PDF.', 'error');
+  }
+};
 
 
