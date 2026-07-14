@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 const PLAN_IDS = {
-  pro: 'pro',
-  professional_basic: 'professional_basic',
-  professional_gold: 'professional_gold'
+  pro: 'standardpro',
+  professional_basic: 'probasic',
+  professional_gold: 'progold'
 };
 
 const CORS_HEADERS = {
