@@ -1,3 +1,74 @@
+// Helper logic to render and display subscription status dashboard panel
+async function loadSubscriptionDashboard() {
+  const container = document.getElementById('subscription-status-card');
+  if (!container) return;
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('plan, role, subscription_id, subscription_status, subscription_next_charge')
+    .eq('id', currentUser.id)
+    .single();
+
+  if (error || !profile) {
+    container.innerHTML = `<p>Erro ao carregar dados da assinatura.</p>`;
+    return;
+  }
+
+  const isSubscribed = profile.subscription_id && profile.subscription_status === 'active';
+  const label = typeof getPlanLabel === 'function' ? getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
+
+  container.innerHTML = `
+    <div style="text-align:left;display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;margin-bottom:0.5rem;">
+        💳 Detalhes do Plano
+      </div>
+      <div>Plano Atual: <strong style="color:var(--green-mid);font-size:1.1rem;">${label}</strong></div>
+      <div>Status: <strong>${profile.subscription_status === 'active' ? 'Ativo' : 'Inativo / Gratuito'}</strong></div>
+      ${isSubscribed ? `
+        ${profile.subscription_next_charge ? `<div>Próxima Cobrança: <strong>${new Date(profile.subscription_next_charge).toLocaleDateString('pt-BR')}</strong></div>` : ''}
+        <button class="btn-primary" style="background:#c62828!important;border:none;margin-top:1rem;color:white;width:auto;align-self:flex-start;" onclick="cancelSubscription('${profile.subscription_id}')">
+          <i class="fa-solid fa-circle-xmark" style="color:white!important;margin-right:0.3rem;"></i> Cancelar Assinatura
+        </button>
+      ` : `
+        <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.5;">Assine agora para obter acesso a diários completos de açúcar e água, câmera IA ilimitada, dossiês de pacientes e painéis personalizados.</p>
+        <button class="btn-primary" style="width:auto;align-self:flex-start;" onclick="openUpgradeModal()">
+          <i class="fa-solid fa-star" style="color:white!important;margin-right:0.3rem;"></i> Ver Planos & Fazer Upgrade
+        </button>
+      `}
+    </div>
+  `;
+}
+
+async function cancelSubscription(subscriptionId) {
+  if (!confirm('Deseja realmente cancelar sua assinatura? O acesso premium será revogado.')) return;
+  
+  showToast('<i class="fa-solid fa-spinner fa-spin ic-water"></i> Cancelando assinatura...');
+  try {
+    const session = await supabase.auth.getSession();
+    const token = session.data?.session?.access_token;
+
+    const res = await fetch(`/api/cancel-subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ subscriptionId })
+    });
+    
+    if (res.ok) {
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Assinatura cancelada com sucesso.');
+      loadSubscriptionDashboard();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Falha no cancelamento');
+    }
+  } catch (err) {
+    console.error('[cancelSubscription]', err);
+    showToast('<i class="fa-solid fa-circle-xmark ic-recipes"></i> Erro: ' + err.message, 'error');
+  }
+}
+
 // ═══════════════════════════════════════
 async function loadMyNutritionistRequestStatus() {
   if (!currentUser) return;
@@ -1961,5 +2032,7 @@ window.sendPasswordReset = sendPasswordReset;
 window.resendConfirmEmail = resendConfirmEmail;
 window.printPatientAnamnese = printPatientAnamnese;
 window.saveDiseaseFormData = saveDiseaseFormData;
+window.loadSubscriptionDashboard = loadSubscriptionDashboard;
+window.cancelSubscription = cancelSubscription;
 // saveProfile and renderSidebarUser extended above — do not overwrite
 

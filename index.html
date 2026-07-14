@@ -592,6 +592,9 @@
       <button class="nav-item" id="nav-recipes" onclick="showPanel('recipes',this)">
         <span class="nav-icon"><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="nav_recipes">Receitas</span>
       </button>
+      <button class="nav-item" id="nav-subscription" onclick="showPanel('subscription',this)">
+        <span class="nav-icon"><i class="fa-solid fa-credit-card"></i></span><span>Assinatura</span>
+      </button>
 
       <div class="nav-group-label" id="navGroupPro" style="display:none;" data-i18n="nav_professional">Profissional</div>
       <button class="nav-item" id="nav-prof" style="display:none;" onclick="showPanel('prof',this)">
@@ -639,6 +642,9 @@
         </div>
         <button class="dropdown-item" onclick="showPanel('profile',null);closeDropdown()">
           <span><i class="fa-solid fa-user ic-user"></i></span><span data-i18n="menu_profile">Meu Perfil</span>
+        </button>
+        <button class="dropdown-item" id="dropdownSubscriptionBtn" onclick="showPanel('subscription',null);closeDropdown()">
+          <span><i class="fa-solid fa-credit-card"></i></span><span>Minha Assinatura</span>
         </button>
         <button class="dropdown-item" id="dropdownUpgradeBtn" onclick="openUpgradeModal();closeDropdown()">
           <span><i class="fa-solid fa-star ic-star"></i></span><span data-i18n="menu_upgrade">Planos & Upgrade</span>
@@ -2301,6 +2307,18 @@ function closeLgpdModal() {
   </div>
 </div>
 
+<!-- ══ SUBSCRIPTION PANEL ══ -->
+<div class="panel" id="panel-subscription" style="display:none;">
+  <div class="panel-header">
+    <h2 class="panel-title"><i class="fa-solid fa-credit-card"></i> Minha Assinatura</h2>
+  </div>
+  <div class="panel-body">
+    <div id="subscription-status-card" class="card" style="padding: 1.5rem; border-radius: var(--radius-md); max-width: 580px; margin: 0 auto; box-shadow: var(--shadow-sm);">
+      <p>Carregando informações da sua assinatura...</p>
+    </div>
+  </div>
+</div>
+
 <!-- MODALS -->
 <!-- Recipe Modal -->
 <div class="modal-overlay" id="recipeModal" onclick="if(event.target===this)closeModal()">
@@ -2338,7 +2356,7 @@ function closeLgpdModal() {
         <div class="upgrade-plan-badge">RECOMENDADO</div>
         <div class="upgrade-plan-icon"><i class="fa-solid fa-star ic-star"></i></div>
         <div class="upgrade-plan-name">Standard Pro</div>
-        <div class="upgrade-plan-price">R$25<span>/mês</span></div>
+        <div class="upgrade-plan-price">R$30<span>/mês</span></div>
         <ul class="upgrade-plan-features">
           <li>Tudo do Gratuito</li>
           <li>Diário alimentar completo</li>

@@ -313,6 +313,20 @@ function renderSidebarUser() {
   }
 }
 
+// Helper for plan naming
+function getPlanLabel(role, plan) {
+  if (plan === 'admin' || role === 'admin') return 'Admin';
+  if (role === 'professional') {
+    return plan === 'gold' || plan === 'clinic' ? 'Professional Gold' : 'Professional Basic';
+  }
+  if (role === 'patient') {
+    return plan === 'patient_gold' || plan === 'patient_clinic' ? 'Paciente Gold' : 'Paciente';
+  }
+  if (plan === 'pro' || plan === 'standard_pro') return 'Standard Pro';
+  return 'Gratuito';
+}
+window.getPlanLabel = getPlanLabel;
+
 // Expor funções e limites para o escopo global
 window.getUserPlan = getUserPlan;
 window.getUserRole = getUserRole;

@@ -1441,52 +1441,91 @@ function switchUpgradeTab(tab) {
 
 async function requestUpgrade(plan) {
   const planNames = {
-    pro: 'Standard Pro (R$25/mes)',
-    professional_basic: 'Professional Basic (R$100/mes)',
-    professional_gold:  'Professional Gold (R$197/mes)',
+    pro: 'Standard Pro (R$30/mês)',
+    professional_basic: 'Professional Basic (R$100/mês)',
+    professional_gold:  'Professional Gold (R$197/mês)',
     // legado
-    nutritionist_pro: 'Professional Basic (R$100/mes)',
-    nutritionist_clinic: 'Professional Gold (R$197/mes)',
-    clinic: 'Professional Gold (R$197/mes)'
+    nutritionist_pro: 'Professional Basic (R$100/mês)',
+    nutritionist_clinic: 'Professional Gold (R$197/mês)',
+    clinic: 'Professional Gold (R$197/mês)'
   };
-  const planFeatures = {
-    pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
-    professional_basic: ['Tudo do Standard Pro','Painel de pacientes','Cadastrar pacientes diretamente','Enviar receitas manuais aos pacientes','Dossie do paciente','Relatórios nutricionais em PDF'],
-    professional_gold:  ['Tudo do Professional Basic','Canal direto com pacientes','DietaIA personalizada','ReceitaIA para pacientes','Prontuário clínico completo','Relatório de evolução clínica','Planos alimentares personalizados'],
-    // legado: mantidos para solicitacoes antigas gravadas no banco
-    nutritionist_pro: ['Tudo do Standard Pro','Painel de pacientes (até 15)','Cadastrar pacientes diretamente','Enviar receitas aos pacientes','Metas personalizadas por paciente','Relatórios nutricionais em PDF'],
-    nutritionist_clinic: ['Tudo do Professional Basic','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica','Paciente vê dados avançados','Planos alimentares personalizados','Assinatura de documentos','Perfil profissional público'],
-    clinic: ['Tudo do Professional Basic','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica']  
-  };
-  closeUpgradeModal();
-  showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Enviando solicitacao...');
-  const benefits = planFeatures[plan] || [];
-  const bodyText = `Solicitacao de Upgrade\n\nPlano: ${planNames[plan]||plan}\nNome: ${currentProfile?.name||''}\nE-mail: ${currentUser?.email}\n\nBeneficios solicitados:\n- ${benefits.join('\n- ')}\n\nAguardando aprovacao no painel admin.`;
-  try {
-    const { error: dbError } = await supabase.from('upgrade_requests').insert({
-      user_id: currentUser.id,
-      user_name: currentProfile?.name || '',
-      user_email: currentUser?.email || '',
-      requested_plan: plan,
-      current_plan: currentProfile?.plan || 'free',
-      benefits,
-      status: 'pending',
-      reviewed_by: null,
-      reviewed_at: null,
-      rejection_reason: null
-    });
-    if (dbError) throw dbError;
 
-    try {
-      await sendEmailViaAPI('nexy.corporationn@gmail.com', `Solicitacao de Upgrade - Plano ${planNames[plan]||plan}`, bodyText);
-    } catch(emailError) {
-      console.warn('[CalorIA] Upgrade email notification failed:', emailError);
+  // Map legacy plan names to API tier names
+  const tierMap = {
+    pro: 'pro',
+    professional_basic: 'professional_basic',
+    professional_gold: 'professional_gold',
+    nutritionist_pro: 'professional_basic',
+    nutritionist_clinic: 'professional_gold',
+    clinic: 'professional_gold'
+  };
+  const tier = tierMap[plan] || plan;
+
+  closeUpgradeModal();
+  showToast('<i class="fa-solid fa-spinner fa-spin ic-water"></i> Redirecionando para o pagamento...');
+
+  try {
+    const session = await supabase.auth.getSession();
+    const token = session.data?.session?.access_token;
+
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ tier })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.checkoutUrl) {
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Redirecionando para o Mercado Pago...');
+      setTimeout(() => { window.location.href = data.checkoutUrl; }, 900);
+      return;
     }
 
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao enviada! O admin podera aprovar pelo painel.');
-  } catch(e) {
-    console.error('[CalorIA] upgrade request error:', e);
-    showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitacao de upgrade. Verifique a tabela upgrade_requests no Supabase.', 'error');
+    // If API isn't configured yet (dev mode), fall back to email request
+    console.warn('[CalorIA] Checkout API error or not configured, falling back to admin request.', data);
+    throw new Error(data.error || 'Checkout indisponível');
+
+  } catch (e) {
+    console.error('[CalorIA] requestUpgrade checkout error:', e);
+
+    // Graceful fallback: send upgrade request to admin via DB + email
+    const planFeatures = {
+      pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
+      professional_basic: ['Tudo do Standard Pro','Painel de pacientes','Cadastrar pacientes diretamente','Enviar receitas manuais aos pacientes','Dossiê do paciente','Relatórios nutricionais em PDF'],
+      professional_gold:  ['Tudo do Professional Basic','Canal direto com pacientes','DietaIA personalizada','ReceitaIA para pacientes','Prontuário clínico completo','Relatório de evolução clínica','Planos alimentares personalizados'],
+    };
+    const benefits = planFeatures[tier] || [];
+    const bodyText = `Solicitação de Upgrade\n\nPlano: ${planNames[plan]||plan}\nNome: ${currentProfile?.name||''}\nE-mail: ${currentUser?.email}\n\nBenefícios solicitados:\n- ${benefits.join('\n- ')}\n\nAguardando aprovação no painel admin.`;
+
+    try {
+      const { error: dbError } = await supabase.from('upgrade_requests').insert({
+        user_id: currentUser.id,
+        user_name: currentProfile?.name || '',
+        user_email: currentUser?.email || '',
+        requested_plan: plan,
+        current_plan: currentProfile?.plan || 'free',
+        benefits,
+        status: 'pending',
+        reviewed_by: null,
+        reviewed_at: null,
+        rejection_reason: null
+      });
+      if (dbError) throw dbError;
+
+      try {
+        await sendEmailViaAPI('nexy.corporationn@gmail.com', `Solicitação de Upgrade - Plano ${planNames[plan]||plan}`, bodyText);
+      } catch(emailError) {
+        console.warn('[CalorIA] Upgrade email notification failed:', emailError);
+      }
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! O admin irá aprovar em breve.');
+    } catch(fallbackErr) {
+      console.error('[CalorIA] upgrade fallback error:', fallbackErr);
+      showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao processar upgrade. Tente novamente mais tarde.', 'error');
+    }
   }
 }
 

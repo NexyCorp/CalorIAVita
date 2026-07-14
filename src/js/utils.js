@@ -825,7 +825,8 @@ const panelTitles = {
   compare: () => t('compare_title'), recipes: () => t('recipes_title'),
   prof: () => t('patients_title'), admin: () => currentLang === 'en' ? 'Admin' : 'Admin',
   profile: () => t('profile_title'),
-  water: () => currentLang === 'en' ? 'Water' : 'Água'
+  water: () => currentLang === 'en' ? 'Water' : 'Água',
+  subscription: () => currentLang === 'en' ? 'Subscription' : 'Minha Assinatura'
 };
 
 function showPanel(name, navEl) {
@@ -845,6 +846,9 @@ function showPanel(name, navEl) {
   if (name === 'home') updateHomePanel();
   if (name === 'goal') fillCalcFromProfile();
   if (name === 'profile') fillProfilePanel();
+  if (name === 'subscription') {
+    if (typeof loadSubscriptionDashboard === 'function') loadSubscriptionDashboard();
+  }
   if (name === 'prof') {
     if (typeof loadPatients === 'function') loadPatients();
   }
