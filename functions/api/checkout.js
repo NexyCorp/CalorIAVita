@@ -57,7 +57,7 @@ export async function onRequestPost({ request, env }) {
       );
     }
 
-    const appUrl = env.APP_URL || 'https://caloria-vita.pages.dev';
+    const appUrl = env.APP_URL || 'https://caloriav3.pages.dev';
 
     // Build the preapproval payload directly — no preapproval_plan_id required
     const mpPayload = {
