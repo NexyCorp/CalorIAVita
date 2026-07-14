@@ -3,40 +3,69 @@ async function loadSubscriptionDashboard() {
   const container = document.getElementById('subscription-status-card');
   if (!container) return;
 
+  container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;"><i class="fa-solid fa-spinner fa-spin ic-water"></i> Carregando...</p>';
+
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('plan, role, subscription_id, subscription_status, subscription_next_charge')
+    .select('plan, role, subscription_id, subscription_status, subscription_next_charge, professional_approved_tier')
     .eq('id', currentUser.id)
     .single();
 
   if (error || !profile) {
-    container.innerHTML = `<p>Erro ao carregar dados da assinatura.</p>`;
+    container.innerHTML = `<p style="color:#e53935;">Erro ao carregar dados da assinatura.</p>`;
     return;
   }
 
-  const isSubscribed = profile.subscription_id && profile.subscription_status === 'active';
+  const isActive = profile.subscription_id && profile.subscription_status === 'active';
+  const isPendingPayment = profile.subscription_status === 'approved_pending_payment';
   const label = typeof getPlanLabel === 'function' ? getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
 
-  container.innerHTML = `
-    <div style="text-align:left;display:flex;flex-direction:column;gap:1rem;">
-      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;margin-bottom:0.5rem;">
-        💳 Detalhes do Plano
-      </div>
-      <div>Plano Atual: <strong style="color:var(--green-mid);font-size:1.1rem;">${label}</strong></div>
-      <div>Status: <strong>${profile.subscription_status === 'active' ? 'Ativo' : 'Inativo / Gratuito'}</strong></div>
-      ${isSubscribed ? `
+  // ── Case 1: Active paid subscription ──────────────────────────────────────
+  if (isActive) {
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;">💳 Minha Assinatura</div>
+        <div>Plano Atual: <strong style="color:var(--green-mid);font-size:1.1rem;">${label}</strong></div>
+        <div>Status: <strong style="color:#2e7d32;">✅ Ativa</strong></div>
         ${profile.subscription_next_charge ? `<div>Próxima Cobrança: <strong>${new Date(profile.subscription_next_charge).toLocaleDateString('pt-BR')}</strong></div>` : ''}
-        <button class="btn-primary" style="background:#c62828!important;border:none;margin-top:1rem;color:white;width:auto;align-self:flex-start;" onclick="cancelSubscription('${profile.subscription_id}')">
+        <button class="btn-primary" style="background:#c62828!important;border:none;margin-top:0.5rem;width:auto;align-self:flex-start;" onclick="cancelSubscription('${profile.subscription_id}')">
           <i class="fa-solid fa-circle-xmark" style="color:white!important;margin-right:0.3rem;"></i> Cancelar Assinatura
         </button>
-      ` : `
-        <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.5;">Assine agora para obter acesso a diários completos de açúcar e água, câmera IA ilimitada, dossiês de pacientes e painéis personalizados.</p>
-        <button class="btn-primary" style="width:auto;align-self:flex-start;" onclick="openUpgradeModal()">
-          <i class="fa-solid fa-star" style="color:white!important;margin-right:0.3rem;"></i> Ver Planos & Fazer Upgrade
+      </div>`;
+    return;
+  }
+
+  // ── Case 2: Documentation approved, waiting for payment ───────────────────
+  if (isPendingPayment) {
+    const approvedTier = profile.professional_approved_tier || 'professional_basic';
+    const approvedLabel = approvedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div style="background:linear-gradient(135deg,var(--green-deep),#1b5e20);color:white;border-radius:var(--radius-md);padding:1.25rem 1.5rem;">
+          <div style="font-family:'Syne',sans-serif;font-weight:900;font-size:1.15rem;margin-bottom:0.4rem;">✅ Documentação Aprovada!</div>
+          <div style="opacity:0.9;font-size:0.88rem;line-height:1.5;">Sua solicitação para o plano <strong>${approvedLabel}</strong> foi revisada e aprovada.<br>Conclua o pagamento para ativar suas funcionalidades profissionais.</div>
+        </div>
+        <div>Plano Aprovado: <strong style="color:var(--green-mid);font-size:1.05rem;">${approvedLabel}</strong></div>
+        <div>Status: <strong style="color:#f57c00;">⏳ Aguardando Pagamento</strong></div>
+        <button class="btn-primary" style="width:auto;align-self:flex-start;font-size:1rem;padding:0.8rem 1.6rem;" onclick="requestUpgrade('${approvedTier}')">
+          <i class="fa-solid fa-credit-card" style="color:white!important;margin-right:0.4rem;"></i> Pagar Agora – Ativar Plano
         </button>
-      `}
-    </div>
-  `;
+        <p style="color:var(--text-muted);font-size:0.78rem;">Você será redirecionado ao Mercado Pago. Pix, Boleto e cartão aceitos.</p>
+      </div>`;
+    return;
+  }
+
+  // ── Case 3: Free / no subscription ────────────────────────────────────────
+  container.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;">💳 Minha Assinatura</div>
+      <div>Plano Atual: <strong>${label}</strong></div>
+      <div>Status: <strong style="color:var(--text-muted);">Sem assinatura ativa</strong></div>
+      <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.5;">Assine agora para desbloquear o diário completo, câmera IA ilimitada, dossiês de pacientes e painéis profissionais.</p>
+      <button class="btn-primary" style="width:auto;align-self:flex-start;" onclick="openUpgradeModal()">
+        <i class="fa-solid fa-star" style="color:white!important;margin-right:0.3rem;"></i> Ver Planos &amp; Fazer Upgrade
+      </button>
+    </div>`;
 }
 
 async function cancelSubscription(subscriptionId) {
@@ -103,23 +132,43 @@ async function loadMyNutritionistRequestStatus() {
     btn.innerHTML = data.status === 'rejected' ? 'Enviar Nova Solicitação' : 'Ver Solicitação';
   }
 }
-function openNutritionistRequest() {
+// tier: 'professional_basic' | 'professional_gold' | null (legacy sidebar button)
+function openNutritionistRequest(tier) {
+  // Determine tier — default to professional_basic if not specified
+  const resolvedTier = tier || 'professional_basic';
+  const isGold = resolvedTier === 'professional_gold';
+
+  // Update hidden tier field
+  const tierInput = document.getElementById('nutRequestedTier');
+  if (tierInput) tierInput.value = resolvedTier;
+
+  // Update modal visuals
+  const badge = document.getElementById('nutTierBadge');
+  if (badge) {
+    badge.textContent = isGold ? 'Professional Gold' : 'Professional Basic';
+    badge.style.background = isGold ? 'var(--yellow-hot)' : 'var(--green-deep)';
+    badge.style.color = isGold ? '#1a1a1a' : 'white';
+  }
+  const titleEl = document.getElementById('nutModalTitle');
+  if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitação – ' + (isGold ? 'Professional Gold' : 'Professional Basic');
+  const subEl = document.getElementById('nutModalSub');
+  if (subEl) subEl.textContent = 'Preencha seus dados profissionais. Nossa equipe revisará e, se aprovado, você poderá pagar e ativar o plano ' + (isGold ? 'Professional Gold' : 'Professional Basic') + '.';
+
   document.getElementById('nutritionistModal').classList.add('show');
   const req = window._myNutReq;
   const isReadOnly = req && (req.status === 'pending' || req.status === 'approved');
-  
+
   if (req && req.status !== 'rejected') {
     document.getElementById('nutCRN').value = req.crn || '';
     document.getElementById('nutInstitution').value = req.institution || '';
     document.getElementById('nutMessage').value = req.message || '';
-    
+
     // Check specialties
     const specStr = req.specialty || '';
     document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => {
-      if (specStr.includes(cb.value)) cb.checked = true;
-      else cb.checked = false;
+      cb.checked = specStr.includes(cb.value);
     });
-    
+
     // Handle 'Outra'
     const predefined = ['Clínica', 'Esportiva', 'Pediatria', 'Gestante', 'Oncologia', 'Renal', 'Cardiologia', 'Outra'];
     const customSpecs = specStr.split(', ').filter(s => !predefined.includes(s));
@@ -137,7 +186,7 @@ function openNutritionistRequest() {
     if (el) el.disabled = isReadOnly;
   });
   document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.disabled = isReadOnly);
-  
+
   const submitBtn = document.querySelector('#nutritionistModal .btn-primary');
   if (submitBtn) submitBtn.style.display = isReadOnly ? 'none' : 'block';
 }
@@ -154,13 +203,17 @@ async function sendNutritionistRequest() {
   const specialty = specialtyList.join(', ');
   const institution = document.getElementById('nutInstitution').value.trim();
   const message = document.getElementById('nutMessage').value.trim();
+  // Read which professional tier was requested from the hidden field
+  const requested_tier = document.getElementById('nutRequestedTier')?.value || 'professional_basic';
   if (!crn) { showToast('Informe o CRN', 'error'); return; }
   closeNutritionistModal();
   showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Enviando solicitação...');
+  const tierLabel = requested_tier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
   const bodyText =
-    'Solicitação de Nutricionista\n\n' +
+    'Solicitação de Plano Profissional – ' + tierLabel + '\n\n' +
     'Nome: ' + (currentProfile?.name||'') + '\n' +
     'E-mail: ' + (currentUser?.email||'') + '\n' +
+    'Plano solicitado: ' + tierLabel + '\n' +
     'CRN: ' + crn + '\n' +
     'Especialidade: ' + specialty + '\n' +
     'Instituição: ' + institution + '\n\n' +
@@ -174,6 +227,7 @@ async function sendNutritionistRequest() {
       specialty,
       institution,
       message,
+      requested_tier,
       status: 'pending',
       rejection_reason: null,
       rejection_fields: null,
@@ -182,21 +236,21 @@ async function sendNutritionistRequest() {
     }, { onConflict: 'user_id' });
     if (dbError) throw dbError;
     try {
-      await sendEmailViaAPI('nexy.corporationn@gmail.com', 'Solicitacao de Nutricionista - CalorIA', bodyText);
+      await sendEmailViaAPI('nexy.corporationn@gmail.com', 'Solicitação Profissional – ' + tierLabel + ' – CalorIA', bodyText);
     } catch(emailError) {
       console.warn('[CalorIA] Email notification failed:', emailError);
     }
-    const crnInput = document.getElementById('nutCRN'); if (crnInput) crnInput.value = '';
-    const otherInput = document.getElementById('nutSpecialtyOther'); if (otherInput) otherInput.value = '';
-    const instInput = document.getElementById('nutInstitution'); if (instInput) instInput.value = '';
-    const msgInput = document.getElementById('nutMessage'); if (msgInput) msgInput.value = '';
+    document.getElementById('nutCRN').value = '';
+    document.getElementById('nutSpecialtyOther').value = '';
+    document.getElementById('nutInstitution').value = '';
+    document.getElementById('nutMessage').value = '';
     document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.checked = false);
     const otherContainer = document.getElementById('nutSpecialtyOtherContainer');
     if (otherContainer) otherContainer.style.display = 'none';
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! O admin poderá aprovar pelo painel.');
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! Nossa equipe revisará em breve.');
   } catch(e) {
     console.error('[CalorIA] nutritionist request error:', e);
-    showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitacao. Verifique a tabela nutritionist_requests no Supabase.', 'error');
+    showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitação. Verifique a tabela nutritionist_requests no Supabase.', 'error');
   }
 }
 

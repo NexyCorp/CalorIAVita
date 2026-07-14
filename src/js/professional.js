@@ -1239,31 +1239,38 @@ async function loadNutritionistRequests() {
     if (created === 'Invalid Date' || created === 'Data Inválida') created = '—';
     const fieldsId = `nutRejectFields-${req.id}`;
     const reasonId = `nutRejectReason-${req.id}`;
+    const tierLabel = req.requested_tier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+    const tierBadgeStyle = req.requested_tier === 'professional_gold'
+      ? 'background:var(--yellow-hot);color:#1a1a1a;'
+      : 'background:var(--green-deep);color:white;';
     return `
       <div class="queue-item">
         <div class="queue-info">
-          <strong>${window.escapeHtml(req.user_name || 'Usuario sem nome')}</strong>
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem;">
+            <strong>${window.escapeHtml(req.user_name || 'Usuário sem nome')}</strong>
+            <span style="font-size:0.68rem;font-weight:800;font-family:'Syne',sans-serif;text-transform:uppercase;padding:0.15rem 0.55rem;border-radius:50px;${tierBadgeStyle}">${tierLabel}</span>
+          </div>
           <p>${window.escapeHtml(req.user_email || '')}</p>
           <p><strong>CRN:</strong> ${window.escapeHtml(req.crn || '—')} | <strong>Especialidade:</strong> ${window.escapeHtml(req.specialty || '—')}</p>
-          <p><strong>Instituicao:</strong> ${window.escapeHtml(req.institution || '—')}</p>
+          <p><strong>Instituição:</strong> ${window.escapeHtml(req.institution || '—')}</p>
           ${req.message ? `<p><strong>Mensagem:</strong> ${window.escapeHtml(req.message)}</p>` : ''}
           <p style="font-size:0.75rem;color:var(--text-muted);">Enviado em ${created}</p>
           <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
             <select id="${fieldsId}" class="form-select" multiple size="4" style="min-height:92px;">
               <option value="crn">CRN / registro profissional</option>
               <option value="specialty">Especialidade</option>
-              <option value="institution">Instituicao de formacao</option>
+              <option value="institution">Instituição de formação</option>
               <option value="message">Mensagem / dados adicionais</option>
             </select>
             <select id="${reasonId}" class="form-select">
-              <option value="dados_incorretos">Dados informados estao errados</option>
-              <option value="dados_inconsistentes">Dados informados nao condizem com outros dados</option>
-              <option value="documentacao_insuficiente">Documentacao ou informacoes insuficientes</option>
+              <option value="dados_incorretos">Dados informados estão errados</option>
+              <option value="dados_inconsistentes">Dados informados não condizem com outros dados</option>
+              <option value="documentacao_insuficiente">Documentação ou informações insuficientes</option>
             </select>
           </div>
         </div>
         <div class="queue-actions" style="align-self:flex-start;">
-          <button class="btn-approve" onclick="reviewNutritionistRequest('${req.id}','approve')"><i class="fa-solid fa-check ic-check"></i> Permitir</button>
+          <button class="btn-approve" onclick="reviewNutritionistRequest('${req.id}','approve')"><i class="fa-solid fa-check ic-check"></i> Aprovar &amp; Notificar</button>
           <button class="btn-reject" onclick="reviewNutritionistRequest('${req.id}','reject')"><i class="fa-solid fa-xmark ic-alert"></i> Negar</button>
         </div>
       </div>`;
@@ -1275,12 +1282,16 @@ async function reviewNutritionistRequest(requestId, action) {
   if (!req) return;
 
   if (action === 'approve') {
+    const requestedTier = req.requested_tier || 'professional_basic';
+
+    // Do NOT grant the plan yet — just mark profile as approved_pending_payment
+    // The plan/role will be granted by the webhook after they actually pay
     const { error: profileError } = await supabase.from('profiles').update({
-      role: 'nutritionist',
-      plan: 'pro'
+      subscription_status: 'approved_pending_payment',
+      professional_approved_tier: requestedTier
     }).eq('id', req.user_id);
     if (profileError) {
-      showToast('Erro ao aprovar usuario: ' + profileError.message, 'error');
+      showToast('Erro ao aprovar usuário: ' + profileError.message, 'error');
       return;
     }
 
@@ -1290,11 +1301,22 @@ async function reviewNutritionistRequest(requestId, action) {
       reviewed_at: new Date().toISOString()
     }).eq('id', requestId);
     if (reqError) {
-      showToast('Usuario aprovado, mas falhou ao atualizar a solicitacao: ' + reqError.message, 'error');
-      return;
+      showToast('Aprovado, mas falhou ao atualizar a solicitação: ' + reqError.message, 'error');
     }
 
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Usuario aprovado como nutricionista!');
+    // Notify user via admin notice popup so they know to go pay
+    const tierLabel = requestedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+    const noticeTitle = '✅ Documentação Aprovada!';
+    const noticeMsg = `Sua solicitação para o plano ${tierLabel} foi aprovada! Acesse o painel "Minha Assinatura" para concluir o pagamento e ativar suas funcionalidades profissionais.`;
+    const sb = _getSb();
+    await sb.from('admin_notices').insert({
+      admin_id: currentUser.id,
+      user_id: req.user_id,
+      title: noticeTitle,
+      message: noticeMsg
+    }).select(); // don't block on error
+
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação aprovada! Usuário foi notificado para realizar o pagamento.');
     await refreshAdminUsers();
     await loadNutritionistRequests();
     return;
@@ -1444,13 +1466,11 @@ async function requestUpgrade(plan) {
     pro: 'Standard Pro (R$30/mês)',
     professional_basic: 'Professional Basic (R$100/mês)',
     professional_gold:  'Professional Gold (R$197/mês)',
-    // legado
     nutritionist_pro: 'Professional Basic (R$100/mês)',
     nutritionist_clinic: 'Professional Gold (R$197/mês)',
     clinic: 'Professional Gold (R$197/mês)'
   };
 
-  // Map legacy plan names to API tier names
   const tierMap = {
     pro: 'pro',
     professional_basic: 'professional_basic',
@@ -1461,6 +1481,36 @@ async function requestUpgrade(plan) {
   };
   const tier = tierMap[plan] || plan;
 
+  // ── Professional tiers: require documentation review first ────────────────────
+  // Always do a fresh DB lookup so cached currentProfile doesn't cause wrong routing.
+  // Exception: if the user is already in 'approved_pending_payment' state,
+  // they were already approved, so skip the form and go straight to checkout.
+  if (tier === 'professional_basic' || tier === 'professional_gold') {
+    let isPendingPayment = false;
+    try {
+      const { data: liveProfile } = await supabase
+        .from('profiles')
+        .select('subscription_status, professional_approved_tier')
+        .eq('id', currentUser.id)
+        .single();
+      isPendingPayment = liveProfile?.subscription_status === 'approved_pending_payment';
+      // Also sync into local cache so subscription dashboard is accurate
+      if (liveProfile) {
+        currentProfile = { ...currentProfile, ...liveProfile };
+      }
+    } catch(e) {
+      console.warn('[CalorIA] requestUpgrade: profile lookup failed, defaulting to form flow', e);
+    }
+
+    if (!isPendingPayment) {
+      closeUpgradeModal();
+      await loadMyNutritionistRequestStatus();
+      openNutritionistRequest(tier);
+      return;
+    }
+  }
+
+  // ── Standard Pro or post-approval professional payment: go straight to MP ──
   closeUpgradeModal();
   showToast('<i class="fa-solid fa-spinner fa-spin ic-water"></i> Redirecionando para o pagamento...');
 
@@ -1485,14 +1535,12 @@ async function requestUpgrade(plan) {
       return;
     }
 
-    // If API isn't configured yet (dev mode), fall back to email request
     console.warn('[CalorIA] Checkout API error or not configured, falling back to admin request.', data);
     throw new Error(data.error || 'Checkout indisponível');
 
   } catch (e) {
     console.error('[CalorIA] requestUpgrade checkout error:', e);
 
-    // Graceful fallback: send upgrade request to admin via DB + email
     const planFeatures = {
       pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
       professional_basic: ['Tudo do Standard Pro','Painel de pacientes','Cadastrar pacientes diretamente','Enviar receitas manuais aos pacientes','Dossiê do paciente','Relatórios nutricionais em PDF'],

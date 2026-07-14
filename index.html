@@ -2439,8 +2439,13 @@ function closeLgpdModal() {
 <div class="modal-overlay" id="nutritionistModal" onclick="if(event.target===this)closeNutritionistModal()">
   <div class="modal-box">
     <button class="modal-close" onclick="closeNutritionistModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
-    <div class="modal-title"><i class="fa-solid fa-utensils ic-recipes"></i> Solicitação de Nutricionista</div>
-    <p class="modal-sub">Preencha os dados abaixo. Sua solicitação será enviada diretamente ao nosso time.</p>
+    <!-- Hidden field: tier this request is for. Set by openNutritionistRequest(tier) -->
+    <input type="hidden" id="nutRequestedTier" value="professional_basic">
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+      <div class="modal-title" id="nutModalTitle" style="margin-bottom:0;"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitação Profissional</div>
+      <span id="nutTierBadge" style="font-size:0.7rem;font-weight:800;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.04em;padding:0.2rem 0.65rem;border-radius:50px;background:var(--green-deep);color:white;">Professional Basic</span>
+    </div>
+    <p class="modal-sub" id="nutModalSub">Preencha seus dados profissionais. Nossa equipe revisará a solicitação e, se aprovado, você poderá pagar e ativar o plano.</p>
     <div class="form-field">
       <label class="form-label">CRN (Registro Profissional)</label>
       <input type="text" id="nutCRN" class="form-input" placeholder="Ex: CRN-3 12345">
@@ -2469,6 +2474,7 @@ function closeLgpdModal() {
       <label class="form-label">Mensagem adicional</label>
       <textarea id="nutMessage" class="form-input" rows="3" placeholder="Conte um pouco sobre sua atuação..."></textarea>
     </div>
+    <div id="nutritionistRequestStatus" style="display:none;margin-bottom:0.75rem;padding:0.6rem 0.9rem;border-radius:var(--radius-sm);background:var(--green-pale);font-size:0.83rem;color:var(--green-deep);"></div>
     <button class="btn-primary" onclick="sendNutritionistRequest()"><i class="fa-solid fa-envelope ic-search"></i> Enviar Solicitação</button>
   </div>
 </div>
