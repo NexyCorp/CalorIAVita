@@ -63,7 +63,6 @@ export async function onRequestPost({ request, env }) {
     const mpPayload = {
       reason: planConfig.reason,
       external_reference: user.id,        // Used by webhook to identify the user
-      payer_email: user.email,
       back_url: `${appUrl}/#subscription`,
       status: 'pending',
       auto_recurring: {
