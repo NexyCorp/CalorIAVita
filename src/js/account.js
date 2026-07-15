@@ -5,67 +5,96 @@ async function loadSubscriptionDashboard() {
 
   container.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;"><i class="fa-solid fa-spinner fa-spin ic-water"></i> Carregando...</p>';
 
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('plan, role, subscription_id, subscription_status, subscription_next_charge, professional_approved_tier')
-    .eq('id', currentUser.id)
-    .single();
+  try {
+    const db = window.getSupabase?.() || window._db || supabase;
+    if (!db) {
+      throw new Error('Supabase client not initialized');
+    }
 
-  if (error || !profile) {
-    container.innerHTML = `<p style="color:#e53935;">Erro ao carregar dados da assinatura.</p>`;
-    return;
-  }
+    if (!currentUser) {
+      container.innerHTML = `<p style="color:#e53935;">Usuário não autenticado.</p>`;
+      return;
+    }
 
-  const isActive = profile.subscription_id && profile.subscription_status === 'active';
-  const isPendingPayment = profile.subscription_status === 'approved_pending_payment';
-  const label = typeof getPlanLabel === 'function' ? getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
+    const { data: profile, error } = await db
+      .from('profiles')
+      .select('plan, role, subscription_id, subscription_status, subscription_next_charge, professional_approved_tier')
+      .eq('id', currentUser.id)
+      .single();
 
-  // ── Case 1: Active paid subscription ──────────────────────────────────────
-  if (isActive) {
+    if (error || !profile) {
+      container.innerHTML = `<p style="color:#e53935;">Erro ao carregar dados da assinatura: ${error?.message || 'Perfil não encontrado'}</p>`;
+      return;
+    }
+
+    const isActive = profile.subscription_id && profile.subscription_status === 'active';
+    const isPendingPayment = profile.subscription_status === 'approved_pending_payment';
+    const label = typeof getPlanLabel === 'function' ? getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
+
+    // ── Case 1: Active paid subscription ──────────────────────────────────────
+    if (isActive) {
+      let nextChargeText = '';
+      if (profile.subscription_next_charge) {
+        try {
+          nextChargeText = `<div>Próxima Cobrança: <strong>${new Date(profile.subscription_next_charge).toLocaleDateString('pt-BR')}</strong></div>`;
+        } catch(e) {
+          console.warn('[loadSubscriptionDashboard] Date formatting error:', e);
+        }
+      }
+
+      container.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:1rem;color:var(--text-main);">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;">💳 Minha Assinatura</div>
+          <div>Plano Atual: <strong style="color:var(--green-mid);font-size:1.1rem;">${label}</strong></div>
+          <div>Status: <strong style="color:#2e7d32;">✅ Ativa</strong></div>
+          ${nextChargeText}
+          <button class="btn-primary" style="background:#c62828!important;border:none;margin-top:0.5rem;width:auto;align-self:flex-start;" onclick="cancelSubscription('${profile.subscription_id}')">
+            <i class="fa-solid fa-circle-xmark" style="color:white!important;margin-right:0.3rem;"></i> Cancelar Assinatura
+          </button>
+        </div>`;
+      return;
+    }
+
+    // ── Case 2: Documentation approved, waiting for payment ───────────────────
+    if (isPendingPayment) {
+      const approvedTier = profile.professional_approved_tier || 'professional_basic';
+      const approvedLabel = approvedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+      container.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:1rem;color:var(--text-main);">
+          <div style="background:linear-gradient(135deg,var(--green-deep),#1b5e20);color:white;border-radius:var(--radius-md);padding:1.25rem 1.5rem;">
+            <div style="font-family:'Syne',sans-serif;font-weight:900;font-size:1.15rem;margin-bottom:0.4rem;">✅ Documentação Aprovada!</div>
+            <div style="opacity:0.9;font-size:0.88rem;line-height:1.5;">Sua solicitação para o plano <strong>${approvedLabel}</strong> foi revisada e aprovada.<br>Conclua o pagamento para ativar suas funcionalidades profissionais.</div>
+          </div>
+          <div>Plano Aprovado: <strong style="color:var(--green-mid);font-size:1.05rem;">${approvedLabel}</strong></div>
+          <div>Status: <strong style="color:#f57c00;">⏳ Aguardando Pagamento</strong></div>
+          <button class="btn-primary" style="width:auto;align-self:flex-start;font-size:1rem;padding:0.8rem 1.6rem;" onclick="requestUpgrade('${approvedTier}')">
+            <i class="fa-solid fa-credit-card" style="color:white!important;margin-right:0.4rem;"></i> Pagar Agora – Ativar Plano
+          </button>
+          <p style="color:var(--text-muted);font-size:0.78rem;">Você será redirecionado ao Mercado Pago. Pix, Boleto e cartão aceitos.</p>
+        </div>`;
+      return;
+    }
+
+    // ── Case 3: Free / no subscription ────────────────────────────────────────
     container.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div style="display:flex;flex-direction:column;gap:1rem;color:var(--text-main);">
         <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;">💳 Minha Assinatura</div>
-        <div>Plano Atual: <strong style="color:var(--green-mid);font-size:1.1rem;">${label}</strong></div>
-        <div>Status: <strong style="color:#2e7d32;">✅ Ativa</strong></div>
-        ${profile.subscription_next_charge ? `<div>Próxima Cobrança: <strong>${new Date(profile.subscription_next_charge).toLocaleDateString('pt-BR')}</strong></div>` : ''}
-        <button class="btn-primary" style="background:#c62828!important;border:none;margin-top:0.5rem;width:auto;align-self:flex-start;" onclick="cancelSubscription('${profile.subscription_id}')">
-          <i class="fa-solid fa-circle-xmark" style="color:white!important;margin-right:0.3rem;"></i> Cancelar Assinatura
+        <div>Plano Atual: <strong>${label}</strong></div>
+        <div>Status: <strong style="color:var(--text-muted);">Sem assinatura ativa</strong></div>
+        <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.5;">Assine agora para desbloquear o diário completo, câmera IA ilimitada, dossiês de pacientes e painéis profissionais.</p>
+        <button class="btn-primary" style="width:auto;align-self:flex-start;" onclick="openUpgradeModal()">
+          <i class="fa-solid fa-star" style="color:white!important;margin-right:0.3rem;"></i> Ver Planos &amp; Fazer Upgrade
         </button>
       </div>`;
-    return;
-  }
 
-  // ── Case 2: Documentation approved, waiting for payment ───────────────────
-  if (isPendingPayment) {
-    const approvedTier = profile.professional_approved_tier || 'professional_basic';
-    const approvedLabel = approvedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+  } catch (err) {
+    console.error('[loadSubscriptionDashboard] Unhandled error:', err);
     container.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:1rem;">
-        <div style="background:linear-gradient(135deg,var(--green-deep),#1b5e20);color:white;border-radius:var(--radius-md);padding:1.25rem 1.5rem;">
-          <div style="font-family:'Syne',sans-serif;font-weight:900;font-size:1.15rem;margin-bottom:0.4rem;">✅ Documentação Aprovada!</div>
-          <div style="opacity:0.9;font-size:0.88rem;line-height:1.5;">Sua solicitação para o plano <strong>${approvedLabel}</strong> foi revisada e aprovada.<br>Conclua o pagamento para ativar suas funcionalidades profissionais.</div>
-        </div>
-        <div>Plano Aprovado: <strong style="color:var(--green-mid);font-size:1.05rem;">${approvedLabel}</strong></div>
-        <div>Status: <strong style="color:#f57c00;">⏳ Aguardando Pagamento</strong></div>
-        <button class="btn-primary" style="width:auto;align-self:flex-start;font-size:1rem;padding:0.8rem 1.6rem;" onclick="requestUpgrade('${approvedTier}')">
-          <i class="fa-solid fa-credit-card" style="color:white!important;margin-right:0.4rem;"></i> Pagar Agora – Ativar Plano
-        </button>
-        <p style="color:var(--text-muted);font-size:0.78rem;">Você será redirecionado ao Mercado Pago. Pix, Boleto e cartão aceitos.</p>
+      <div style="color:#e53935;padding:1rem;border:1px dashed #e53935;border-radius:var(--radius-sm);">
+        <p><strong>Erro de Renderização:</strong> ${err.message}</p>
+        <p style="font-size:0.75rem;margin-top:0.5rem;color:var(--text-muted);">Consulte o console para mais detalhes.</p>
       </div>`;
-    return;
   }
-
-  // ── Case 3: Free / no subscription ────────────────────────────────────────
-  container.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:1rem;">
-      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:var(--green-deep);border-bottom:2px solid var(--border);padding-bottom:0.5rem;">💳 Minha Assinatura</div>
-      <div>Plano Atual: <strong>${label}</strong></div>
-      <div>Status: <strong style="color:var(--text-muted);">Sem assinatura ativa</strong></div>
-      <p style="color:var(--text-muted);font-size:0.88rem;line-height:1.5;">Assine agora para desbloquear o diário completo, câmera IA ilimitada, dossiês de pacientes e painéis profissionais.</p>
-      <button class="btn-primary" style="width:auto;align-self:flex-start;" onclick="openUpgradeModal()">
-        <i class="fa-solid fa-star" style="color:white!important;margin-right:0.3rem;"></i> Ver Planos &amp; Fazer Upgrade
-      </button>
-    </div>`;
 }
 
 async function cancelSubscription(subscriptionId) {
