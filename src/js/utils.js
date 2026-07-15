@@ -920,4 +920,145 @@ window.closeSidebar = closeSidebar;
 window.toggleDropdown = toggleDropdown;
 window.closeDropdown = closeDropdown;
 
+// Robust, cache-proof implementation of Subscription Dashboard directly in utils.js
+window.loadSubscriptionDashboard = async function() {
+  const container = document.getElementById('subscription-status-card');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+      <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--green-mid); margin-bottom: 0.5rem;"></i>
+      <p style="font-size: 0.9rem; margin: 0;">Carregando dados da assinatura...</p>
+    </div>`;
+
+  try {
+    const db = window.supabase || window._db || (typeof supabase !== 'undefined' ? supabase : null);
+    if (!db) throw new Error('Supabase client not found');
+    
+    const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+    if (!user) {
+      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">Usuário não autenticado no CalorIA.</p>`;
+      return;
+    }
+
+    const { data: profile, error } = await db
+      .from('profiles')
+      .select('plan, role, subscription_id, subscription_status, subscription_next_charge, professional_approved_tier')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) {
+      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">Erro ao carregar dados: ${error?.message || 'Perfil não encontrado'}</p>`;
+      return;
+    }
+
+    const isActive = profile.subscription_id && profile.subscription_status === 'active';
+    const isPendingPayment = profile.subscription_status === 'approved_pending_payment';
+    const label = typeof window.getPlanLabel === 'function' ? window.getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
+
+    // ── Case 1: Active Paid Subscription ──────────────────────────────────────
+    if (isActive) {
+      const isGold = profile.plan === 'gold' || profile.role === 'professional' && profile.plan === 'gold';
+      const badgeColor = isGold ? 'linear-gradient(135deg, #ffd700, #ffa000)' : 'linear-gradient(135deg, var(--green-mid), #1b5e20)';
+      const badgeTextColor = isGold ? '#1a1a1a' : '#ffffff';
+
+      let nextChargeHtml = '';
+      if (profile.subscription_next_charge) {
+        try {
+          const dtStr = new Date(profile.subscription_next_charge).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+          nextChargeHtml = `
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-body); padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.9rem; border: 1px solid var(--border); margin-top: 0.5rem;">
+              <span style="color: var(--green-mid);"><i class="fa-regular fa-calendar-check"></i></span>
+              <span style="color: var(--text-muted);">Próxima renovação: <strong style="color: var(--text-main);">${dtStr}</strong></span>
+            </div>`;
+        } catch(e) {}
+      }
+
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">Plano Atual</span>
+              <h3 style="margin: 0.2rem 0 0 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--text-main);">${label}</h3>
+            </div>
+            <span style="background: ${badgeColor}; color: ${badgeTextColor}; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 50px; font-family: 'Syne', sans-serif;">
+              ✅ Ativo
+            </span>
+          </div>
+
+          ${nextChargeHtml}
+
+          <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">Seu acesso premium está ativo. Você pode gerenciar ou cancelar sua assinatura recorrente a qualquer momento abaixo.</span>
+            <button class="btn-primary" style="background: #c62828 !important; border: none; margin-top: 0.5rem; width: auto; align-self: flex-start; padding: 0.65rem 1.25rem; font-size: 0.85rem;" onclick="if(window.cancelSubscription) window.cancelSubscription('${profile.subscription_id}')">
+              <i class="fa-solid fa-circle-xmark" style="color: white !important; margin-right: 0.35rem;"></i> Cancelar Assinatura
+            </button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // ── Case 2: Approved, Pending Payment ──────────────────────────────────────
+    if (isPendingPayment) {
+      const approvedTier = profile.professional_approved_tier || 'professional_basic';
+      const approvedLabel = approvedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="background: linear-gradient(135deg, var(--green-deep), #1b5e20); color: white; border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+            <span style="font-size: 1.5rem; color: var(--yellow-hot);"><i class="fa-solid fa-circle-check"></i></span>
+            <div>
+              <h4 style="margin: 0 0 0.25rem 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem;">Documentação Aprovada!</h4>
+              <p style="margin: 0; font-size: 0.83rem; opacity: 0.9; line-height: 1.5;">Suas credenciais profissionais foram verificadas. Conclua o pagamento para liberar seu painel.</p>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Plano Liberado:</span>
+            <strong style="color: var(--green-mid); font-size: 1rem; font-family: 'Syne', sans-serif;">${approvedLabel}</strong>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+            <button class="btn-primary" style="width: auto; align-self: flex-start; font-size: 0.95rem; padding: 0.75rem 1.5rem;" onclick="if(window.requestUpgrade) window.requestUpgrade('${approvedTier}')">
+              <i class="fa-solid fa-credit-card" style="color: white !important; margin-right: 0.4rem;"></i> Pagar Agora – Ativar Plano
+            </button>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">A cobrança será mensal. Suporte a Pix, boleto e cartão de crédito.</span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // ── Case 3: Free User ──────────────────────────────────────────────────────
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+          <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">Plano Atual</span>
+            <h3 style="margin: 0.2rem 0 0 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--text-main);">${label}</h3>
+          </div>
+          <span style="background: var(--bg-body); color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 50px; border: 1px solid var(--border); font-family: 'Syne', sans-serif;">
+            Gratuito
+          </span>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          Faça o upgrade agora para liberar a câmera IA ilimitada, diários completos de água e açúcar, planos alimentares personalizados e recursos profissionais de atendimento a pacientes.
+        </p>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem;">
+          <button class="btn-primary" style="width: auto;" onclick="if(window.openUpgradeModal) window.openUpgradeModal()">
+            <i class="fa-solid fa-star" style="color: white !important; margin-right: 0.35rem;"></i> Ver Planos &amp; Fazer Upgrade
+          </button>
+        </div>
+      </div>`;
+
+  } catch(err) {
+    console.error('[loadSubscriptionDashboard] Error:', err);
+    container.innerHTML = `
+      <div style="color: var(--red-danger); padding: 1rem; border: 1px dashed var(--red-danger); border-radius: var(--radius-sm); font-size: 0.88rem;">
+        <strong>Erro de renderização:</strong> ${err.message}
+      </div>`;
+  }
+};
+
+
 
