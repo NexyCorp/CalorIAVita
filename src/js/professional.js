@@ -540,6 +540,10 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
 async function loadPatients() {
   const listEl = document.getElementById('patientsList');
   if (!listEl) return;
+  
+  const searchInput = document.getElementById('patientSearchInput');
+  if (searchInput) searchInput.value = '';
+  
   listEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Carregando...</p>';
 
   if (!currentUser) return;
@@ -1814,6 +1818,44 @@ window.uploadChatPhoto = uploadChatPhoto;
 window.subscribeChat = subscribeChat;
 window.loadPatients = loadPatients;
 window.openPatientDossier = openPatientDossier;
+
+function filterPatientsList() {
+  const q = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#patientsList .patient-row');
+  let matchCount = 0;
+
+  // Remove existing empty state message if any
+  const oldEmpty = document.getElementById('patientsSearchEmptyMsg');
+  if (oldEmpty) oldEmpty.remove();
+
+  rows.forEach(row => {
+    // Info inside the row contains name and email
+    const name = (row.getAttribute('data-patient-name') || '').toLowerCase();
+    const infoText = row.querySelector('.patient-info')?.textContent?.toLowerCase() || '';
+    
+    if (name.includes(q) || infoText.includes(q)) {
+      row.style.display = 'flex';
+      matchCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const countEl = document.getElementById('patientCount');
+  if (countEl) countEl.textContent = matchCount;
+
+  if (matchCount === 0 && rows.length > 0) {
+    const listEl = document.getElementById('patientsList');
+    if (listEl) {
+      const msg = document.createElement('p');
+      msg.id = 'patientsSearchEmptyMsg';
+      msg.style.cssText = 'color:var(--text-muted);text-align:center;padding:2rem;margin:0;width:100%;';
+      msg.innerHTML = typeof t === 'function' ? t('patients_no_results') : 'Nenhum paciente encontrado.';
+      listEl.appendChild(msg);
+    }
+  }
+}
+window.filterPatientsList = filterPatientsList;
 
 window.printDossierPDF = function() {
   const content = document.getElementById('dossierContent')?.innerHTML;

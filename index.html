@@ -1349,6 +1349,12 @@
           </button>
         </div>
 
+        <!-- Paciente Search Bar -->
+        <div style="position:relative;margin-bottom:1.5rem;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.9rem;"></i>
+          <input type="text" id="patientSearchInput" data-i18n-ph="patients_search_ph" placeholder="Buscar por nome ou e-mail..." style="width:100%;padding:0.75rem 1rem 0.75rem 2.5rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-size:0.9rem;" oninput="filterPatientsList()">
+        </div>
+
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
           <p style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);"><span data-i18n="patients_list">Lista</span> (<span id="patientCount">0</span>)</p>
           <span id="patientLimitInfo" style="font-size:0.75rem;color:var(--text-muted);"></span>

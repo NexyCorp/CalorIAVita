@@ -173,6 +173,30 @@ const i18n = {
     admin_th_plan: 'Plano',
     admin_th_since: 'Desde',
     admin_th_action: 'Ação',
+    // Subscription panel
+    sub_admin_title: 'Acesso Administrador',
+    sub_admin_desc: 'Seu acesso é permanente e concedido por função de sistema. Assinaturas e cobranças não se aplicam à sua conta.',
+    sub_admin_badge: '♾️ Acesso Vitalício',
+    sub_active_plan: 'Plano Atual',
+    sub_active_badge: '✅ Ativo',
+    sub_active_renewal: 'Próxima renovação:',
+    sub_active_desc: 'Seu acesso premium está ativo. Você pode gerenciar ou cancelar sua assinatura recorrente a qualquer momento abaixo.',
+    sub_cancel_btn: 'Cancelar Assinatura',
+    sub_approved_title: 'Documentação Aprovada!',
+    sub_approved_desc: 'Suas credenciais profissionais foram verificadas. Conclua o pagamento para liberar seu painel.',
+    sub_approved_tier_label: 'Plano Liberado:',
+    sub_pay_btn: 'Pagar Agora – Ativar Plano',
+    sub_pay_note: 'A cobrança será mensal. Suporte a Pix, boleto e cartão de crédito.',
+    sub_free_plan: 'Plano Atual',
+    sub_free_badge: 'Gratuito',
+    sub_free_desc: 'Faça o upgrade agora para liberar a câmera IA ilimitada, diários completos de água e açúcar, planos alimentares personalizados e recursos profissionais de atendimento a pacientes.',
+    sub_upgrade_btn: 'Ver Planos & Fazer Upgrade',
+    sub_error_no_auth: 'Usuário não autenticado no CalorIA.',
+    sub_error_load: 'Erro ao carregar dados:',
+    sub_loading: 'Carregando dados da assinatura...',
+    // Patient search
+    patients_search_ph: 'Buscar por nome ou e-mail...',
+    patients_no_results: 'Nenhum paciente encontrado.',
   },
   en: {
     nav_home:'Home', nav_tools:'Tools', nav_search:'Search', nav_diary:'Diary', nav_goal:'Goal & Calc.',
@@ -333,6 +357,30 @@ const i18n = {
     admin_th_plan: 'Plan',
     admin_th_since: 'Since',
     admin_th_action: 'Action',
+    // Subscription panel
+    sub_admin_title: 'Administrator Access',
+    sub_admin_desc: 'Your access is permanent and granted by system role. Subscriptions and billing do not apply to your account.',
+    sub_admin_badge: '♾️ Lifetime Access',
+    sub_active_plan: 'Current Plan',
+    sub_active_badge: '✅ Active',
+    sub_active_renewal: 'Next renewal:',
+    sub_active_desc: 'Your premium access is active. You can manage or cancel your recurring subscription at any time below.',
+    sub_cancel_btn: 'Cancel Subscription',
+    sub_approved_title: 'Documentation Approved!',
+    sub_approved_desc: 'Your professional credentials have been verified. Complete the payment to unlock your panel.',
+    sub_approved_tier_label: 'Unlocked Plan:',
+    sub_pay_btn: 'Pay Now – Activate Plan',
+    sub_pay_note: 'Monthly billing. Supports Pix, bank slip and credit card.',
+    sub_free_plan: 'Current Plan',
+    sub_free_badge: 'Free',
+    sub_free_desc: 'Upgrade now to unlock unlimited AI camera, full water and sugar diaries, personalized meal plans and professional patient management features.',
+    sub_upgrade_btn: 'View Plans & Upgrade',
+    sub_error_no_auth: 'User not authenticated in CalorIA.',
+    sub_error_load: 'Error loading data:',
+    sub_loading: 'Loading subscription data...',
+    // Patient search
+    patients_search_ph: 'Search by name or email...',
+    patients_no_results: 'No patients found.',
   },
   es: {
     nav_tools:'Herramientas', nav_search:'Buscar', nav_diary:'Diario', nav_goal:'Meta & Calc.',
@@ -506,6 +554,30 @@ const i18n = {
     admin_th_plan: 'Plan',
     admin_th_since: 'Desde',
     admin_th_action: 'Acción',
+    // Subscription panel
+    sub_admin_title: 'Acceso Administrador',
+    sub_admin_desc: 'Tu acceso es permanente y otorgado por rol del sistema. Las suscripciones y cobros no aplican a tu cuenta.',
+    sub_admin_badge: '♾️ Acceso Vitalicio',
+    sub_active_plan: 'Plan Actual',
+    sub_active_badge: '✅ Activo',
+    sub_active_renewal: 'Próxima renovación:',
+    sub_active_desc: 'Tu acceso premium está activo. Puedes gestionar o cancelar tu suscripción recurrente en cualquier momento.',
+    sub_cancel_btn: 'Cancelar Suscripción',
+    sub_approved_title: '¡Documentación Aprobada!',
+    sub_approved_desc: 'Tus credenciales profesionales han sido verificadas. Completa el pago para desbloquear tu panel.',
+    sub_approved_tier_label: 'Plan Desbloqueado:',
+    sub_pay_btn: 'Pagar Ahora – Activar Plan',
+    sub_pay_note: 'Cobro mensual. Compatible con Pix, boleto y tarjeta de crédito.',
+    sub_free_plan: 'Plan Actual',
+    sub_free_badge: 'Gratuito',
+    sub_free_desc: 'Mejora ahora para desbloquear cámara IA ilimitada, diarios completos, planes alimentarios personalizados y recursos profesionales.',
+    sub_upgrade_btn: 'Ver Planes y Mejorar',
+    sub_error_no_auth: 'Usuario no autenticado en CalorIA.',
+    sub_error_load: 'Error al cargar datos:',
+    sub_loading: 'Cargando datos de suscripción...',
+    // Patient search
+    patients_search_ph: 'Buscar por nombre o correo...',
+    patients_no_results: 'No se encontraron pacientes.',
   },
   de: {
     nav_tools:'Werkzeuge', nav_search:'Suche', nav_diary:'Tagebuch', nav_goal:'Ziel & Rechner',
@@ -679,6 +751,30 @@ const i18n = {
     admin_th_plan: 'Plan',
     admin_th_since: 'Seit',
     admin_th_action: 'Aktion',
+    // Subscription panel
+    sub_admin_title: 'Administrator-Zugang',
+    sub_admin_desc: 'Dein Zugang ist dauerhaft und per Systemrolle vergeben. Abonnements und Zahlungen gelten nicht für dein Konto.',
+    sub_admin_badge: '♾️ Lebenslanger Zugang',
+    sub_active_plan: 'Aktueller Plan',
+    sub_active_badge: '✅ Aktiv',
+    sub_active_renewal: 'Nächste Verlängerung:',
+    sub_active_desc: 'Dein Premium-Zugang ist aktiv. Du kannst dein Abonnement jederzeit verwalten oder kündigen.',
+    sub_cancel_btn: 'Abonnement kündigen',
+    sub_approved_title: 'Dokumentation genehmigt!',
+    sub_approved_desc: 'Deine beruflichen Qualifikationen wurden überprüft. Schließe die Zahlung ab, um dein Panel freizuschalten.',
+    sub_approved_tier_label: 'Freigeschalteter Plan:',
+    sub_pay_btn: 'Jetzt bezahlen – Plan aktivieren',
+    sub_pay_note: 'Monatliche Abrechnung. Unterstützt Pix, Bankeinzug und Kreditkarte.',
+    sub_free_plan: 'Aktueller Plan',
+    sub_free_badge: 'Kostenlos',
+    sub_free_desc: 'Upgrade jetzt um unbegrenzte KI-Kamera, vollständige Tagebücher, personalisierte Ernährungspläne und Patientenverwaltung freizuschalten.',
+    sub_upgrade_btn: 'Pläne ansehen & Upgrade',
+    sub_error_no_auth: 'Benutzer nicht in CalorIA angemeldet.',
+    sub_error_load: 'Fehler beim Laden der Daten:',
+    sub_loading: 'Abonnementdaten werden geladen...',
+    // Patient search
+    patients_search_ph: 'Nach Name oder E-Mail suchen...',
+    patients_no_results: 'Keine Patienten gefunden.',
   }
 };
 
@@ -921,6 +1017,7 @@ window.toggleDropdown = toggleDropdown;
 window.closeDropdown = closeDropdown;
 
 // Robust, cache-proof implementation of Subscription Dashboard directly in utils.js
+// Robust, cache-proof implementation of Subscription Dashboard directly in utils.js
 window.loadSubscriptionDashboard = async function() {
   console.log('[SubDash] loadSubscriptionDashboard called');
   const container = document.getElementById('subscription-status-card');
@@ -929,38 +1026,53 @@ window.loadSubscriptionDashboard = async function() {
   container.innerHTML = `
     <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
       <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--green-mid); margin-bottom: 0.5rem;"></i>
-      <p style="font-size: 0.9rem; margin: 0;">Carregando dados da assinatura...</p>
+      <p style="font-size: 0.9rem; margin: 0;">${t('sub_loading')}</p>
     </div>`;
 
   try {
     const db = window.supabase || window._db || (typeof supabase !== 'undefined' ? supabase : null);
-    console.log('[SubDash] db client:', db ? 'OK' : 'MISSING');
     if (!db) throw new Error('Supabase client not found');
 
     const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
-    console.log('[SubDash] user:', user?.id || 'MISSING');
     if (!user) {
-      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">Usuário não autenticado no CalorIA.</p>`;
+      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">${t('sub_error_no_auth')}</p>`;
       return;
     }
 
-    // Use select('*') so missing subscription columns (migration not run yet) don't cause a 400 error
     const { data: profile, error } = await db
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single();
 
-    console.log('[SubDash] profile query result:', { profile, error });
-
     if (error || !profile) {
-      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">Erro ao carregar dados: ${error?.message || 'Perfil não encontrado'}</p>`;
+      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">${t('sub_error_load')} ${error?.message || 'Perfil não encontrado'}</p>`;
       return;
     }
 
     const isActive = profile.subscription_id && profile.subscription_status === 'active';
     const isPendingPayment = profile.subscription_status === 'approved_pending_payment';
     const label = typeof window.getPlanLabel === 'function' ? window.getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
+
+    // ── Case 0: Admin ──────────────────────────────────────────────────────────
+    if (profile.role === 'admin' || profile.plan === 'admin') {
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; text-align: center; padding: 1rem 0;">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ff8c00); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(255,165,0,0.4);">
+            <i class="fa-solid fa-crown" style="font-size: 1.8rem; color: #1a1a1a;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0 0 0.4rem 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--text-main);">${t('sub_admin_title')}</h3>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; max-width: 380px;">
+              ${t('sub_admin_desc')}
+            </p>
+          </div>
+          <span style="background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a1a; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.35rem 1rem; border-radius: 50px; font-family: 'Syne', sans-serif; letter-spacing: 0.05em;">
+            ${t('sub_admin_badge')}
+          </span>
+        </div>`;
+      return;
+    }
 
     // ── Case 1: Active Paid Subscription ──────────────────────────────────────
     if (isActive) {
@@ -971,11 +1083,11 @@ window.loadSubscriptionDashboard = async function() {
       let nextChargeHtml = '';
       if (profile.subscription_next_charge) {
         try {
-          const dtStr = new Date(profile.subscription_next_charge).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+          const dtStr = new Date(profile.subscription_next_charge).toLocaleDateString(window.currentLang === 'en' ? 'en-US' : 'pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
           nextChargeHtml = `
             <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-body); padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.9rem; border: 1px solid var(--border); margin-top: 0.5rem;">
               <span style="color: var(--green-mid);"><i class="fa-regular fa-calendar-check"></i></span>
-              <span style="color: var(--text-muted);">Próxima renovação: <strong style="color: var(--text-main);">${dtStr}</strong></span>
+              <span style="color: var(--text-muted);">${t('sub_active_renewal')} <strong style="color: var(--text-main);">${dtStr}</strong></span>
             </div>`;
         } catch(e) {}
       }
@@ -984,20 +1096,20 @@ window.loadSubscriptionDashboard = async function() {
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
             <div>
-              <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">Plano Atual</span>
+              <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">${t('sub_active_plan')}</span>
               <h3 style="margin: 0.2rem 0 0 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--text-main);">${label}</h3>
             </div>
             <span style="background: ${badgeColor}; color: ${badgeTextColor}; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 50px; font-family: 'Syne', sans-serif;">
-              ✅ Ativo
+              ${t('sub_active_badge')}
             </span>
           </div>
 
           ${nextChargeHtml}
 
           <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
-            <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">Seu acesso premium está ativo. Você pode gerenciar ou cancelar sua assinatura recorrente a qualquer momento abaixo.</span>
+            <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">${t('sub_active_desc')}</span>
             <button class="btn-primary" style="background: #c62828 !important; border: none; margin-top: 0.5rem; width: auto; align-self: flex-start; padding: 0.65rem 1.25rem; font-size: 0.85rem;" onclick="if(window.cancelSubscription) window.cancelSubscription('${profile.subscription_id}')">
-              <i class="fa-solid fa-circle-xmark" style="color: white !important; margin-right: 0.35rem;"></i> Cancelar Assinatura
+              <i class="fa-solid fa-circle-xmark" style="color: white !important; margin-right: 0.35rem;"></i> ${t('sub_cancel_btn')}
             </button>
           </div>
         </div>`;
@@ -1013,21 +1125,21 @@ window.loadSubscriptionDashboard = async function() {
           <div style="background: linear-gradient(135deg, var(--green-deep), #1b5e20); color: white; border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem;">
             <span style="font-size: 1.5rem; color: var(--yellow-hot);"><i class="fa-solid fa-circle-check"></i></span>
             <div>
-              <h4 style="margin: 0 0 0.25rem 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem;">Documentação Aprovada!</h4>
-              <p style="margin: 0; font-size: 0.83rem; opacity: 0.9; line-height: 1.5;">Suas credenciais profissionais foram verificadas. Conclua o pagamento para liberar seu painel.</p>
+              <h4 style="margin: 0 0 0.25rem 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem;">${t('sub_approved_title')}</h4>
+              <p style="margin: 0; font-size: 0.83rem; opacity: 0.9; line-height: 1.5;">${t('sub_approved_desc')}</p>
             </div>
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
-            <span style="color: var(--text-muted); font-size: 0.9rem;">Plano Liberado:</span>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">${t('sub_approved_tier_label')}</span>
             <strong style="color: var(--green-mid); font-size: 1rem; font-family: 'Syne', sans-serif;">${approvedLabel}</strong>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
             <button class="btn-primary" style="width: auto; align-self: flex-start; font-size: 0.95rem; padding: 0.75rem 1.5rem;" onclick="if(window.requestUpgrade) window.requestUpgrade('${approvedTier}')">
-              <i class="fa-solid fa-credit-card" style="color: white !important; margin-right: 0.4rem;"></i> Pagar Agora – Ativar Plano
+              <i class="fa-solid fa-credit-card" style="color: white !important; margin-right: 0.4rem;"></i> ${t('sub_pay_btn')}
             </button>
-            <span style="color: var(--text-muted); font-size: 0.75rem;">A cobrança será mensal. Suporte a Pix, boleto e cartão de crédito.</span>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">${t('sub_pay_note')}</span>
           </div>
         </div>`;
       return;
@@ -1038,21 +1150,21 @@ window.loadSubscriptionDashboard = async function() {
       <div style="display: flex; flex-direction: column; gap: 1.25rem;">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
           <div>
-            <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">Plano Atual</span>
+            <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">${t('sub_free_plan')}</span>
             <h3 style="margin: 0.2rem 0 0 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--text-main);">${label}</h3>
           </div>
           <span style="background: var(--bg-body); color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 50px; border: 1px solid var(--border); font-family: 'Syne', sans-serif;">
-            Gratuito
+            ${t('sub_free_badge')}
           </span>
         </div>
 
         <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0;">
-          Faça o upgrade agora para liberar a câmera IA ilimitada, diários completos de água e açúcar, planos alimentares personalizados e recursos profissionais de atendimento a pacientes.
+          ${t('sub_free_desc')}
         </p>
 
         <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem;">
           <button class="btn-primary" style="width: auto;" onclick="if(window.openUpgradeModal) window.openUpgradeModal()">
-            <i class="fa-solid fa-star" style="color: white !important; margin-right: 0.35rem;"></i> Ver Planos &amp; Fazer Upgrade
+            <i class="fa-solid fa-star" style="color: white !important; margin-right: 0.35rem;"></i> ${t('sub_upgrade_btn')}
           </button>
         </div>
       </div>`;
