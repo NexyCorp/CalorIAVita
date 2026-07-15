@@ -922,8 +922,9 @@ window.closeDropdown = closeDropdown;
 
 // Robust, cache-proof implementation of Subscription Dashboard directly in utils.js
 window.loadSubscriptionDashboard = async function() {
+  console.log('[SubDash] loadSubscriptionDashboard called');
   const container = document.getElementById('subscription-status-card');
-  if (!container) return;
+  if (!container) { console.warn('[SubDash] container #subscription-status-card not found'); return; }
 
   container.innerHTML = `
     <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
@@ -933,19 +934,24 @@ window.loadSubscriptionDashboard = async function() {
 
   try {
     const db = window.supabase || window._db || (typeof supabase !== 'undefined' ? supabase : null);
+    console.log('[SubDash] db client:', db ? 'OK' : 'MISSING');
     if (!db) throw new Error('Supabase client not found');
-    
+
     const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+    console.log('[SubDash] user:', user?.id || 'MISSING');
     if (!user) {
       container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">Usuário não autenticado no CalorIA.</p>`;
       return;
     }
 
+    // Use select('*') so missing subscription columns (migration not run yet) don't cause a 400 error
     const { data: profile, error } = await db
       .from('profiles')
-      .select('plan, role, subscription_id, subscription_status, subscription_next_charge, professional_approved_tier')
+      .select('*')
       .eq('id', user.id)
       .single();
+
+    console.log('[SubDash] profile query result:', { profile, error });
 
     if (error || !profile) {
       container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">Erro ao carregar dados: ${error?.message || 'Perfil não encontrado'}</p>`;
