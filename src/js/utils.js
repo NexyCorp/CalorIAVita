@@ -846,9 +846,7 @@ function showPanel(name, navEl) {
   if (name === 'home') updateHomePanel();
   if (name === 'goal') fillCalcFromProfile();
   if (name === 'profile') fillProfilePanel();
-  if (name === 'subscription') {
-    if (typeof loadSubscriptionDashboard === 'function') loadSubscriptionDashboard();
-  }
+  if (name === 'subscription') loadSubscriptionDashboard();
   if (name === 'prof') {
     if (typeof loadPatients === 'function') loadPatients();
   }
