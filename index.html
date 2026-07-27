@@ -13,7 +13,7 @@
 <link rel="icon" type="image/png" id="dynamic-favicon" href="">
 <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
 <link rel="manifest" id="dynamic-manifest" href="">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="/src/styles.css">
 </head>
@@ -51,9 +51,9 @@
 
   <!-- NAV -->
   <nav class="lp-nav" id="lpNav">
-    <a href="#" class="lp-nav-logo" style="display:flex;align-items:center;gap:0.5rem;font-family:'Playfair Display',serif;font-style:normal;text-decoration:none;">
+    <a href="#" class="lp-nav-logo" style="display:flex;align-items:center;gap:0.5rem;font-family:var(--font-sub);font-style:normal;text-decoration:none;">
       <img class="app-logo-img" src="" alt="CalorIA" style="height:32px;width:auto;display:block;">
-      <span class="lp-brand-calor" style="font-family:'Playfair Display',serif;font-style:italic;font-weight:700;transition:color 0.3s;">Calor</span><span class="lp-brand-ia" style="font-family:'Playfair Display',serif;font-style:italic;font-weight:900;margin-left:-0.1rem;transition:color 0.3s;">IA</span>
+      <span class="lp-brand-calor" style="font-family:var(--font-sub);font-style:italic;font-weight:700;transition:color 0.3s;">Calor</span><span class="lp-brand-ia" style="font-family:var(--font-sub);font-style:italic;font-weight:900;margin-left:-0.1rem;transition:color 0.3s;">IA</span>
     </a>
     <div class="lp-nav-links">
       <a href="#lp-funcionalidades">Funcionalidades</a>
@@ -422,9 +422,9 @@
 
   <!-- FOOTER -->
   <footer class="lp-footer">
-    <div class="lp-footer-logo" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;font-family:'Playfair Display',serif;font-style:normal;">
+    <div class="lp-footer-logo" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;font-family:var(--font-sub);font-style:normal;">
       <img class="app-logo-img" src="" alt="CalorIA" style="height:28px;width:auto;display:block;">
-      <span class="lp-brand-calor" style="font-family:'Playfair Display',serif;font-style:italic;font-weight:700;transition:color 0.3s;">Calor</span><span class="lp-brand-ia" style="font-family:'Playfair Display',serif;font-style:normal;font-weight:900;margin-left:-0.1rem;transition:color 0.3s;">IA</span>
+      <span class="lp-brand-calor" style="font-family:var(--font-sub);font-style:italic;font-weight:700;transition:color 0.3s;">Calor</span><span class="lp-brand-ia" style="font-family:var(--font-sub);font-style:normal;font-weight:900;margin-left:-0.1rem;transition:color 0.3s;">IA</span>
     </div>
     <div class="lp-footer-links">
       <a href="#lp-funcionalidades">Funcionalidades</a>
@@ -473,7 +473,7 @@
         <div class="form-field" style="text-align:center;margin-bottom:1.2rem;">
           <label class="form-label" style="display:block;margin-bottom:0.7rem;"><span data-i18n="auth_avatar_label">Foto de perfil</span> <span style="color:var(--text-muted);font-weight:400;" data-i18n="auth_avatar_optional">(opcional)</span></label>
           <!-- Preview circle -->
-          <div id="regAvatarPreview" onclick="document.getElementById('regAvatarFile').click()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:white;font-family:'Syne',sans-serif;margin:0 auto 0.9rem;overflow:hidden;cursor:pointer;border:3px solid var(--green-light);position:relative;">
+          <div id="regAvatarPreview" onclick="document.getElementById('regAvatarFile').click()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:white;font-family:var(--font-body);margin:0 auto 0.9rem;overflow:hidden;cursor:pointer;border:3px solid var(--green-light);position:relative;">
             <span id="regAvatarInitial">?</span>
           </div>
           <input type="file" id="regAvatarFile" accept="image/*" style="display:none;" onchange="handleRegAvatarUpload(event)">
@@ -515,7 +515,7 @@
 
     <!-- Step 2: Onboarding (first login) -->
     <div id="onboardingStep" style="display:none;">
-      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;"><span data-i18n="onb_title">Bem-vindo! Vamos começar</span> <i class="fa-solid fa-leaf ic-leaf"></i></h3>
+      <h3 style="font-family:var(--font-sub);font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;"><span data-i18n="onb_title">Bem-vindo! Vamos começar</span> <i class="fa-solid fa-leaf ic-leaf"></i></h3>
       <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;" data-i18n="onb_desc">Preencha seus dados para personalizar sua experiência. Você pode atualizar isso depois.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
         <div class="form-field">
@@ -673,11 +673,11 @@
       <div class="card" style="background:linear-gradient(135deg,var(--green-deep) 0%,#1e5c23 100%);color:white;border:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
           <div>
-            <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;"><span data-i18n="home_hello">Olá</span>, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
+            <div style="font-family:var(--font-sub);font-size:1.6rem;font-weight:900;"><span data-i18n="home_hello">Olá</span>, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
             <div data-i18n="home_summary" style="opacity:0.8;font-size:0.88rem;margin-top:0.25rem;">Aqui está o seu resumo de hoje</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:2rem;font-weight:900;font-family:'Playfair Display',serif;" id="homeKcalToday">0</div>
+            <div style="font-size:2rem;font-weight:900;font-family:var(--font-sub);" id="homeKcalToday">0</div>
             <div data-i18n="kcal_today" style="opacity:0.7;font-size:0.75rem;">kcal hoje</div>
           </div>
         </div>
@@ -693,28 +693,28 @@
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('search',document.getElementById('nav-search'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-magnifying-glass ic-search"></i></div>
-          <div data-i18n="search_food" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
+          <div data-i18n="search_food" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
           <div data-i18n="search_food_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Tabela nutricional</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('diary',document.getElementById('nav-diary'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-book ic-diary"></i></div>
-          <div data-i18n="my_diary" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
+          <div data-i18n="my_diary" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
           <div data-i18n="my_diary_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Registrar refeições</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('camera',document.getElementById('nav-camera'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-camera ic-camera"></i></div>
-          <div data-i18n="camera_ai" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
+          <div data-i18n="camera_ai" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
           <div data-i18n="camera_ai_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Analisar foto do prato</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('water',document.getElementById('nav-water'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-droplet ic-water"></i></div>
-          <div data-i18n="water" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
+          <div data-i18n="water" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
           <div data-i18n="water_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Acompanhar hidratação</div>
         </div>
         <!-- Diet Generator shortcut (desktop/sidebar — não aparece na barra fixa mobile) -->
         <div class="card home-diet-card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:linear-gradient(135deg,var(--green-deep),#1a4a1f);border:none;color:white;" onclick="openDietGenModal()">
           <div style="font-size:2rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#ffd54f!important;"></i></div>
-          <div data-i18n="generate_diet" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
+          <div data-i18n="generate_diet" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
           <div data-i18n="generate_diet_desc" style="font-size:0.75rem;opacity:0.75;margin-top:0.2rem;">Plano alimentar personalizado baseado na sua anamnese</div>
         </div>
       </div>
@@ -901,7 +901,7 @@
 
             <!-- Score nutricional dinâmico -->
             <div id="nutriScoreBox" style="margin-top:1rem;background:rgba(255,255,255,0.08);border-radius:12px;padding:0.9rem;display:none;">
-              <div style="font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.65;margin-bottom:0.6rem;">Perfil Nutricional</div>
+              <div style="font-family:var(--font-body);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.65;margin-bottom:0.6rem;">Perfil Nutricional</div>
               <div id="nutriScoreContent" style="font-size:0.82rem;line-height:1.6;opacity:0.85;"></div>
             </div>
           </div>
@@ -936,7 +936,7 @@
           <div class="diary-date-label" id="diaryDate">—</div>
           <button onclick="changeDiaryDate(1)">▶</button>
         </div>
-        <button onclick="clearDiary()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.4rem 1rem;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;font-size:0.82rem;color:var(--text-muted);transition:all var(--transition);" onmouseover="this.style.borderColor='#e53935';this.style.color='#e53935'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"><i class="fa-solid fa-trash ic-alert"></i> <span data-i18n="clear">Limpar</span></button>
+        <button onclick="clearDiary()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.4rem 1rem;font-family:var(--font-body);font-weight:600;cursor:pointer;font-size:0.82rem;color:var(--text-muted);transition:all var(--transition);" onmouseover="this.style.borderColor='#e53935';this.style.color='#e53935'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"><i class="fa-solid fa-trash ic-alert"></i> <span data-i18n="clear">Limpar</span></button>
       </div>
 
       <div class="progress-mega">
@@ -1122,16 +1122,16 @@
         </div>
         <button class="btn-primary" style="margin-top:1.2rem;" onclick="calcCalories()">Calcular minha meta <i class="fa-solid fa-bullseye ic-goal"></i></button>
         <div class="calc-result-card" id="calcResult">
-          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:0.2rem;">Metabolismo Basal (TMB)</p>
+          <p style="font-family:var(--font-body);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:0.2rem;">Metabolismo Basal (TMB)</p>
           <div class="tmb-big" id="calcTMB">0</div>
           <p class="tmb-label">kcal/dia em repouso</p>
-          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1rem;margin-bottom:0.2rem;">Necessidade Total</p>
-          <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1;" id="calcTDEE">0</div>
+          <p style="font-family:var(--font-body);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1rem;margin-bottom:0.2rem;">Necessidade Total</p>
+          <div style="font-family:var(--font-sub);font-size:3rem;font-weight:900;line-height:1;" id="calcTDEE">0</div>
           <p class="tmb-label">kcal/dia com atividade</p>
           <div style="background:rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-top:1rem;">
-            <p style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;"><i class="fa-solid fa-bullseye ic-goal"></i> Sua meta: <span id="calcGoalVal">0</span> kcal/dia</p>
+            <p style="font-family:var(--font-body);font-weight:700;font-size:0.9rem;"><i class="fa-solid fa-bullseye ic-goal"></i> Sua meta: <span id="calcGoalVal">0</span> kcal/dia</p>
           </div>
-          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1.2rem;margin-bottom:0.5rem;">Macros Recomendados</p>
+          <p style="font-family:var(--font-body);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1.2rem;margin-bottom:0.5rem;">Macros Recomendados</p>
           <div class="macros-rec">
             <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroCarbs">0g</div><div class="macro-rec-label">Carboidratos</div></div>
             <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroProt">0g</div><div class="macro-rec-label">Proteínas</div></div>
@@ -1217,7 +1217,7 @@
         </div>
         <div class="loading-pulse" id="cmpLoading"><div class="pulse-ring"></div><p data-i18n="comparing">Comparando alimentos...</p></div>
         <div id="cmpMealSelectRow" style="display:none;margin-bottom:0.75rem;">
-          <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:0.4rem;">Adicionar à refeição:</label>
+          <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);font-family:var(--font-body);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:0.4rem;">Adicionar à refeição:</label>
           <select id="cmpDiaryMealSelect" class="qty-unit" style="width:100%;padding:0.7rem 1rem;border-radius:var(--radius-sm);font-size:0.9rem;">
             <option value="cafe">☕ Café da manhã</option>
             <option value="almoco">🍽️ Almoço</option>
@@ -1315,7 +1315,7 @@
             </div>
             <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
               <button class="btn-primary" style="width:auto;padding:0.7rem 1.5rem;" onclick="submitRecipe()">Salvar Receita <i class="fa-solid fa-check ic-check"></i></button>
-              <button onclick="toggleRecipeForm()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.7rem 1.2rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Cancelar</button>
+              <button onclick="toggleRecipeForm()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.7rem 1.2rem;cursor:pointer;font-family:var(--font-body);font-weight:600;color:var(--text-muted);">Cancelar</button>
             </div>
           </div>
         </div>
@@ -1356,7 +1356,7 @@
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-          <p style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);"><span data-i18n="patients_list">Lista</span> (<span id="patientCount">0</span>)</p>
+          <p style="font-family:var(--font-body);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);"><span data-i18n="patients_list">Lista</span> (<span id="patientCount">0</span>)</p>
           <span id="patientLimitInfo" style="font-size:0.75rem;color:var(--text-muted);"></span>
         </div>
         <div id="patientsList"><p style="color:var(--text-muted);text-align:center;padding:2rem;" data-i18n="loading">Carregando...</p></div>
@@ -1538,7 +1538,7 @@
             <label class="form-label"><i class="fa-solid fa-percent ic-fire"></i> % Gordura Corporal</label>
             <div style="display:flex;gap:0.4rem;align-items:center;">
               <input type="number" id="profileBodyFat" class="form-input" placeholder="Ex: 22.5" step="0.1" style="flex:1;" oninput="profileUpdateFatClassification()">
-              <button type="button" onclick="profileCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 0.9rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-calculator"></i> Calcular</button>
+              <button type="button" onclick="profileCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 0.9rem;font-family:var(--font-body);font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-calculator"></i> Calcular</button>
             </div>
             <div id="profileFatClassification" style="display:none;margin-top:0.4rem;padding:0.4rem 0.75rem;border-radius:var(--radius-sm);font-size:0.78rem;font-weight:600;"></div>
           </div>
@@ -1548,7 +1548,7 @@
         <div id="profilePatientTypePanel" style="display:none;background:linear-gradient(135deg,var(--green-pale),var(--yellow-pale));border:1px solid var(--green-light);border-radius:var(--radius-mid);padding:1rem 1.2rem;margin-top:0.75rem;">
           <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
             <i class="fa-solid fa-robot ic-chat" style="font-size:1.1rem;"></i>
-            <span data-i18n="detected_profile" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
+            <span data-i18n="detected_profile" style="font-family:var(--font-body);font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
           </div>
           <div id="profilePatientTypeContent" style="font-size:0.85rem;color:var(--text-main);line-height:1.6;"></div>
         </div>
@@ -1586,7 +1586,7 @@
         <!-- Panel Header -->
         <div style="display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
           <span style="font-size: 1.75rem; color: var(--green-mid);"><i class="fa-solid fa-credit-card"></i></span>
-          <h2 style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; margin: 0; color: var(--text-main);">Minha Assinatura</h2>
+          <h2 style="font-family: var(--font-body); font-weight: 800; font-size: 1.5rem; margin: 0; color: var(--text-main);">Minha Assinatura</h2>
         </div>
 
         <!-- Status Card Container -->
@@ -1655,7 +1655,7 @@
     <div style="font-size:4rem;color:var(--green-mid);margin-bottom:1rem;animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
       <i class="fa-solid fa-circle-check"></i>
     </div>
-    <h3 id="successAnimatedTitle" style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green-deep);margin-bottom:0.5rem;">Salvo!</h3>
+    <h3 id="successAnimatedTitle" style="font-family:var(--font-sub);font-size:1.6rem;color:var(--green-deep);margin-bottom:0.5rem;">Salvo!</h3>
     <p id="successAnimatedDesc" style="color:var(--text-muted);font-size:0.9rem;">As alterações foram salvas.</p>
   </div>
 </div>
@@ -1705,7 +1705,7 @@ function closeLgpdModal() {
     <!-- Avatar -->
     <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.2rem;">
       <div id="cpAvatarPreview" onclick="document.getElementById('cpAvatarFile').click()" style="width:80px;height:80px;border-radius:50%;background:var(--green-pale);border:3px dashed var(--green-light);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;font-size:1.8rem;position:relative;">
-        <span id="cpAvatarInitial" style="font-family:'Syne',sans-serif;font-weight:700;color:var(--green-deep);">?</span>
+        <span id="cpAvatarInitial" style="font-family:var(--font-body);font-weight:700;color:var(--green-deep);">?</span>
         <div style="position:absolute;bottom:0;width:100%;background:rgba(0,0,0,0.4);color:white;font-size:0.6rem;text-align:center;padding:2px;"><i class="fa-solid fa-camera ic-camera"></i> Foto</div>
       </div>
       <input type="file" id="cpAvatarFile" accept="image/*" style="display:none;" onchange="handleCpAvatarUpload(event)">
@@ -1737,14 +1737,14 @@ function closeLgpdModal() {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.4rem;">
             <div style="display:flex;align-items:center;gap:0.5rem;">
               <i class="fa-solid fa-robot ic-chat" style="font-size:1rem;"></i>
-              <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Classificação do Paciente</span>
+              <span style="font-family:var(--font-body);font-weight:800;font-size:0.78rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Classificação do Paciente</span>
             </div>
-            <div id="cpPatientTypeBadge" style="font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:50px;background:var(--green-mid);color:white;font-family:'Syne',sans-serif;"></div>
+            <div id="cpPatientTypeBadge" style="font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:50px;background:var(--green-mid);color:white;font-family:var(--font-body);"></div>
           </div>
           <div id="cpPatientTypeContent" style="font-size:0.82rem;color:var(--text-main);line-height:1.6;"></div>
           <!-- Disease-specific form suggestions -->
           <div id="cpDiseaseFormSuggestions" style="display:none;margin-top:0.6rem;border-top:1px solid #c8e6c9;padding-top:0.6rem;">
-            <div style="font-size:0.75rem;font-weight:700;font-family:'Syne',sans-serif;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Formulários Recomendados pela IA</div>
+            <div style="font-size:0.75rem;font-weight:700;font-family:var(--font-body);color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Formulários Recomendados pela IA</div>
             <div id="cpDiseaseFormList" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
           </div>
         </div>
@@ -1859,7 +1859,7 @@ function closeLgpdModal() {
           <label class="form-label"><i class="fa-solid fa-bolt ic-fire"></i> Percentual de Gordura (%)</label>
           <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
             <input type="number" id="cpBodyFat" class="form-input" placeholder="Ex: 22.5" step="0.1" style="flex:1;min-width:100px;">
-            <button type="button" onclick="cpCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;"><i class="fa-solid fa-calculator"></i> Calcular</button>
+            <button type="button" onclick="cpCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 1rem;font-family:var(--font-body);font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;"><i class="fa-solid fa-calculator"></i> Calcular</button>
           </div>
           <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;">Insira o valor do exame de bioimpedância ou clique em "Calcular" para estimativa pela fórmula de Deurenberg.</p>
         </div>
@@ -2277,7 +2277,7 @@ function closeLgpdModal() {
       </div>
       <!-- Gestação (aparece só se grávida) -->
       <div id="cpPregnancyFields" style="display:none;margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.75rem;">
-        <div style="font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.6rem;">Dados Gestacionais</div>
+        <div style="font-family:var(--font-body);font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.6rem;">Dados Gestacionais</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
           <div class="form-field">
             <label class="form-label">Semana gestacional</label>
@@ -2346,8 +2346,8 @@ function closeLgpdModal() {
 
     <!-- Tabs: Usuário padrão / Profissional -->
     <div style="display:flex;gap:0.5rem;background:var(--green-pale);border-radius:50px;padding:4px;margin-bottom:1.2rem;">
-      <button id="upgradeTabUser" onclick="switchUpgradeTab('user')" style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;background:var(--green-deep);color:white;transition:all 0.2s;">👤 Usuário</button>
-      <button id="upgradeTabNut"  onclick="switchUpgradeTab('nut')"  style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;background:transparent;color:var(--text-muted);transition:all 0.2s;">🩺 Profissional</button>
+      <button id="upgradeTabUser" onclick="switchUpgradeTab('user')" style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:0.85rem;background:var(--green-deep);color:white;transition:all 0.2s;">👤 Usuário</button>
+      <button id="upgradeTabNut"  onclick="switchUpgradeTab('nut')"  style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:0.85rem;background:transparent;color:var(--text-muted);transition:all 0.2s;">🩺 Profissional</button>
     </div>
 
     <!-- Planos de Usuário -->
@@ -2455,7 +2455,7 @@ function closeLgpdModal() {
     <input type="hidden" id="nutRequestedTier" value="professional_basic">
     <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.3rem;">
       <div class="modal-title" id="nutModalTitle" style="margin-bottom:0;"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitação Profissional</div>
-      <span id="nutTierBadge" style="font-size:0.7rem;font-weight:800;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.04em;padding:0.2rem 0.65rem;border-radius:50px;background:var(--green-deep);color:white;">Professional Basic</span>
+      <span id="nutTierBadge" style="font-size:0.7rem;font-weight:800;font-family:var(--font-body);text-transform:uppercase;letter-spacing:0.04em;padding:0.2rem 0.65rem;border-radius:50px;background:var(--green-deep);color:white;">Professional Basic</span>
     </div>
     <p class="modal-sub" id="nutModalSub">Preencha seus dados profissionais. Nossa equipe revisará a solicitação e, se aprovado, você poderá pagar e ativar o plano.</p>
     <div class="form-field">
@@ -2551,7 +2551,7 @@ function closeLgpdModal() {
       <button class="btn-primary" onclick="sendAdminNotice()" style="flex:1;">
         <i class="fa-solid fa-paper-plane" style="color:white!important;margin-right:0.3rem;"></i> Enviar Aviso
       </button>
-      <button onclick="closeAdminNoticeModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Cancelar</button>
+      <button onclick="closeAdminNoticeModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:600;color:var(--text-muted);">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2815,13 +2815,13 @@ function closeLgpdModal() {
         <button class="btn-primary" style="flex:1;" onclick="applyDietToday()">
           <i class="fa-solid fa-book ic-diary" style="color:white!important;margin-right:0.3rem;"></i> Aplicar hoje no diário
         </button>
-        <button onclick="saveDietPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--orange-mid);border-radius:50px;background:var(--orange-pale);cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--orange-hot);">
+        <button onclick="saveDietPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--orange-mid);border-radius:50px;background:var(--orange-pale);cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--orange-hot);">
           <i class="fa-solid fa-thumbtack"></i> Salvar e Acompanhar Plano
         </button>
-        <button onclick="printDiet()" style="flex:1;padding:0.9rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--text-muted);">
+        <button onclick="printDiet()" style="flex:1;padding:0.9rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--text-muted);">
           <i class="fa-solid fa-print ic-search"></i> Imprimir / PDF
         </button>
-        <button onclick="dietGenNewPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--green-mid);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--green-mid);">
+        <button onclick="dietGenNewPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--green-mid);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--green-mid);">
           <i class="fa-solid fa-arrows-rotate"></i> Gerar novo plano
         </button>
       </div>
@@ -2836,7 +2836,7 @@ function closeLgpdModal() {
     <div class="modal-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Minha Especialidade</div>
     <p class="modal-sub">Selecionar sua área principal personaliza os formulários de anamnese e as métricas de acompanhamento.</p>
     <style>
-      .spec-group-title { font-family:'Syne',sans-serif; font-weight:800; font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin: 1rem 0 0.5rem; letter-spacing:0.5px; }
+      .spec-group-title { font-family:var(--font-body); font-weight:800; font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin: 1rem 0 0.5rem; letter-spacing:0.5px; }
       .spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem; }
       .spec-card {
         background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius-mid);
@@ -2846,7 +2846,7 @@ function closeLgpdModal() {
       .spec-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: var(--green-mid); }
       .spec-card.active { border-color: var(--green-deep); background: var(--green-pale); box-shadow: 0 0 0 3px rgba(42,92,48,0.1); }
       .spec-icon { font-size: 1.6rem; }
-      .spec-title { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text-main); font-size: 0.95rem; }
+      .spec-title { font-family: var(--font-body); font-weight: 800; color: var(--text-main); font-size: 0.95rem; }
       .spec-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.3; }
       @media(max-width: 400px) { .spec-grid { grid-template-columns: 1fr; } }
     </style>
@@ -2921,7 +2921,7 @@ function closeLgpdModal() {
         <span id="foodDetailKcal" style="font-weight:700; color:var(--orange-hot);">0 kcal</span>
       </div>
       <div style="margin-top:1rem;">
-        <h4 style="font-family:'Syne',sans-serif; font-size:0.9rem; margin-bottom:0.8rem; color:var(--text-muted);">Macronutrientes</h4>
+        <h4 style="font-family:var(--font-body); font-size:0.9rem; margin-bottom:0.8rem; color:var(--text-muted);">Macronutrientes</h4>
         <div style="display:flex; gap:0.5rem; flex-direction:column;">
           <!-- Carbs -->
           <div>
@@ -2976,7 +2976,7 @@ function closeLgpdModal() {
       <button class="btn-primary" style="flex:1;min-width:140px;" onclick="saveDiseaseFormData()">
         <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar Dados
       </button>
-      <button onclick="closeDiseaseFormModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Fechar</button>
+      <button onclick="closeDiseaseFormModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:600;color:var(--text-muted);">Fechar</button>
     </div>
   </div>
 </div>
