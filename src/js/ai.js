@@ -169,38 +169,54 @@ async function _askGroqVision(b64, mime, prompt) {
 
 const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
+const GEMINI_VISION_MODELS = [
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash-latest',
+  'gemini-1.5-flash'
+];
+
 async function callGeminiVision(b64, mime, prompt) {
   if (!GEMINI_KEY || GEMINI_KEY.length < 10) throw new Error('GEMINI_KEY_NOT_SET');
   const mimeType = mime || 'image/jpeg';
   const cleanB64 = b64.includes(',') ? b64.split(',')[1] : b64;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inlineData: { mimeType, data: cleanB64 } },
-          { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
-        ]
-      }],
-      generationConfig: { responseMimeType: 'application/json' }
-    })
-  });
+  for (const model of GEMINI_VISION_MODELS) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
 
-  if (!res.ok) {
-    const bodyText = await res.text().catch(() => '');
-    throw new Error(`Gemini ${res.status}: ${bodyText.slice(0, 100)}`);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inlineData: { mimeType, data: cleanB64 } },
+            { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
+          ]
+        }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+
+    if (res.status === 404) {
+      console.warn(`[CameraIA] Gemini model ${model} não encontrado, tentando próximo...`);
+      continue; // tenta o próximo modelo
+    }
+    if (!res.ok) {
+      const bodyText = await res.text().catch(() => '');
+      throw new Error(`Gemini ${res.status}: ${bodyText.slice(0, 100)}`);
+    }
+
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('Resposta vazia do Gemini Vision');
+
+    const parsed = extractJSON(text);
+    parsed._provider = `gemini/${model}`;
+    return parsed;
   }
 
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Resposta vazia do Gemini Vision');
-
-  const parsed = extractJSON(text);
-  parsed._provider = 'gemini';
-  return parsed;
+  throw new Error('Nenhum modelo Gemini Vision disponível.');
 }
 
 // ─── Análise de imagem: Gemini 1.5 Flash (primário) → HF → Proxy /api/ai → Groq (fallback) ──────
