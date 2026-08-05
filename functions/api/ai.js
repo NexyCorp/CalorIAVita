@@ -173,11 +173,13 @@ async function handleVision(body, env) {
   if (keys.length === 0) return errResp('Nenhuma chave configurada para análise de imagem.', 401);
 
   const messages = [
-    { role: 'system', content: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra.' },
-    { role: 'user', content: [
-      { type: 'image_url', image_url: { url: dataUri } },
-      { type: 'text', text: prompt }
-    ]}
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt },
+        { type: 'image_url', image_url: { url: dataUri } }
+      ]
+    }
   ];
   for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
     const result = await groqFetch(keys, model, messages, 2048);

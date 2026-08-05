@@ -129,12 +129,15 @@ async function askClaude(prompt, sys) {
 
 // ─── Fallback Groq Vision ────────────────────────────────────────
 async function _askGroqVision(b64, mime, prompt) {
+  const dataUri = `data:${mime || 'image/jpeg'};base64,${b64}`;
   const messages = [
-    { role: 'system', content: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra.' },
-    { role: 'user', content: [
-      { type: 'image_url', image_url: { url: 'data:' + mime + ';base64,' + b64 } },
-      { type: 'text', text: prompt }
-    ]}
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt },
+        { type: 'image_url', image_url: { url: dataUri } }
+      ]
+    }
   ];
 
   // Tenta modelo principal de visão, depois fallback
