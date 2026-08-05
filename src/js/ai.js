@@ -23,8 +23,8 @@ const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_M
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
 const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
-const GROQ_MODEL_VISION    = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão principal
-const GROQ_MODEL_VISION_FB = 'meta-llama/llama-4-maverick-17b-128e-instruct'; // visão fallback
+const GROQ_MODEL_VISION    = 'llama-3.2-11b-vision-preview'; // visão principal
+const GROQ_MODEL_VISION_FB = 'llama-3.2-90b-vision-preview'; // visão fallback
 
 
 let currentGroqKeyIndex = 0;

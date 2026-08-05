@@ -10,8 +10,8 @@
 const GROQ_URL             = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL           = 'llama-3.3-70b-versatile';
 const GROQ_MODEL_FAST      = 'llama-3.1-8b-instant';
-const GROQ_MODEL_VISION    = 'meta-llama/llama-4-scout-17b-16e-instruct';
-const GROQ_MODEL_VISION_FB = 'meta-llama/llama-4-maverick-17b-128e-instruct';
+const GROQ_MODEL_VISION    = 'llama-3.2-11b-vision-preview';
+const GROQ_MODEL_VISION_FB = 'llama-3.2-90b-vision-preview';
 const HF_VISION_MODEL      = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
 const HF_VISION_URL        = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
 
