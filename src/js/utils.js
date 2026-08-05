@@ -191,7 +191,7 @@ const i18n = {
     sub_free_badge: 'Gratuito',
     sub_free_desc: 'Faça o upgrade agora para liberar a câmera IA ilimitada, diários completos de água e açúcar, planos alimentares personalizados e recursos profissionais de atendimento a pacientes.',
     sub_upgrade_btn: 'Ver Planos & Fazer Upgrade',
-    sub_error_no_auth: 'Usuário não autenticado no CalorIA.',
+    sub_error_no_auth: 'Usuário não autenticado no NutrIA.',
     sub_error_load: 'Erro ao carregar dados:',
     sub_loading: 'Carregando dados da assinatura...',
     // Patient search
@@ -375,7 +375,7 @@ const i18n = {
     sub_free_badge: 'Free',
     sub_free_desc: 'Upgrade now to unlock unlimited AI camera, full water and sugar diaries, personalized meal plans and professional patient management features.',
     sub_upgrade_btn: 'View Plans & Upgrade',
-    sub_error_no_auth: 'User not authenticated in CalorIA.',
+    sub_error_no_auth: 'User not authenticated in NutrIA.',
     sub_error_load: 'Error loading data:',
     sub_loading: 'Loading subscription data...',
     // Patient search
@@ -572,7 +572,7 @@ const i18n = {
     sub_free_badge: 'Gratuito',
     sub_free_desc: 'Mejora ahora para desbloquear cámara IA ilimitada, diarios completos, planes alimentarios personalizados y recursos profesionales.',
     sub_upgrade_btn: 'Ver Planes y Mejorar',
-    sub_error_no_auth: 'Usuario no autenticado en CalorIA.',
+    sub_error_no_auth: 'Usuario no autenticado en NutrIA.',
     sub_error_load: 'Error al cargar datos:',
     sub_loading: 'Cargando datos de suscripción...',
     // Patient search
@@ -769,7 +769,7 @@ const i18n = {
     sub_free_badge: 'Kostenlos',
     sub_free_desc: 'Upgrade jetzt um unbegrenzte KI-Kamera, vollständige Tagebücher, personalisierte Ernährungspläne und Patientenverwaltung freizuschalten.',
     sub_upgrade_btn: 'Pläne ansehen & Upgrade',
-    sub_error_no_auth: 'Benutzer nicht in CalorIA angemeldet.',
+    sub_error_no_auth: 'Benutzer nicht in NutrIA angemeldet.',
     sub_error_load: 'Fehler beim Laden der Daten:',
     sub_loading: 'Abonnementdaten werden geladen...',
     // Patient search

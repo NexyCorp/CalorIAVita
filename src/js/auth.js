@@ -53,7 +53,7 @@ async function doLogin() {
     if (data?.user) await initApp(data.user);
     else showAuthError('Erro ao entrar. Tente novamente.');
   } catch(e) {
-    console.error('[CalorIA] doLogin:', e);
+    console.error('[NutrIA] doLogin:', e);
     showAuthError(e.message?.includes('timeout')
       ? 'Servidor demorou para responder. Verifique sua conexão e tente novamente.'
       : 'Erro ao entrar. Tente novamente.');
@@ -333,7 +333,7 @@ async function fetchUserProfile(user) {
         );
       }
     }
-  } catch(e) { console.warn('[CalorIA] fetchUserProfile:', e); }
+  } catch(e) { console.warn('[NutrIA] fetchUserProfile:', e); }
   if (window._pendingFreshProfile) {
     const fresh = window._pendingFreshProfile;
     window._pendingFreshProfile = null;
@@ -439,7 +439,7 @@ async function initApp(user) {
 
     _loadAppDataInBackground();
   } catch(e) {
-    console.error('[CalorIA] initApp error:', e);
+    console.error('[NutrIA] initApp error:', e);
     currentUser = user;
     currentProfile = currentProfile || _profileFallback(user);
     showApp(user);
@@ -491,7 +491,7 @@ function startProfileRealtime(userId) {
         const changed = data.role !== currentProfile?.role || data.plan !== currentProfile?.plan;
         if (changed) {
           applyProfileUpdate(data);
-          console.log('[CalorIA] Perfil atualizado via polling:', data.role, data.plan);
+          console.log('[NutrIA] Perfil atualizado via polling:', data.role, data.plan);
         }
       }
     } catch(e) {}
@@ -583,9 +583,9 @@ function applyProfileUpdate(newData) {
 // Fallback timeout to ensure the app doesn't stay black/stuck forever
 setTimeout(() => {
   if (!_appInitialized) {
-    console.warn('[CalorIA] App initialization fallback triggered.');
+    console.warn('[NutrIA] App initialization fallback triggered.');
     if (currentUser) {
-      console.warn('[CalorIA] Current user exists but app not initialized. Forcing initialization.');
+      console.warn('[NutrIA] Current user exists but app not initialized. Forcing initialization.');
       currentProfile = currentProfile || _profileFallback(currentUser);
       showApp(currentUser);
       setupRoleUI();

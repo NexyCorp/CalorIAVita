@@ -9,19 +9,19 @@ const CORS_HEADERS = {
 // Plan definitions — all config is inline, no preapproval_plan_id needed
 const PLANS = {
   pro: {
-    reason: 'CalorIA Standard Pro – Assinatura Mensal',
+    reason: 'NutrIA Standard Pro – Assinatura Mensal',
     amount: 30.00,
     role: 'standard',
     plan: 'pro'
   },
   professional_basic: {
-    reason: 'CalorIA Professional Basic – Assinatura Mensal',
+    reason: 'NutrIA Professional Basic – Assinatura Mensal',
     amount: 100.00,
     role: 'professional',
     plan: 'pro'
   },
   professional_gold: {
-    reason: 'CalorIA Professional Gold – Assinatura Mensal',
+    reason: 'NutrIA Professional Gold – Assinatura Mensal',
     amount: 197.00,
     role: 'professional',
     plan: 'gold'

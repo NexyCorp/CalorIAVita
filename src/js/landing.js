@@ -1,9 +1,9 @@
 /**
- * JS Interactivity & Animations for CalorIA Verde Landing Page
+ * JS Interactivity & Animations for NutrIA Landing Page
  */
 
 window.initLandingPage = function() {
-  console.log('[CalorIA] Inicializando Landing Page...');
+  console.log('[NutrIA] Inicializando Landing Page...');
 
   // 1. Reveal Animations on Scroll
   const reveals = document.querySelectorAll('.lp-reveal, .lp-reveal-left, .lp-reveal-right');

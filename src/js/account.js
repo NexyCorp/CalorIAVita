@@ -168,9 +168,9 @@ async function sendNutritionistRequest() {
     }, { onConflict: 'user_id' });
     if (dbError) throw dbError;
     try {
-      await sendEmailViaAPI('nexy.corporationn@gmail.com', 'Solicitação Profissional – ' + tierLabel + ' – CalorIA', bodyText);
+      await sendEmailViaAPI('nexy.corporationn@gmail.com', 'Solicitação Profissional – ' + tierLabel + ' – NutrIA', bodyText);
     } catch(emailError) {
-      console.warn('[CalorIA] Email notification failed:', emailError);
+      console.warn('[NutrIA] Email notification failed:', emailError);
     }
     document.getElementById('nutCRN').value = '';
     document.getElementById('nutSpecialtyOther').value = '';
@@ -181,7 +181,7 @@ async function sendNutritionistRequest() {
     if (otherContainer) otherContainer.style.display = 'none';
     showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! Nossa equipe revisará em breve.');
   } catch(e) {
-    console.error('[CalorIA] nutritionist request error:', e);
+    console.error('[NutrIA] nutritionist request error:', e);
     showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitação. Verifique a tabela nutritionist_requests no Supabase.', 'error');
   }
 }
@@ -215,7 +215,7 @@ async function sendEmailViaAPI(to, subject, bodyText) {
     to_email:   to,
     subject:    subject,
     message:    bodyText,
-    from_name:  currentProfile?.name || 'Usuário CalorIA',
+    from_name:  currentProfile?.name || 'Usuário NutrIA',
     from_email: currentUser?.email   || ''
   });
 }
@@ -890,7 +890,7 @@ async function createPatientDirect() {
     if (anamneseErr) {
       // Tabela pode não existir ainda — log SQL de criação
       if (anamneseErr.code === '42P01' || anamneseErr.message?.includes('patient_anamnese')) {
-        console.warn('[CalorIA] Crie a tabela patient_anamnese:\n\nCREATE TABLE patient_anamnese (\n  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,\n  patient_id uuid REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,\n  nutritionist_id uuid REFERENCES profiles(id),\n  -- dados demográficos\n  dob date, race text, phone text, profession text, sus_card text,\n  education text, income text, household int, address text, religion text,\n  -- antropometria\n  weight_usual numeric, weight_desired numeric, waist_cm numeric,\n  hip_cm numeric, arm_circ_cm numeric, calf_circ_cm numeric,\n  body_fat_pct numeric, muscle_mass_kg numeric, bone_mass_kg numeric,\n  body_water_pct numeric, bmr_measured numeric,\n  -- atividade física\n  activity_type text, activity_freq int, activity_duration int,\n  -- histórico clínico\n  diseases_general jsonb DEFAULT \'[]\',\n  diseases_chronic_auto jsonb DEFAULT \'[]\',\n  diseases_other text, family_history jsonb DEFAULT \'[]\',\n  surgeries text, hospitalizations text,\n  -- medicamentos\n  medications text, supplements text, sweetener text, sweetener_type text,\n  smoking text, alcohol text,\n  -- hábitos\n  water_intake text, eating_time_min int, bowel_habit text, meal_location text,\n  eating_company text, dysphagia text, heartburn text, prev_diets text,\n  food_aversions text, food_preferences text, allergies jsonb DEFAULT \'[]\',\n  oil_month_ml numeric, sugar_month_g numeric, salt_month_g numeric,\n  food_meaning text, psychological text,\n  -- exames\n  lab_glucose numeric, lab_hba1c numeric, lab_chol_total numeric,\n  lab_ldl numeric, lab_hdl numeric, lab_tg numeric, lab_creatinine numeric,\n  lab_urea numeric, lab_tsh numeric, lab_vit_d numeric,\n  lab_ferritin numeric, lab_hemoglobin numeric, lab_crp numeric,\n  lab_insulin numeric, lab_other text, lab_date date,\n  -- dados femininos\n  menstrual_status text, cycle_duration int, period_duration int,\n  last_period date, menstrual_symptoms text, contraceptive text,\n  pregnant text, breastfeeding text, gest_week int, dpp date,\n  prev_pregnancies int, prev_birth_type text, gest_weight_gain numeric,\n  gest_complications text,\n  updated_at timestamptz DEFAULT now()\n);\nALTER TABLE patient_anamnese ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Anamnese access" ON patient_anamnese FOR ALL\n  USING (auth.uid() = patient_id OR auth.uid() = nutritionist_id\n    OR EXISTS (SELECT 1 FROM professional_patients WHERE professional_id = auth.uid() AND patient_id = patient_anamnese.patient_id));');
+        console.warn('[NutrIA] Crie a tabela patient_anamnese:\n\nCREATE TABLE patient_anamnese (\n  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,\n  patient_id uuid REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,\n  nutritionist_id uuid REFERENCES profiles(id),\n  -- dados demográficos\n  dob date, race text, phone text, profession text, sus_card text,\n  education text, income text, household int, address text, religion text,\n  -- antropometria\n  weight_usual numeric, weight_desired numeric, waist_cm numeric,\n  hip_cm numeric, arm_circ_cm numeric, calf_circ_cm numeric,\n  body_fat_pct numeric, muscle_mass_kg numeric, bone_mass_kg numeric,\n  body_water_pct numeric, bmr_measured numeric,\n  -- atividade física\n  activity_type text, activity_freq int, activity_duration int,\n  -- histórico clínico\n  diseases_general jsonb DEFAULT \'[]\',\n  diseases_chronic_auto jsonb DEFAULT \'[]\',\n  diseases_other text, family_history jsonb DEFAULT \'[]\',\n  surgeries text, hospitalizations text,\n  -- medicamentos\n  medications text, supplements text, sweetener text, sweetener_type text,\n  smoking text, alcohol text,\n  -- hábitos\n  water_intake text, eating_time_min int, bowel_habit text, meal_location text,\n  eating_company text, dysphagia text, heartburn text, prev_diets text,\n  food_aversions text, food_preferences text, allergies jsonb DEFAULT \'[]\',\n  oil_month_ml numeric, sugar_month_g numeric, salt_month_g numeric,\n  food_meaning text, psychological text,\n  -- exames\n  lab_glucose numeric, lab_hba1c numeric, lab_chol_total numeric,\n  lab_ldl numeric, lab_hdl numeric, lab_tg numeric, lab_creatinine numeric,\n  lab_urea numeric, lab_tsh numeric, lab_vit_d numeric,\n  lab_ferritin numeric, lab_hemoglobin numeric, lab_crp numeric,\n  lab_insulin numeric, lab_other text, lab_date date,\n  -- dados femininos\n  menstrual_status text, cycle_duration int, period_duration int,\n  last_period date, menstrual_symptoms text, contraceptive text,\n  pregnant text, breastfeeding text, gest_week int, dpp date,\n  prev_pregnancies int, prev_birth_type text, gest_weight_gain numeric,\n  gest_complications text,\n  updated_at timestamptz DEFAULT now()\n);\nALTER TABLE patient_anamnese ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Anamnese access" ON patient_anamnese FOR ALL\n  USING (auth.uid() = patient_id OR auth.uid() = nutritionist_id\n    OR EXISTS (SELECT 1 FROM professional_patients WHERE professional_id = auth.uid() AND patient_id = patient_anamnese.patient_id));');
       } else {
         console.warn('[createPatientDirect] anamnese save error:', anamneseErr);
       }
@@ -1136,7 +1136,7 @@ async function printPatientAnamnese(patientId, patientName) {
   </section>
 
   <div class="footer">
-    <span>Gerado pelo CalorIA — ${new Date().toLocaleDateString('pt-BR')}</span>
+    <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
     <span>🔒 Documento protegido pela LGPD (Lei 13.709/2018)</span>
   </div>
   <script>window.onload=function(){window.print();}<\/script>
@@ -1950,7 +1950,7 @@ window.saveProfile = async function() {
   try {
     await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name } });
     if (currentUser?.user_metadata) { currentUser.user_metadata.name = name; currentUser.user_metadata.full_name = name; }
-  } catch(e) { console.warn('[CalorIA] Não foi possível atualizar user_metadata:', e); }
+  } catch(e) { console.warn('[NutrIA] Não foi possível atualizar user_metadata:', e); }
 
   currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob };
   renderSidebarUser();

@@ -23,8 +23,8 @@ function updateLogos() {
   // Update PWA manifest dynamically with correct icon
   try {
     const manifest = {
-      name: 'CalorIA',
-      short_name: 'CalorIA',
+      name: 'NutrIA',
+      short_name: 'NutrIA',
       description: 'Nutrição Inteligente',
       start_url: './',
       display: 'standalone',
@@ -83,7 +83,7 @@ const _supabaseUrl = window._SUPABASE_URL;
 const _supabaseKey = window._SUPABASE_ANON_KEY;
 
 if (!_supabaseUrl || !_supabaseKey) {
-  console.error('[CalorIA] VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não configurados.');
+  console.error('[NutrIA] VITE_SUPABASE_URL ou VITE_SUPABASE_ANON_KEY não configurados.');
 }
 
 window._db = window._createSupabaseClient(_supabaseUrl, _supabaseKey, {

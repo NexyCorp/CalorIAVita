@@ -452,7 +452,7 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
       </div>`;
     }).join('') || '<p style="color:#888;">Nenhum registro no período.</p>'}` : '';
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — ${patientName} — CalorIA</title>
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — ${patientName} — NutrIA</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     @media print { body { margin: 0; } .no-print { display: none !important; } .rec-day-block { page-break-inside: avoid; } }
@@ -523,7 +523,7 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
   ${mealsHtml}
   ${aiAnalysisHtml}
   <div class="footer">
-    <span>Documento gerado automaticamente pela plataforma CalorIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+    <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
   </div>
   <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </body></html>`;
@@ -1094,7 +1094,7 @@ async function savePlan(userId) {
   const { error } = await supabase.from('profiles').update(updateData).eq('id', userId);
   if (error) {
     showToast('Erro ao salvar: ' + error.message, 'error');
-    console.error('[CalorIA] savePlan error:', error);
+    console.error('[NutrIA] savePlan error:', error);
     return;
   }
 
@@ -1408,7 +1408,7 @@ async function saveProfile() {
       currentUser.user_metadata.full_name = name;
     }
   } catch(e) {
-    console.warn('[CalorIA] Não foi possível atualizar user_metadata:', e);
+    console.warn('[NutrIA] Não foi possível atualizar user_metadata:', e);
   }
 
   currentProfile = { ...currentProfile, name, sex, age, weight, height };
@@ -1503,7 +1503,7 @@ async function requestUpgrade(plan) {
         currentProfile = { ...currentProfile, ...liveProfile };
       }
     } catch(e) {
-      console.warn('[CalorIA] requestUpgrade: profile lookup failed, defaulting to form flow', e);
+      console.warn('[NutrIA] requestUpgrade: profile lookup failed, defaulting to form flow', e);
     }
 
     if (!isPendingPayment) {
@@ -1539,11 +1539,11 @@ async function requestUpgrade(plan) {
       return;
     }
 
-    console.warn('[CalorIA] Checkout API error or not configured, falling back to admin request.', data);
+    console.warn('[NutrIA] Checkout API error or not configured, falling back to admin request.', data);
     throw new Error(data.error || 'Checkout indisponível');
 
   } catch (e) {
-    console.error('[CalorIA] requestUpgrade checkout error:', e);
+    console.error('[NutrIA] requestUpgrade checkout error:', e);
 
     const planFeatures = {
       pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
@@ -1571,11 +1571,11 @@ async function requestUpgrade(plan) {
       try {
         await sendEmailViaAPI('nexy.corporationn@gmail.com', `Solicitação de Upgrade - Plano ${planNames[plan]||plan}`, bodyText);
       } catch(emailError) {
-        console.warn('[CalorIA] Upgrade email notification failed:', emailError);
+        console.warn('[NutrIA] Upgrade email notification failed:', emailError);
       }
       showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! O admin irá aprovar em breve.');
     } catch(fallbackErr) {
-      console.error('[CalorIA] upgrade fallback error:', fallbackErr);
+      console.error('[NutrIA] upgrade fallback error:', fallbackErr);
       showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao processar upgrade. Tente novamente mais tarde.', 'error');
     }
   }
@@ -1868,7 +1868,7 @@ window.printDossierPDF = function() {
   const logoSrc = typeof getLogoSrc === 'function' ? getLogoSrc() : LOGO_LIGHT_B64;
   const logoHtml = `<img src="${logoSrc}" width="52" height="52" style="border-radius:8px;">`;
   
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title} — CalorIA</title>
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title} — NutrIA</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     @media print { body { margin: 0; } .no-print { display: none !important; } }
@@ -1903,7 +1903,7 @@ window.printDossierPDF = function() {
     ${content}
   </div>
   <div class="footer">
-    <span>Documento gerado automaticamente pela plataforma CalorIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+    <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
   </div>
   <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </body></html>`;

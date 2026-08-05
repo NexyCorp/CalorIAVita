@@ -45,7 +45,7 @@ async function addWater(ml) {
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id,date' });
     if (error) {
-      console.warn('[CalorIA] diary_water: erro ao salvar água:', error);
+      console.warn('[NutrIA] diary_water: erro ao salvar água:', error);
       showToast('Erro ao salvar água. Tabela diary_water pode não existir no banco.', 'error');
       return;
     }
@@ -244,7 +244,7 @@ async function calcCalories() {
   try {
     await supabase.from('profiles').update({ sex, age, weight, height, body_fat_pct: bodyFatVal }).eq('id', currentUser.id);
     currentProfile = { ...currentProfile, sex, age, weight, height, body_fat_pct: bodyFatVal };
-  } catch(e) { console.warn('[CalorIA] sync profile:', e); }
+  } catch(e) { console.warn('[NutrIA] sync profile:', e); }
 
   showToast(`<i class="fa-solid fa-bullseye ic-goal"></i> Meta: ${goal} kcal · açúcar máx. ${diaryGoalSugar}g · água ${diaryGoalWater}ml`);
 }
@@ -562,7 +562,7 @@ function printDiet() {
   if (!_lastGeneratedDiet) return;
   const logoB64 = LOGO_LIGHT_B64;
   const mealEmoji = { cafe:'🌅', almoco:'☀️', lanche:'🍎', jantar:'🌙' };
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Plano Alimentar — CalorIA</title>
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Plano Alimentar — NutrIA</title>
   <style>
     @media print { .no-print { display:none; } body { margin:0; } }
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -604,7 +604,7 @@ function printDiet() {
         `).join('')}
       </div>`).join('')}
   `).join('')}
-  <div class="footer">Plano gerado automaticamente pela IA CalorIA. Consulte sempre um nutricionista. 🔒 LGPD (Lei 13.709/2018).</div>
+  <div class="footer">Plano gerado automaticamente pela IA NutrIA. Consulte sempre um nutricionista. 🔒 LGPD (Lei 13.709/2018).</div>
   </body></html>`;
 
   const blob = new Blob([html], { type:'text/html' });
@@ -803,7 +803,7 @@ saveDiaryToDB = async function(mealKey, item) {
     // Column doesn't exist yet — insert without it
     const r2 = await supabase.from('diary_entries').insert(payload).select().single();
     data = r2.data; error = r2.error;
-    if (!error) console.info('[CalorIA] Adicione coluna sugar: ALTER TABLE diary_entries ADD COLUMN IF NOT EXISTS sugar numeric DEFAULT 0;');
+    if (!error) console.info('[NutrIA] Adicione coluna sugar: ALTER TABLE diary_entries ADD COLUMN IF NOT EXISTS sugar numeric DEFAULT 0;');
   }
   if (data) item.id = data.id;
 }
@@ -823,7 +823,7 @@ setupRoleUI = function() {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PATCH v2 — CalorIA Melhorias Integradas
+// PATCH v2 — NutrIA Melhorias Integradas
 // 1. Açúcar e Água no diário (barras + metas por paciente)
 // 2. Formulários específicos por doença (IA) — conectado ao painel de pacientes
 // 3. Tipos de clínica/especialidade com métricas dinâmicas no formulário
@@ -1483,7 +1483,7 @@ setTimeout(() => {
   if (typeof loadDietPlan === 'function') loadDietPlan();
 }, 1500);
 
-console.log('[CalorIA Patch v2] Todas as melhorias carregadas: açúcar/água no diário, formulários por doença, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
+console.log('[NutrIA Patch v2] Todas as melhorias carregadas: açúcar/água no diário, formulários por doença, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
 
 // Expor funções para o escopo global (sobrescreve versões do diary.js)
 window.loadGoalFromDB = loadGoalFromDB;

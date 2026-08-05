@@ -694,7 +694,7 @@ async function shareRecipeAsPdf(id) {
   const logoB64 = LOGO_LIGHT_B64;
   const logoSvg = `<img src="${logoB64}" width="48" height="48" style="border-radius:8px;">`;
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${r.title} — CalorIA</title>
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${r.title} — NutrIA</title>
   <style>
     @media print { body { margin: 0; } .no-print { display: none !important; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -733,7 +733,7 @@ async function shareRecipeAsPdf(id) {
   <h3>📋 Modo de preparo</h3>
   <ol>${r.steps.map(s=>`<li>${typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s}</li>`).join('')}</ol>
   <div class="footer">
-    <span>Gerado pelo CalorIA — ${new Date().toLocaleDateString('pt-BR')}</span>
+    <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
   </div>
   <p class="lgpd-note">🔒 Seus dados são protegidos conforme a LGPD (Lei 13.709/2018). Esta receita é para uso pessoal.</p>
   <script>window.onload=function(){window.print();}<\/script>

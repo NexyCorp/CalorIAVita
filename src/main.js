@@ -15,4 +15,4 @@ import './js/account.js';
 import './js/patches.js';
 import './js/landing.js';
 
-console.log('[CalorIA] Entrada principal carregada e módulos ES importados com sucesso!');
+console.log('[NutrIA] Entrada principal carregada e módulos ES importados com sucesso!');

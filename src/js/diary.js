@@ -411,7 +411,7 @@ async function calcCalories() {
   try {
     await _sb().from('profiles').update({ sex, age, weight, height }).eq('id', currentUser.id);
     currentProfile = { ...currentProfile, sex, age, weight, height };
-  } catch(e) { console.warn('[CalorIA] Não foi possível sincronizar dados no perfil:', e); }
+  } catch(e) { console.warn('[NutrIA] Não foi possível sincronizar dados no perfil:', e); }
 
   showToast('<i class="fa-solid fa-bullseye ic-goal"></i> Meta calculada: ' + goal + ' kcal/dia');
 }

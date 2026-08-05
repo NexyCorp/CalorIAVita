@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════
-// GLOBAL STATE VARIABLES (CalorIA)
+// GLOBAL STATE VARIABLES (NutrIA)
 // ═══════════════════════════════════════
 
 var currentUser = null;
