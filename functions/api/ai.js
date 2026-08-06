@@ -202,27 +202,25 @@ async function handleVision(body, env) {
     console.log('[Vision] HF_KEY não configurada ou inválida — usando Groq diretamente');
   }
 
-  // ── Groq Vision fallback ─────────────────────────────────────────────────
-  const keys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3, env.GROQ_KEY_4].filter(k => k && k.length > 10);
-  if (keys.length === 0) return errResp('Nenhuma chave configurada para análise de imagem.', 401);
-
-  const messages = [
-    {
-      role: 'user',
-      content: [
-        { type: 'text', text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt },
-        { type: 'image_url', image_url: { url: dataUri } }
-      ]
+  // ── Groq Vision (desativado — modelos llama vision foram descontinuados pelo Groq) ─────
+  // Tentativa final: informa ao cliente que todos os provedores falharam
+  const groqKeys = [env.GROQ_KEY_1, env.GROQ_KEY_2, env.GROQ_KEY_3, env.GROQ_KEY_4].filter(k => k && k.length > 10);
+  if (groqKeys.length > 0) {
+    // Tenta Groq Vision mesmo sabendo que os modelos estão deprecated — último recurso
+    const dataUri2 = `data:${mimeType};base64,${cleanB64}`;
+    const msgs = [{ role: 'user', content: [
+      { type: 'text', text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt },
+      { type: 'image_url', image_url: { url: dataUri2 } }
+    ]}];
+    for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
+      const result = await groqFetch(groqKeys, model, msgs, 2048);
+      if (result.content) return jsonResp({ content: result.content, provider: 'groq_vision', model });
+      if (result.status === 401) break;
+      if (result.status === 413) return errResp('Imagem muito grande. Comprima mais a foto.', 413);
     }
-  ];
-  for (const model of [GROQ_MODEL_VISION, GROQ_MODEL_VISION_FB]) {
-    const result = await groqFetch(keys, model, messages, 2048);
-    if (result.content) return jsonResp({ content: result.content, provider: 'groq_vision', model });
-    if (result.status === 401) return errResp(result.error, 401);
-    if (result.status === 413) return errResp('Imagem muito grande para o Groq Vision. Comprima mais a foto.', 413);
-    if (model === GROQ_MODEL_VISION_FB) return errResp(result.error || 'Não foi possível analisar a imagem.', result.status || 500);
   }
-  return errResp('Não foi possível analisar a imagem.', 500);
+
+  return errResp('Todos os provedores de visão atingiram o limite de requisições ou estão indisponíveis. Aguarde 1 minuto e tente novamente.', 503);
 }
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
