@@ -540,21 +540,28 @@ async function analyzeImage() {
 
     // Mostra qual provider foi usado (debug visual)
     if (result._provider) {
-      const provLabel = result._provider === 'huggingface'
+      const provLabel = result._provider.startsWith('gemini/')
+        ? `🧠 Gemini (${result._provider.split('/')[1]})`
+        : result._provider === 'huggingface'
         ? '🤗 HuggingFace'
-        : result._provider === 'groq_vision'
-        ? '⚡ Groq Vision (fallback)'
+        : result._provider === 'proxy'
+        ? '☁️ Cloudflare Proxy'
         : result._provider;
       showToast(`CameraIA — ${provLabel}`, 'info', 2500);
     }
 
     document.getElementById('camResult').classList.add('show');
   } catch(e) {
-    const camMsg = e.message?.includes('401') || e.message?.includes('403')
+    const msg = e.message || '';
+    const camMsg = msg.includes('GEMINI_QUOTA_EXCEEDED')
+      ? '<i class="fa-solid fa-hourglass-half ic-water"></i> Limite de requisições da IA atingido. Aguarde 1 minuto e tente novamente.'
+      : msg.includes('VISION_ALL_FAILED')
+      ? '<i class="fa-solid fa-xmark ic-alert"></i> Todos os serviços de análise estão indisponíveis no momento. Tente novamente em alguns instantes.'
+      : msg.includes('401') || msg.includes('403')
       ? '🔑 Chave API inválida. Verifique as configurações.'
-      : e.message?.includes('429')
+      : msg.includes('429')
       ? '<i class="fa-solid fa-hourglass-half ic-water"></i> Limite de requisições atingido. Aguarde e tente novamente.'
-      : e.message?.includes('413') || e.message?.includes('large') || e.message?.includes('too large')
+      : msg.includes('413') || msg.includes('large') || msg.includes('too large')
       ? '📦 Imagem muito grande. Usando compressão automática — tente novamente.'
       : '<i class="fa-solid fa-xmark ic-alert"></i> Não foi possível analisar a imagem. Tente uma foto mais clara e bem iluminada.';
     showToast(camMsg, 'error');
