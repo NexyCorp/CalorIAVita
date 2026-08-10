@@ -108,34 +108,30 @@ async function handleVision(body, env) {
   const dataUri  = `data:${mimeType};base64,${cleanB64}`;
   const geminiKey = env.GEMINI_KEY || env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY;
 
-  // ── Gemini Vision (primário) — tenta modelos atuais em ordem ─────────────
-  const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-latest', 'gemini-1.5-flash'];
+  // ── Gemini 1.5 Flash (primário) ──────────────────────────────────────────
   if (geminiKey && geminiKey.length > 10) {
-    for (const model of GEMINI_MODELS) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inlineData: { mimeType, data: cleanB64 } },
-                { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
-              ]
-            }],
-            generationConfig: { responseMimeType: 'application/json' }
-          })
-        });
-        if (res.status === 404) { console.log(`[Vision] Gemini model ${model} 404, trying next...`); continue; }
-        if (res.ok) {
-          const data = await res.json();
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return jsonResp({ content: text, provider: `gemini/${model}` });
-        }
-      } catch(e) {
-        console.log(`[Vision] Gemini ${model} error:`, e.message);
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inlineData: { mimeType, data: cleanB64 } },
+              { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
+            ]
+          }],
+          generationConfig: { responseMimeType: 'application/json' }
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return jsonResp({ content: text, provider: 'gemini' });
       }
+    } catch(e) {
+      console.log('[Vision] Gemini error, fallback HF:', e.message);
     }
   }
 
