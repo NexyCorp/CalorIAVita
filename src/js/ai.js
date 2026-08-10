@@ -183,51 +183,40 @@ async function callGeminiVision(b64, mime, prompt) {
 
   for (const model of GEMINI_VISION_MODELS) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
-    let res;
-    try {
-      res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inlineData: { mimeType, data: cleanB64 } },
-              { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
-            ]
-          }],
-          generationConfig: { responseMimeType: 'application/json' }
-        })
-      });
-    } catch(netErr) {
-      console.warn(`[CameraIA] Gemini ${model} erro de rede, tentando próximo...`);
-      continue;
-    }
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { inlineData: { mimeType, data: cleanB64 } },
+            { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
+          ]
+        }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
 
     if (res.status === 404) {
       console.warn(`[CameraIA] Gemini model ${model} não encontrado, tentando próximo...`);
-      continue;
-    }
-    if (res.status === 429) {
-      console.warn(`[CameraIA] Gemini ${model} limite de requisições (429) — aguardando 6s e tentando próximo modelo...`);
-      await new Promise(r => setTimeout(r, 6000));
-      continue; // cada modelo Gemini tem quota separada
+      continue; // tenta o próximo modelo
     }
     if (!res.ok) {
       const bodyText = await res.text().catch(() => '');
-      console.warn(`[CameraIA] Gemini ${model} erro ${res.status}, tentando próximo...`);
-      continue;
+      throw new Error(`Gemini ${res.status}: ${bodyText.slice(0, 100)}`);
     }
 
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) { console.warn(`[CameraIA] Gemini ${model} resposta vazia, tentando próximo...`); continue; }
+    if (!text) throw new Error('Resposta vazia do Gemini Vision');
 
     const parsed = extractJSON(text);
     parsed._provider = `gemini/${model}`;
     return parsed;
   }
 
-  throw new Error('GEMINI_QUOTA_EXCEEDED');
+  throw new Error('Nenhum modelo Gemini Vision disponível.');
 }
 
 // ─── Análise de imagem: Gemini 1.5 Flash (primário) → HF → Proxy /api/ai → Groq (fallback) ──────
@@ -324,8 +313,9 @@ async function askGeminiWithImage(b64, mime, prompt, _retries = 2) {
     console.warn('[CameraIA] Proxy /api/ai falhou:', pErr.message);
   }
 
-  // ─── 4. Erro final — todos os provedores falharam ────────────────
-  throw new Error('VISION_ALL_FAILED');
+  // ─── 4. Groq Vision (último recurso) ─────────────────────────────
+  console.info('[CameraIA] Tentando Groq Vision como fallback...');
+  return _askGroqVision(cleanB64, mimeType, prompt);
 }
 
 
