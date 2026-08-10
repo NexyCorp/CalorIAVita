@@ -104,38 +104,8 @@ async function handleVision(body, env) {
   }
 
   const mimeType = mime || 'image/jpeg';
-  const cleanB64 = b64.includes(',') ? b64.split(',')[1] : b64;
-  const dataUri  = `data:${mimeType};base64,${cleanB64}`;
-  const geminiKey = env.GEMINI_KEY || env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY;
-
-  // ── Gemini 1.5 Flash (primário) ──────────────────────────────────────────
-  if (geminiKey && geminiKey.length > 10) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { inlineData: { mimeType, data: cleanB64 } },
-              { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
-            ]
-          }],
-          generationConfig: { responseMimeType: 'application/json' }
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return jsonResp({ content: text, provider: 'gemini' });
-      }
-    } catch(e) {
-      console.log('[Vision] Gemini error, fallback HF:', e.message);
-    }
-  }
-
-  const hfKey = env.HF_KEY;
+  const dataUri  = `data:${mimeType};base64,${b64}`;
+  const hfKey    = env.HF_KEY;
 
   // ── HuggingFace (primário) ───────────────────────────────────────────────
   const hfConfigured = hfKey && hfKey.length > 10 && !hfKey.includes('xxxx');

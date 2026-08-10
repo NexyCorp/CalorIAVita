@@ -167,61 +167,14 @@ async function _askGroqVision(b64, mime, prompt) {
   throw new Error('Não foi possível analisar a imagem via Groq.');
 }
 
-const GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-
-async function callGeminiVision(b64, mime, prompt) {
-  if (!GEMINI_KEY || GEMINI_KEY.length < 10) throw new Error('GEMINI_KEY_NOT_SET');
-  const mimeType = mime || 'image/jpeg';
-  const cleanB64 = b64.includes(',') ? b64.split(',')[1] : b64;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{
-        parts: [
-          { inlineData: { mimeType, data: cleanB64 } },
-          { text: 'Você é especialista em nutrição. Retorne SOMENTE JSON válido, sem markdown, sem texto extra. ' + prompt }
-        ]
-      }],
-      generationConfig: { responseMimeType: 'application/json' }
-    })
-  });
-
-  if (!res.ok) {
-    const bodyText = await res.text().catch(() => '');
-    throw new Error(`Gemini ${res.status}: ${bodyText.slice(0, 100)}`);
-  }
-
-  const data = await res.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Resposta vazia do Gemini Vision');
-
-  const parsed = extractJSON(text);
-  parsed._provider = 'gemini';
-  return parsed;
-}
-
-// ─── Análise de imagem: Gemini 1.5 Flash (primário) → HF → Proxy /api/ai → Groq (fallback) ──────
+// ─── Análise de imagem: HuggingFace (primário) → Groq Vision (fallback) ──────
 // Mantém o nome askGeminiWithImage para compatibilidade com diary.js
 async function askGeminiWithImage(b64, mime, prompt, _retries = 2) {
   const mimeType = mime || 'image/jpeg';
-  const cleanB64 = b64.includes(',') ? b64.split(',')[1] : b64;
-  const dataUri = `data:${mimeType};base64,${cleanB64}`;
-
-  // ─── 1. Gemini 1.5 Flash (Visão Nativa) ──────────────────────────
-  if (GEMINI_KEY && GEMINI_KEY.length >= 10) {
-    try {
-      console.info('[CameraIA] Analisando imagem via Gemini 1.5 Flash...');
-      return await callGeminiVision(cleanB64, mimeType, prompt);
-    } catch(gErr) {
-      console.warn('[CameraIA] Gemini Vision falhou:', gErr.message, '— tentando fallbacks...');
-    }
-  }
-
-  // ─── 2. HuggingFace ──────────────────────────────────────────────
+  const dataUri = `data:${mimeType};base64,${b64}`;
   const hfConfigured = HF_KEY && HF_KEY.length >= 10 && !HF_KEY.includes('xxxx');
+
+  // ─── Tentativa 1: HuggingFace ──────────────────────────────────
   if (hfConfigured) {
     const payload = {
       model: HF_VISION_MODEL,
@@ -245,23 +198,33 @@ async function askGeminiWithImage(b64, mime, prompt, _retries = 2) {
           body: JSON.stringify(payload)
         });
       } catch(netErr) {
-        console.warn('[CameraIA] HuggingFace indisponível, tentando próximo fallback...');
-        break;
+        console.warn('[CameraIA] HuggingFace indisponível, ativando fallback Groq...');
+        break; // sai do loop HF e vai para Groq
       }
 
       if (res.status === 401 || res.status === 403 || res.status === 404) {
-        console.warn(`[CameraIA] HF ${res.status} — tentando próximo fallback...`);
+        // Chave ou modelo inválido — não adianta tentar de novo, vai para Groq
+        console.warn(`[CameraIA] HF ${res.status} — usando fallback Groq...`);
         break;
       }
       if (res.status === 429 || res.status === 503) {
         if (attempt < _retries - 1) {
-          await new Promise(r => setTimeout(r, 3000 * (attempt + 1)));
+          const wait = 3000 * (attempt + 1);
+          console.warn(`[CameraIA] HF ${res.status} — aguardando ${wait}ms... (tentativa ${attempt + 1}/${_retries})`);
+          await new Promise(r => setTimeout(r, wait));
           continue;
         }
-        break;
+        console.warn('[CameraIA] HF esgotou tentativas — ativando fallback Groq...');
+        break; // fallback para Groq
+      }
+      if (res.status === 400) {
+        const errTxt = await res.text().catch(() => '');
+        // Imagem inválida ou muito grande — não tenta Groq pois seria o mesmo problema
+        throw new Error(`Imagem inválida ou muito grande. Tente uma foto menor. (HF 400: ${errTxt.substring(0, 100)})`);
       }
       if (!res.ok) {
         if (attempt < _retries - 1) { await new Promise(r => setTimeout(r, 2000)); continue; }
+        console.warn(`[CameraIA] HF ${res.status} — usando fallback Groq...`);
         break;
       }
 
@@ -269,37 +232,17 @@ async function askGeminiWithImage(b64, mime, prompt, _retries = 2) {
       const text = data?.choices?.[0]?.message?.content;
       if (!text) {
         if (attempt < _retries - 1) continue;
-        break;
+        break; // fallback para Groq
       }
-      const parsed = extractJSON(text);
-      parsed._provider = 'huggingface';
-      return parsed; // ✅ sucesso via HuggingFace
+      return extractJSON(text); // ✅ sucesso via HuggingFace
     }
+  } else {
+    console.warn('[CameraIA] HF_KEY não configurada — usando fallback Groq diretamente...');
   }
 
-  // ─── 3. Proxy Cloudflare Functions /api/ai ────────────────────────
-  try {
-    console.info('[CameraIA] Tentando proxy /api/ai...');
-    const proxyRes = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'vision', b64: cleanB64, mime: mimeType, prompt })
-    });
-    if (proxyRes.ok) {
-      const pData = await proxyRes.json();
-      if (pData.content) {
-        const parsed = extractJSON(pData.content);
-        parsed._provider = pData.provider || 'proxy';
-        return parsed;
-      }
-    }
-  } catch(pErr) {
-    console.warn('[CameraIA] Proxy /api/ai falhou:', pErr.message);
-  }
-
-  // ─── 4. Groq Vision (último recurso) ─────────────────────────────
-  console.info('[CameraIA] Tentando Groq Vision como fallback...');
-  return _askGroqVision(cleanB64, mimeType, prompt);
+  // ─── Tentativa 2: Groq Vision (fallback) ─────────────────────────
+  console.info('[CameraIA] Usando Groq Vision como fallback...');
+  return _askGroqVision(b64, mimeType, prompt);
 }
 
 
