@@ -319,11 +319,8 @@ async function askGeminiWithImage(b64, mime, prompt, _retries = 2) {
         parsed._provider = pData.provider || 'proxy';
         return parsed;
       }
-    } else if (proxyRes.status === 503) {
-      throw new Error('GEMINI_QUOTA_EXCEEDED'); // proxy também esgotou quota
     }
   } catch(pErr) {
-    if (pErr.message === 'GEMINI_QUOTA_EXCEEDED') throw pErr; // repropaga
     console.warn('[CameraIA] Proxy /api/ai falhou:', pErr.message);
   }
 
