@@ -7,22 +7,23 @@ const CORS_HEADERS = {
 };
 
 // Plan definitions — all config is inline, no preapproval_plan_id needed
+// prices: standard pro 30.00 BRL, professional basic 100.00 BRL, professional gold 197.00 BRL
 const PLANS = {
   pro: {
     reason: 'NutrIA Standard Pro – Assinatura Mensal',
-    amount: 30.00,
+    amount: 0.01,
     role: 'standard',
     plan: 'pro'
   },
   professional_basic: {
     reason: 'NutrIA Professional Basic – Assinatura Mensal',
-    amount: 100.00,
+    amount: 0.01,
     role: 'professional',
     plan: 'pro'
   },
   professional_gold: {
     reason: 'NutrIA Professional Gold – Assinatura Mensal',
-    amount: 197.00,
+    amount: 0.01,
     role: 'professional',
     plan: 'gold'
   }
