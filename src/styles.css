@@ -76,6 +76,12 @@
   color: #ece1d4;
   border-color: #3a2860;
 }
+[data-theme="dark"] .card.home-diet-card,
+[data-theme="dark"] .card.home-resume-card {
+  background: #0b0415!important;
+  color: #ece1d4;
+  border-color: #3a2860;
+}
 [data-theme="dark"] .form-input:focus,
 [data-theme="dark"] .form-select:focus,
 [data-theme="dark"] .search-input:focus,
