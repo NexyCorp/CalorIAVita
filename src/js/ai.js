@@ -117,7 +117,7 @@ async function callGroq(messages, retries = 3, maxTokens = 4096) {
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  return callGroq(messages, 3, 8192);
+  return callGroq(messages, 3, 6000);
 }
 
 async function askClaude(prompt, sys) {

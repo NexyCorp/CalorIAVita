@@ -191,13 +191,13 @@ async function generateAiRecipe() {
     p.body_fat_pct ? `percentual de gordura corporal: ${p.body_fat_pct}%` : ''
   ].filter(Boolean).join(', ');
 
-  const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
+    const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
 DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
 Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
-Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array of strings ou objects), steps (array of strings) }`;
+Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (APENAS array de strings, ex: ["100g de frango", "sal a gosto"]), steps (APENAS array de strings) }`;
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional. Certifique-se de que "steps" contém as instruções de preparo passo a passo.');
+    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional. Certifique-se de que ingredients e steps sejam APENAS arrays de strings.');
 
     const el = document.getElementById('aiRecipeResult');
     el.style.display = 'block';
