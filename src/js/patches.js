@@ -380,15 +380,33 @@ async function loadNutSpecialty() {
 let _lastGeneratedDiet = null;
 
 function openDietGenModal() {
-  document.getElementById('dietGenResult').style.display = 'none';
-  document.getElementById('dietGenForm').style.display = 'block';
-  document.getElementById('dietGenLoading').style.display = 'none';
-  document.querySelectorAll('#dietGenRestrictPills .pill-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.value === 'nenhuma');
-  });
-  const customContainer = document.getElementById('customRestrictionContainer');
-  if (customContainer) customContainer.style.display = 'none';
-  document.getElementById('dietGenModal').classList.add('show');
+  const modal = document.getElementById('dietGenModal');
+  const comingSoon = document.getElementById('dietGenComingSoon');
+  const adminForm = document.getElementById('dietGenAdminForm');
+
+  if (typeof isAdmin === 'function' && isAdmin()) {
+    // Admin vê o formulário real
+    if (comingSoon) comingSoon.style.display = 'none';
+    if (adminForm) adminForm.style.display = 'block';
+    // Reset form state
+    const resultEl = document.getElementById('dietGenResult');
+    const formEl = document.getElementById('dietGenForm');
+    const loadingEl = document.getElementById('dietGenLoading');
+    if (resultEl) resultEl.style.display = 'none';
+    if (formEl) formEl.style.display = 'block';
+    if (loadingEl) loadingEl.style.display = 'none';
+    document.querySelectorAll('#dietGenRestrictPills .pill-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.value === 'nenhuma');
+    });
+    const customContainer = document.getElementById('customRestrictionContainer');
+    if (customContainer) customContainer.style.display = 'none';
+  } else {
+    // Todos os outros veem "Em Breve"
+    if (comingSoon) comingSoon.style.display = 'block';
+    if (adminForm) adminForm.style.display = 'none';
+  }
+
+  modal.classList.add('show');
 }
 function closeDietGenModal() { document.getElementById('dietGenModal').classList.remove('show'); }
 function dietGenNewPlan() {
