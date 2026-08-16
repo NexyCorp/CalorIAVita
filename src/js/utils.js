@@ -936,8 +936,10 @@ function showPanel(name, navEl) {
 
   // Restrições de paciente: sem assinatura, sem calculadora/meta
   if (isPatient()) {
-    if (name === 'subscription') { showToast('<i class="fa-solid fa-lock"></i> Assinatura não disponível para pacientes.', 'error'); return; }
+    const hasNutri = !!currentProfile?.nutritionist_id;
+    if (name === 'subscription' && hasNutri) { showToast('<i class="fa-solid fa-lock"></i> Assinatura não disponível para pacientes vinculados.', 'error'); return; }
     if (name === 'goal') { showToast('<i class="fa-solid fa-lock"></i> Calculadora não disponível para pacientes.', 'error'); return; }
+    if (name === 'dietaia' || name === 'aiRecipe') { showToast('<i class="fa-solid fa-lock"></i> IA não disponível para pacientes.', 'error'); return; }
   }
 
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));

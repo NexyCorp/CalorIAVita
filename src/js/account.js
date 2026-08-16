@@ -2129,16 +2129,28 @@ window.safeCloseCreatePatientModal = function(forceMinimize) {
 // Item 17/18/19: Esconder itens de nav restritos para pacientes
 window._applyPatientUIRestrictions = function() {
   if (!isPatient()) return;
-  // Esconder nav de assinatura e metas para pacientes
+  
+  const hasNutri = !!currentProfile?.nutritionist_id;
+
+  // 17. Paciente não pode ver a tela de assinatura se estiver vinculado a um profissional
   const navSub = document.getElementById('nav-subscription');
-  if (navSub) navSub.style.display = 'none';
+  if (navSub) navSub.style.display = hasNutri ? 'none' : '';
+
+  // 19. Paciente não pode ver tela de Meta & Calculadora
   const navGoal = document.getElementById('nav-goal');
   if (navGoal) navGoal.style.display = 'none';
-  // Esconder botão de gerar dieta/receita com IA para pacientes
+
+  // 18. Paciente não pode gerar receita nem dieta com IA
   const aiDietBtn = document.getElementById('generateAIDietBtn');
   if (aiDietBtn) aiDietBtn.style.display = 'none';
   const aiRecipeBtn = document.getElementById('aiRecipeBtn');
   if (aiRecipeBtn) aiRecipeBtn.style.display = 'none';
+
+  // Esconder abas DietaIA
+  const navDieta = document.getElementById('nav-dietaia');
+  if (navDieta) navDieta.style.display = 'none';
+  const bnavDieta = document.getElementById('bnav-dietaia');
+  if (bnavDieta) bnavDieta.style.display = 'none';
 };
 
 
