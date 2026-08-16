@@ -428,7 +428,7 @@ async function initApp(user) {
     initDiaryDate();
 
     // Restaurar tela da sessão anterior (Item 9)
-    const lastPanel = sessionStorage.getItem('nutria_last_panel') || 'home';
+    const lastPanel = localStorage.getItem('nutria_last_panel') || 'home';
     const restrictedForPatient = ['subscription', 'goal', 'prof', 'admin'];
     const restrictedForFree = ['diary', 'camera', 'recipes'];
     let panelToRestore = lastPanel;

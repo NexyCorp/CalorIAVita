@@ -943,6 +943,8 @@ function showPanel(name, navEl) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
+  localStorage.setItem('nutria_last_panel', name);
+
   const panel = document.getElementById('panel-' + name);
   if (panel) panel.classList.add('active');
   if (name === 'home') updateHomePanel();
