@@ -452,8 +452,8 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
       </div>`;
     }).join('') || '<p style="color:#888;">Nenhum registro no período.</p>'}` : '';
 
-  const html = \`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — \${patientName} — NutrIA</title>
-  \${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — ${patientName} — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
     h1 { font-family:'Righteous',cursive; font-size: 1.7rem; color: var(--pdf-purple); margin-bottom: 4px; }
     .h1-sub { font-size: 0.9rem; color: var(--pdf-brown); margin-bottom: 20px; font-family:'Fredoka',sans-serif; opacity: 0.8; }
@@ -493,7 +493,7 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
     .record-ai-disclaimer { font-size: 0.7rem; color: var(--pdf-brown); margin-top: 12px; line-height: 1.5; opacity: 0.8; }
   </style>
   </head><body>
-  \${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Prontuário Nutricional', \`Período: \${periodLabel} (\${periodRange})\`) : ''}
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Prontuário Nutricional', `Período: ${periodLabel} (${periodRange})`) : ''}
 
   ${profileHtml}
   ${goalHtml}
@@ -503,10 +503,10 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
   ${macrosHtml}
   ${mealsHtml}
   ${aiAnalysisHtml}
-  <div class="footer">
+  <div class="footer-pdf">
     <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+    <p style="margin-top:4px; opacity:0.8;">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </div>
-  <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </body></html>`;
 
   const win = window.open('', '_blank');
@@ -1865,8 +1865,8 @@ window.printDossierPDF = function() {
   const logoSrc = typeof getLogoSrc === 'function' ? getLogoSrc() : LOGO_LIGHT_B64;
   const logoHtml = `<img src="${logoSrc}" width="52" height="52" style="border-radius:8px;">`;
   
-  const html = \`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>\${title} — NutrIA</title>
-  \${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title} — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
     table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
     td { padding: 6px 12px 6px 0; vertical-align: top; border-bottom: 1px solid rgba(0,0,0,0.05); color: var(--pdf-dark); }
@@ -1875,10 +1875,10 @@ window.printDossierPDF = function() {
     table th { padding: 6px 10px; text-align: left; font-weight: 700; background: var(--pdf-accent-bg); border-bottom: 1px solid rgba(0,0,0,0.1); color: var(--pdf-primary); }
   </style>
   </head><body>
-  \${window.getNutriaPdfHeader ? window.getNutriaPdfHeader(title) : ''}
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader(title) : ''}
   
   <div class="dossier-print-content">
-    \${content}
+    ${content}
   </div>
   <div class="footer-pdf">
     <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>

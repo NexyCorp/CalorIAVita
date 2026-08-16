@@ -853,7 +853,6 @@ async function shareRecipeAsPdf(id) {
   <div class="footer-pdf">
     <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
   </div>
-  <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 
   const blob = new Blob([html], { type: 'text/html' });

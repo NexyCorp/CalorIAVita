@@ -944,9 +944,9 @@ async function printPatientAnamnese(patientId, patientName) {
   const v = (val, unit='') => (val !== null && val !== undefined && val !== '') ? `${val}${unit}` : '—';
   const arr2str = (arr) => Array.isArray(arr) && arr.length ? arr.join(', ') : '—';
 
-  const html = \`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-  <title>Anamnese Nutricional — \${name}</title>
-  \${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Anamnese Nutricional — ${name}</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
     section { margin-bottom: 24px; }
     h3 { 
@@ -973,7 +973,7 @@ async function printPatientAnamnese(patientId, patientName) {
     tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
   </style>
   </head><body>
-  \${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Anamnese Nutricional', \`Paciente: <strong>\${name}</strong> &bull; Gerado em \${new Date().toLocaleDateString('pt-BR')} às \${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}\`) : ''}
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Anamnese Nutricional', `Paciente: <strong>${name}</strong> &bull; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`) : ''}
 
   <section>
     <h3>1. Identificação</h3>
@@ -1136,7 +1136,7 @@ async function printPatientAnamnese(patientId, patientName) {
     <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
     &nbsp;&nbsp;🔒 Documento protegido pela LGPD (Lei 13.709/2018)
   </div>
-  </body></html>\`;
+  </body></html>`;
 
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);

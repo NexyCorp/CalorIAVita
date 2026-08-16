@@ -665,7 +665,7 @@ function printDiet() {
       </div>`).join('')}
   `).join('')}
   <div class="footer-pdf">Plano gerado automaticamente pela IA NutrIA. Consulte sempre um nutricionista. 🔒 LGPD (Lei 13.709/2018).</div>
-  </body></html>\`;
+  </body></html>`;
 
   const blob = new Blob([html], { type:'text/html' });
   const url  = URL.createObjectURL(blob);
