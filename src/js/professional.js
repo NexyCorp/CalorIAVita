@@ -24,9 +24,13 @@ async function viewPatientDiary(patientId, patientName) {
   pdSwitchTab('day', true);
 
   // Busca a meta calórica e água do paciente
-  const { data: goalData } = await supabase.from('user_goals').select('daily_kcal,daily_water').eq('user_id', patientId).maybeSingle();
+  const { data: goalData } = await supabase.from('user_goals').select('daily_kcal,daily_water,daily_prot,daily_carbs,daily_fat,daily_sugar').eq('user_id', patientId).maybeSingle();
   pdState.goal = goalData?.daily_kcal || 2000;
   pdState.waterGoal = goalData?.daily_water || 2000;
+  pdState.protGoal = goalData?.daily_prot || null;
+  pdState.carbsGoal = goalData?.daily_carbs || null;
+  pdState.fatGoal = goalData?.daily_fat || null;
+  pdState.sugarGoal = goalData?.daily_sugar || null;
 
   await pdRender();
 }
@@ -89,6 +93,11 @@ async function pdRenderDay() {
   }
 
   const totalKcal = entries.reduce((s,e) => s+e.kcal, 0);
+  const totalProt = Math.round(entries.reduce((s,e) => s + (e.protein || e.prot || 0), 0));
+  const totalCarbs = Math.round(entries.reduce((s,e) => s + (e.carbs || 0), 0));
+  const totalFat = Math.round(entries.reduce((s,e) => s + (e.fat || 0), 0));
+  const totalSugar = Math.round(entries.reduce((s,e) => s + (e.sugar || 0), 0));
+
   const meals = { cafe:[], almoco:[], lanche:[], jantar:[] };
   entries.forEach(e => { if (meals[e.meal]) meals[e.meal].push(e); });
   const mealLabels = { cafe:'🌅 Café', almoco:'<i class="fa-solid fa-sun ic-sun"></i> Almoço', lanche:'🍵 Lanche', jantar:'<i class="fa-solid fa-moon ic-moon"></i> Jantar' };
@@ -97,27 +106,59 @@ async function pdRenderDay() {
 
   if (content) {
     content.innerHTML = `
-      <div style="background:var(--green-pale);border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:center;display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <div style="background:var(--green-pale);border-radius:12px;padding:1rem;margin-bottom:0.75rem;text-align:center;display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:1rem;">
         <div>
           <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:${overGoal?'#ef5350':'var(--green-deep)'};">${totalKcal}</div>
-          <div style="font-size:0.8rem;color:var(--text-muted);">kcal • meta: ${pdState.goal} kcal (${goalPct}%)</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">kcal • meta: ${pdState.goal} kcal (${goalPct})</div>
         </div>
         <div style="border-left:1px solid var(--border-color);height:40px;opacity:0.3;"></div>
         <div>
           <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:#29b6f6;">${waterMl}</div>
-          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água · meta: ${pdState.waterGoal || 2000} ml</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água • meta: ${pdState.waterGoal || 2000} ml</div>
         </div>
       </div>
+
+      <!-- Macros Summary -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.4rem;margin-bottom:1.2rem;text-align:center;">
+        <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#2e7d32;">${totalCarbs}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Carboidratos</div>
+          ${pdState.carbsGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.carbsGoal}g</div>` : ''}
+        </div>
+        <div style="background:rgba(255,152,0,0.08);border:1px solid rgba(255,152,0,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#ef6c00;">${totalProt}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Proteínas</div>
+          ${pdState.protGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.protGoal}g</div>` : ''}
+        </div>
+        <div style="background:rgba(233,30,99,0.08);border:1px solid rgba(233,30,99,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#c2185b;">${totalFat}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Gorduras</div>
+          ${pdState.fatGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.fatGoal}g</div>` : ''}
+        </div>
+        <div style="background:rgba(121,85,72,0.08);border:1px solid rgba(121,85,72,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#4e342e;">${totalSugar}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Açúcares</div>
+          ${pdState.sugarGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.sugarGoal}g</div>` : ''}
+        </div>
+      </div>
+
       ${Object.entries(meals).map(([key, items]) => items.length===0?'':`
         <div style="margin-bottom:0.75rem;">
           <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.4rem;">${mealLabels[key]}</p>
           ${items.map(e=>`
-            <div class="pd-item-row">
-              ${e.photo_url
-                ? `<img src="${e.photo_url}" alt="${e.food_name}" class="pd-item-photo" onclick="openPhotoLightbox('${e.photo_url}')">`
-                : `<div class="pd-item-photo-placeholder"><i class="fa-solid fa-utensils ic-recipes"></i></div>`}
-              <span class="pd-item-name">${e.food_name}</span>
-              <span class="pd-item-kcal">${e.kcal} kcal</span>
+            <div class="pd-item-row" style="justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:0.6rem;flex:1;">
+                ${e.photo_url
+                  ? `<img src="${e.photo_url}" alt="${e.food_name}" class="pd-item-photo" onclick="openPhotoLightbox('${e.photo_url}')">`
+                  : `<div class="pd-item-photo-placeholder"><i class="fa-solid fa-utensils ic-recipes"></i></div>`}
+                <div>
+                  <div class="pd-item-name" style="font-weight:600;color:var(--text-main);">${e.food_name}</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:1px;">
+                    C: ${Math.round(e.carbs||0)}g • P: ${Math.round(e.protein||e.prot||0)}g • G: ${Math.round(e.fat||0)}g • A: ${Math.round(e.sugar||0)}g
+                  </div>
+                </div>
+              </div>
+              <span class="pd-item-kcal" style="font-weight:700;color:var(--green-deep);">${e.kcal} kcal</span>
             </div>`).join('')}
         </div>`).join('')}
     `;
