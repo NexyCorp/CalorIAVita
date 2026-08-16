@@ -435,6 +435,9 @@ function addToDiaryFromSearch() {
 window.extractJSON = extractJSON;
 window.callGroq = callGroq;
 window.callGroqLarge = callGroqLarge;
+window._groqFetch = _groqFetch; // Added for recipe/diet AI
+window.rotateGroqKey = rotateGroqKey; // Added for rate limiting
+window.GROQ_MODEL_FAST = GROQ_MODEL_FAST; // Added for fast generation
 window.askClaude = askClaude;
 window.askGeminiWithImage = askGeminiWithImage;
 window.searchFood = searchFood;
@@ -442,7 +445,3 @@ window.toggleNutritionPanel = toggleNutritionPanel;
 window._showNutriScore = _showNutriScore;
 window.quickSearch = quickSearch;
 window.addToDiaryFromSearch = addToDiaryFromSearch;
-
-
-
-
