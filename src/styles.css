@@ -366,58 +366,19 @@ i.fa-hourglass-half { color: #ffb74d; }
 /* ═══ LOADING OVERLAY ═══ */
 #loadingOverlay {
   position: fixed; inset: 0; z-index: 1500;
-  background: #0E0415;
-  display: flex; flex-direction: column;
+  background: #ECE1D4;
+  display: flex;
   align-items: center; justify-content: center;
-  gap: 1.5rem;
   transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 #loadingOverlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-.loading-logo-wrap {
-  position: relative; display: flex; align-items: center; justify-content: center;
-}
-.loading-logo-ring {
-  position: absolute;
-  width: 100px; height: 100px; border-radius: 50%;
-  border: 2px solid rgba(91,33,182,0.5);
-  animation: logo-spin 2s linear infinite;
-}
-.loading-logo-ring-2 {
-  position: absolute;
-  width: 130px; height: 130px; border-radius: 50%;
-  border: 2px dashed rgba(20,184,166,0.3);
-  animation: logo-spin 2.5s linear infinite reverse;
-}
-@keyframes logo-spin { to { transform: rotate(360deg); } }
-
-.loading-logo-text {
-  font-family: var(--font-title);
-  font-size: 1.8rem; font-weight: 700; font-style: normal;
-  color: white; z-index: 1;
-}
-.loading-logo-text span { color: #14B8A6; }
-
-.loading-tagline {
-  font-family: var(--font-body);
-  font-size: 0.78rem; color: rgba(255,255,255,0.4);
-  letter-spacing: 2px; text-transform: uppercase;
-}
-
-.loading-dots {
-  display: flex; gap: 6px;
-}
-.loading-dots span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #14B8A6; opacity: 0.2;
-  animation: dot-pulse 1.2s ease-in-out infinite;
-}
-.loading-dots span:nth-child(1) { animation-delay: 0s; }
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dot-pulse {
-  0%, 100% { opacity: 0.2; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1.2); }
+.loading-motion-logo {
+  width: min(88vmin, 620px);
+  aspect-ratio: 1 / 1;
+  border: 0;
+  display: block;
+  pointer-events: none;
 }
 
 /* ═══ LANDING PAGE ═══ */
