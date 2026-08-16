@@ -1380,14 +1380,7 @@ function cpDetectPatientType() {
 
 const _diseaseFormState = window._diseaseFormState = { disease: null, patientId: null, patientName: null, formData: {} };
 
-// Called when diseases are checked in the create patient form
-function cpCheckDiseaseFormSuggestions() {
-  const checked = Array.from(document.querySelectorAll('#cpDiseasesGeneral input:checked, #cpDiseasesChronicAuto input:checked')).map(cb => cb.value);
-  const suggDiv = document.getElementById('cpDiseaseFormSuggestions');
-  const listDiv = document.getElementById('cpDiseaseFormList');
-  if (!suggDiv || !listDiv) return;
-
-  const diseaseFormMap = {
+const DISEASE_FORM_MAP = {
     'diabetes_t2':    { label: '📋 Diabetes T2',        key: 'diabetes_t2',     name: 'Diabetes Tipo 2' },
     'diabetes_t1':    { label: '📋 Diabetes T1',        key: 'diabetes_t1',     name: 'Diabetes Tipo 1' },
     'prediabetes':    { label: '📋 Pré-Diabetes',       key: 'prediabetes',     name: 'Pré-Diabetes' },
@@ -1424,14 +1417,21 @@ function cpCheckDiseaseFormSuggestions() {
     'fibromialgia':   { label: '📋 Fibromialgia',       key: 'fibromialgia',    name: 'Fibromialgia' }
   };
 
-  const relevant = checked.filter(d => diseaseFormMap[d]);
+// Called when diseases are checked in the create patient form
+function cpCheckDiseaseFormSuggestions() {
+  const checked = Array.from(document.querySelectorAll('#cpDiseasesGeneral input:checked, #cpDiseasesChronicAuto input:checked')).map(cb => cb.value);
+  const suggDiv = document.getElementById('cpDiseaseFormSuggestions');
+  const listDiv = document.getElementById('cpDiseaseFormList');
+  if (!suggDiv || !listDiv) return;
+
+  const relevant = checked.filter(d => DISEASE_FORM_MAP[d]);
   if (!relevant.length) { suggDiv.style.display = 'none'; return; }
 
   // Deduplicate (crohn/retocolite → same form)
   const seen = new Set();
   listDiv.innerHTML = '';
   relevant.forEach(d => {
-    const entry = diseaseFormMap[d];
+    const entry = DISEASE_FORM_MAP[d];
     if (seen.has(entry.key)) return;
     seen.add(entry.key);
     const btn = document.createElement('button');
@@ -1711,13 +1711,117 @@ const _diseaseQuestionBanks = {
 
 let _diseaseFormCurrentPatientId = null;
 
-async function openDiseaseForm(diseaseKey, diseaseName) {
+function hasDiseaseAnswer(anamnese, field) {
+  if (!anamnese || !field) return false;
+  const value = anamnese[field];
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== null && value !== undefined && String(value).trim() !== '';
+}
+
+function getAnsweredFieldForDiseaseQuestion(questionId) {
+  const map = {
+    dm_glicemia_jejum_atual: 'lab_glucose',
+    dm_hba1c_atual: 'lab_hba1c',
+    dm_medicamentos_dm: 'medications',
+    dm_refeicoes_dia: 'eating_time_min',
+    has_sal_dia: 'salt_month_g',
+    has_alcool_semana: 'alcohol',
+    ob_peso_maximo: 'weight_usual',
+    ob_tentativas: 'prev_diets',
+    ob_tratamentos: 'prev_diets',
+    dis_ldl: 'lab_ldl',
+    dis_hdl: 'lab_hdl',
+    dis_tg: 'lab_tg',
+    dis_chol_total: 'lab_chol_total',
+    ren_creatinina: 'lab_creatinine',
+    ren_ureia: 'lab_urea',
+    sop_insulina: 'lab_insulin',
+    onco_perda_peso: 'weight_usual',
+    hep_alcool: 'alcohol',
+    sarc_proteina_dia: 'food_preferences',
+    sarc_exercicio_resistencia: 'activity_type',
+    hipo_tsh: 'lab_tsh',
+    anemia_hb: 'lab_hemoglobin',
+    anemia_ferritina: 'lab_ferritin',
+    anemia_vit_b12: 'lab_vit_d',
+    dii_cirurgias: 'surgeries',
+    dii_alimentos_gatilho: 'food_aversions'
+  };
+  return map[questionId] || null;
+}
+
+function filterAnsweredDiseaseQuestions(questionSet, anamnese) {
+  if (!questionSet?.sections || !anamnese) return { questionSet, skipped: [] };
+  const skipped = [];
+  const sections = questionSet.sections.map(section => {
+    const questions = (section.questions || []).filter(q => {
+      const answeredField = getAnsweredFieldForDiseaseQuestion(q.id);
+      const shouldSkip = hasDiseaseAnswer(anamnese, answeredField);
+      if (shouldSkip) skipped.push(q.label || q.id);
+      return !shouldSkip;
+    });
+    return { ...section, questions };
+  }).filter(section => section.questions.length);
+  return { questionSet: { ...questionSet, sections }, skipped };
+}
+
+async function openPatientDiseaseFormChooser(patientId, patientName, diseases) {
+  const normalized = Array.isArray(diseases) ? diseases : [diseases].filter(Boolean);
+  const entries = [];
+  const seen = new Set();
+  normalized.forEach(d => {
+    const key = String(d || '').trim();
+    const entry = DISEASE_FORM_MAP[key] || { key, name: key, label: '📋 ' + key };
+    if (!entry.key || seen.has(entry.key)) return;
+    seen.add(entry.key);
+    entries.push(entry);
+  });
+
+  const titleEl = document.getElementById('diseaseFormTitle');
+  const subtitleEl = document.getElementById('diseaseFormSubtitle');
+  const content = document.getElementById('diseaseFormContent');
+  const loadingEl = document.getElementById('diseaseFormLoading');
+  const actionsEl = document.getElementById('diseaseFormActions');
+  if (!titleEl || !content) return;
+
+  _diseaseFormCurrentPatientId = patientId;
+  _diseaseFormState.patientId = patientId;
+  _diseaseFormState.patientName = patientName;
+
+  if (loadingEl) loadingEl.style.display = 'none';
+  if (actionsEl) actionsEl.style.display = 'none';
+  content.style.display = 'block';
+  titleEl.innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> Doença IA — ${window.escapeHtml(patientName || 'Paciente')}`;
+  subtitleEl.textContent = 'Selecione qual formulário específico deseja ver para este paciente.';
+
+  if (!entries.length) {
+    content.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Este paciente não possui doenças cadastradas para formulário específico.</p>';
+  } else {
+    content.innerHTML = `
+      <div style="display:grid;gap:0.65rem;">
+        ${entries.map(entry => `
+          <button type="button" class="btn-disease-choice" data-disease-key="${window.escapeHtml(entry.key)}" data-disease-name="${window.escapeHtml(entry.name)}">
+            <span>${window.escapeHtml(entry.name)}</span>
+            <small>Abrir formulario desta doenca</small>
+          </button>
+        `).join('')}
+      </div>`;
+    content.querySelectorAll('.btn-disease-choice').forEach(btn => {
+      btn.addEventListener('click', () => openDiseaseForm(btn.dataset.diseaseKey, btn.dataset.diseaseName, patientId));
+    });
+  }
+
+  document.getElementById('diseaseFormModal').classList.add('show');
+}
+
+async function openDiseaseForm(diseaseKey, diseaseName, patientId = null) {
   const content = document.getElementById('diseaseFormContent');
   const titleEl = document.getElementById('diseaseFormTitle');
   const subtitleEl = document.getElementById('diseaseFormSubtitle');
   const loadingEl = document.getElementById('diseaseFormLoading');
   const actionsEl = document.getElementById('diseaseFormActions');
 
+  if (patientId) _diseaseFormCurrentPatientId = patientId;
   _diseaseFormState.disease = diseaseKey;
   _diseaseFormState.patientId = _diseaseFormCurrentPatientId;
 
@@ -1725,6 +1829,15 @@ async function openDiseaseForm(diseaseKey, diseaseName) {
   subtitleEl.textContent = 'Carregando formulário...';
 
   let questions = _diseaseQuestionBanks[diseaseKey];
+  let currentAnamnese = null;
+  if (_diseaseFormCurrentPatientId) {
+    try {
+      const { data } = await supabase.from('patient_anamnese').select('*').eq('patient_id', _diseaseFormCurrentPatientId).maybeSingle();
+      currentAnamnese = data || null;
+    } catch(e) {
+      console.warn('[openDiseaseForm] anamnese lookup failed:', e);
+    }
+  }
 
   if (!questions) {
     if (loadingEl) loadingEl.style.display = 'block';
@@ -1756,6 +1869,9 @@ async function openDiseaseForm(diseaseKey, diseaseName) {
     _diseaseFormState._aiSections = null;
   }
 
+  const filtered = filterAnsweredDiseaseQuestions(questions, currentAnamnese);
+  questions = filtered.questionSet;
+
   if (loadingEl) loadingEl.style.display = 'none';
   if (content) content.style.display = 'block';
   if (actionsEl) actionsEl.style.display = 'flex';
@@ -1764,7 +1880,10 @@ async function openDiseaseForm(diseaseKey, diseaseName) {
   subtitleEl.textContent = 'Perguntas específicas para ' + diseaseName + ' — recomendadas para um prontuário completo';
 
   // Build form HTML
-  content.innerHTML = questions.sections.map(section => `
+  const skippedHtml = filtered.skipped.length
+    ? `<div class="disease-skipped-note"><strong>Ja respondido no cadastro:</strong> ${filtered.skipped.map(window.escapeHtml).join(', ')}</div>`
+    : '';
+  content.innerHTML = skippedHtml + (questions.sections.length ? questions.sections.map(section => `
     <div class="patient-form-section" style="margin-bottom:0.75rem;">
       <div class="patient-form-section-title"><i class="fa-solid fa-circle-dot ic-goal"></i> ${section.title || section.name}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;">
@@ -1782,7 +1901,7 @@ async function openDiseaseForm(diseaseKey, diseaseName) {
         }).join('')}
       </div>
     </div>
-  `).join('');
+  `).join('') : '<p style="color:var(--text-muted);font-size:0.88rem;">As perguntas deste formulário já foram respondidas no cadastro/anamnese do paciente.</p>');
 
   // Pre-populate values if they exist
   let preExistingData = {};
@@ -2079,6 +2198,7 @@ window.cpDetectPatientType = cpDetectPatientType;
 window.cpCheckDiseaseFormSuggestions = cpCheckDiseaseFormSuggestions;
 window.attachDiseaseCheckboxListeners = attachDiseaseCheckboxListeners;
 window.openDiseaseForm = openDiseaseForm;
+window.openPatientDiseaseFormChooser = openPatientDiseaseFormChooser;
 window.closeDiseaseFormModal = closeDiseaseFormModal;
 window.loadMyNutritionistRequestStatus = loadMyNutritionistRequestStatus;
 window.sendNutritionistRequest = sendNutritionistRequest;

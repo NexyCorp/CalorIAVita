@@ -2222,6 +2222,45 @@ i.fa-hourglass-half { color: #ffb74d; }
 }
 .btn-request-nutritionist:hover { background: #ffc107; }
 
+.btn-disease-choice {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid var(--green-light);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition);
+}
+.btn-disease-choice:hover {
+  background: var(--green-pale);
+  border-color: var(--green-mid);
+}
+.btn-disease-choice span {
+  font-weight: 800;
+  font-family: var(--font-title);
+}
+.btn-disease-choice small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+.disease-skipped-note {
+  background: var(--yellow-pale);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 0.8rem;
+}
+
 /* ═══ MODALS ═══ */
 .modal-overlay {
   display: none; position: fixed; inset: 0; z-index: 500;

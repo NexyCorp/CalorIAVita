@@ -1008,6 +1008,11 @@ function _p2_injectDiseaseButtons() {
 }
 
 async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
+  if (typeof window.openPatientDiseaseFormChooser === 'function') {
+    window.openPatientDiseaseFormChooser(patientId, patientName, diseases);
+    return;
+  }
+
   showToast('<i class="fa-solid fa-robot ic-chat"></i> Gerando formulÃ¡rio especÃ­fico com IA...', 'success');
   const diseaseList = Array.isArray(diseases) ? diseases.join(', ') : diseases;
 
