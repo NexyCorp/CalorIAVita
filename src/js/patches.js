@@ -1,7 +1,7 @@
-// ═══════════════════════════════════════
+﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FEATURE 1: SUGAR & WATER TRACKING
-// ═══════════════════════════════════════
-// Variáveis globais declaradas em globals.js
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// VariÃ¡veis globais declaradas em globals.js
 
 
 async function loadGoalFromDB() {
@@ -45,14 +45,14 @@ async function addWater(ml) {
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id,date' });
     if (error) {
-      console.warn('[NutrIA] diary_water: erro ao salvar água:', error);
-      showToast('Erro ao salvar água. Tabela diary_water pode não existir no banco.', 'error');
+      console.warn('[NutrIA] diary_water: erro ao salvar Ã¡gua:', error);
+      showToast('Erro ao salvar Ã¡gua. Tabela diary_water pode nÃ£o existir no banco.', 'error');
       return;
     }
   }
   updateWaterDisplay();
   const diff = ml > 0 ? `+${ml}ml` : `${ml}ml`;
-  showToast(`<i class="fa-solid fa-droplet ic-water"></i> ${diff} → ${diaryWaterMl}ml de ${diaryGoalWater}ml`);
+  showToast(`<i class="fa-solid fa-droplet ic-water"></i> ${diff} â†’ ${diaryWaterMl}ml de ${diaryGoalWater}ml`);
 }
 
 async function loadWaterForDate(date) {
@@ -97,7 +97,7 @@ async function addCustomWater() {
   if (!input) return;
   const ml = parseInt(input.value);
   if (isNaN(ml) || ml <= 0) {
-    showToast('Insira um valor válido de água', 'error');
+    showToast('Insira um valor vÃ¡lido de Ã¡gua', 'error');
     return;
   }
   await addWater(ml);
@@ -173,7 +173,7 @@ async function saveGoal() {
   updateDiaryProgress();
   buildWeeklyGrid();
   document.getElementById('goalInsight').innerHTML =
-    `<i class="fa-solid fa-circle-check ic-check"></i> Metas salvas: <strong>${diaryGoal} kcal</strong> · açúcar máx. <strong>${diaryGoalSugar}g</strong> · água <strong>${diaryGoalWater}ml</strong>`;
+    `<i class="fa-solid fa-circle-check ic-check"></i> Metas salvas: <strong>${diaryGoal} kcal</strong> Â· aÃ§Ãºcar mÃ¡x. <strong>${diaryGoalSugar}g</strong> Â· Ã¡gua <strong>${diaryGoalWater}ml</strong>`;
   await saveGoalToDB(diaryGoal);
   showToast('<i class="fa-solid fa-bullseye ic-goal"></i> Metas salvas!');
 }
@@ -206,9 +206,9 @@ async function calcCalories() {
   const prot  = Math.round((goal*0.25)/4);
   const fat   = Math.round((goal*0.25)/9);
 
-  // Açúcar: OMS recomenda <10% das calorias = <25g (meta estrita) ou <50g (limite)
+  // AÃ§Ãºcar: OMS recomenda <10% das calorias = <25g (meta estrita) ou <50g (limite)
   let sugarGoal = Math.round((goal * 0.05) / 4); // 5% das kcal
-  // Água: 35ml por kg de peso corporal (IOM)
+  // Ãgua: 35ml por kg de peso corporal (IOM)
   const waterGoal = Math.round(weight * 35);
 
   const isDiabetic = document.getElementById('calcDiabetes')?.checked || localStorage.getItem('cv_is_diabetic') === 'true';
@@ -229,10 +229,10 @@ async function calcCalories() {
   if (gwi) gwi.value = diaryGoalWater;
 
   const advice = currentGoalDelta < 0
-    ? `<i class="fa-solid fa-lightbulb ic-star"></i> Para emagrecer com saúde, mantenha déficit moderado e priorize proteínas. Limite açúcar a <strong>${diaryGoalSugar}g/dia</strong> e beba <strong>${diaryGoalWater}ml</strong> de água.`
+    ? `<i class="fa-solid fa-lightbulb ic-star"></i> Para emagrecer com saÃºde, mantenha dÃ©ficit moderado e priorize proteÃ­nas. Limite aÃ§Ãºcar a <strong>${diaryGoalSugar}g/dia</strong> e beba <strong>${diaryGoalWater}ml</strong> de Ã¡gua.`
     : currentGoalDelta > 0
-    ? `<i class="fa-solid fa-lightbulb ic-star"></i> Para ganhar massa, distribua em 5–6 refeições. Hidratação recomendada: <strong>${diaryGoalWater}ml/dia</strong>.`
-    : `<i class="fa-solid fa-lightbulb ic-star"></i> Para manter o peso, foque na qualidade nutricional. Açúcar livre: máx. <strong>${diaryGoalSugar}g/dia</strong>. Água: <strong>${diaryGoalWater}ml/dia</strong>.`;
+    ? `<i class="fa-solid fa-lightbulb ic-star"></i> Para ganhar massa, distribua em 5â€“6 refeiÃ§Ãµes. HidrataÃ§Ã£o recomendada: <strong>${diaryGoalWater}ml/dia</strong>.`
+    : `<i class="fa-solid fa-lightbulb ic-star"></i> Para manter o peso, foque na qualidade nutricional. AÃ§Ãºcar livre: mÃ¡x. <strong>${diaryGoalSugar}g/dia</strong>. Ãgua: <strong>${diaryGoalWater}ml/dia</strong>.`;
   document.getElementById('calcAdvice').innerHTML = advice;
   document.getElementById('calcResult').classList.add('show');
 
@@ -246,20 +246,20 @@ async function calcCalories() {
     currentProfile = { ...currentProfile, sex, age, weight, height, body_fat_pct: bodyFatVal };
   } catch(e) { console.warn('[NutrIA] sync profile:', e); }
 
-  showToast(`<i class="fa-solid fa-bullseye ic-goal"></i> Meta: ${goal} kcal · açúcar máx. ${diaryGoalSugar}g · água ${diaryGoalWater}ml`);
+  showToast(`<i class="fa-solid fa-bullseye ic-goal"></i> Meta: ${goal} kcal Â· aÃ§Ãºcar mÃ¡x. ${diaryGoalSugar}g Â· Ã¡gua ${diaryGoalWater}ml`);
 }
 
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FEATURE 2: DISEASE-SPECIFIC FORM REDIRECT (AI)
-// Already partially exists — extend with AI suggestion on patient load
-// ═══════════════════════════════════════
+// Already partially exists â€” extend with AI suggestion on patient load
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 async function suggestDiseaseFormForPatient(patientId, diseases) {
   if (!diseases || diseases.length === 0) return;
   const diseaseList = Array.isArray(diseases) ? diseases.join(', ') : diseases;
   try {
     const data = await askClaude(
-      `Paciente com: ${diseaseList}. Quais perguntas adicionais uma nutricionista deveria fazer na consulta? Retorne JSON: { title: string, questions: [{label:string, type:'text'|'select'|'number', options?:string[]}] } com no máximo 8 perguntas relevantes para as doenças listadas.`,
-      'Você é especialista em nutrição clínica. Retorne SOMENTE JSON válido.'
+      `Paciente com: ${diseaseList}. Quais perguntas adicionais uma nutricionista deveria fazer na consulta? Retorne JSON: { title: string, questions: [{label:string, type:'text'|'select'|'number', options?:string[]}] } com no mÃ¡ximo 8 perguntas relevantes para as doenÃ§as listadas.`,
+      'VocÃª Ã© especialista em nutriÃ§Ã£o clÃ­nica. Retorne SOMENTE JSON vÃ¡lido.'
     );
     return data;
   } catch(e) {
@@ -268,22 +268,22 @@ async function suggestDiseaseFormForPatient(patientId, diseases) {
   }
 }
 
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FEATURE 3: NUTRITIONIST TYPE / SPECIALTY
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 let _currentNutType = null;
 
 const NUT_SPECIALTY_META = {
-  nutricionistas:    { label:'Nutricionista',      icon:'🥦', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas'] },
-  clinica:           { label:'Nutrição Clínica',   icon:'🏥', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas','lab_glucose','lab_chol_total','lab_creatinine'] },
-  esportiva:         { label:'Nutrição Esportiva',  icon:'🏋️', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
-  pediatria:         { label:'Nutrição Pediátrica', icon:'👶', badge:'specialty-pediatric', metrics:['IMC','CC','pregas'] },
-  geral:             { label:'Geral / Preventiva', icon:'🌿', badge:'specialty-clinic',    metrics:['IMC','CC','habitos_gerais','hidratacao'] },
-  bariatrica:        { label:'Bariátrica',         icon:'🩺', badge:'specialty-renal',     metrics:['IMC','CC','lab_glucose','lab_chol_total','lab_creatinine'] },
-  esporte:           { label:'Esporte',            icon:'🏋️', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
-  personal_trainer:  { label:'Personal Trainer',   icon:'👟', badge:'specialty-cardio',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','hidratacao'] },
-  fisioterapeuta:    { label:'Fisioterapeuta',     icon:'🧬', badge:'specialty-oncology',  metrics:['IMC','CB','muscle_mass_kg','hidratacao'] },
-  estetica:          { label:'Estética',           icon:'✨', badge:'specialty-pregnant',  metrics:['IMC','CC','CQ','RCQ','pregas'] }
+  nutricionistas:    { label:'Nutricionista',      icon:'ðŸ¥¦', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas'] },
+  clinica:           { label:'NutriÃ§Ã£o ClÃ­nica',   icon:'ðŸ¥', badge:'specialty-clinic',    metrics:['IMC','CC','CQ','RCQ','CB','pregas','lab_glucose','lab_chol_total','lab_creatinine'] },
+  esportiva:         { label:'NutriÃ§Ã£o Esportiva',  icon:'ðŸ‹ï¸', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
+  pediatria:         { label:'NutriÃ§Ã£o PediÃ¡trica', icon:'ðŸ‘¶', badge:'specialty-pediatric', metrics:['IMC','CC','pregas'] },
+  geral:             { label:'Geral / Preventiva', icon:'ðŸŒ¿', badge:'specialty-clinic',    metrics:['IMC','CC','habitos_gerais','hidratacao'] },
+  bariatrica:        { label:'BariÃ¡trica',         icon:'ðŸ©º', badge:'specialty-renal',     metrics:['IMC','CC','lab_glucose','lab_chol_total','lab_creatinine'] },
+  esporte:           { label:'Esporte',            icon:'ðŸ‹ï¸', badge:'specialty-sports',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','VO2max','hidratacao'] },
+  personal_trainer:  { label:'Personal Trainer',   icon:'ðŸ‘Ÿ', badge:'specialty-cardio',    metrics:['IMC','CC','muscle_mass_kg','body_fat_pct','hidratacao'] },
+  fisioterapeuta:    { label:'Fisioterapeuta',     icon:'ðŸ§¬', badge:'specialty-oncology',  metrics:['IMC','CB','muscle_mass_kg','hidratacao'] },
+  estetica:          { label:'EstÃ©tica',           icon:'âœ¨', badge:'specialty-pregnant',  metrics:['IMC','CC','CQ','RCQ','pregas'] }
 };
 
 function openNutTypeModal() {
@@ -374,9 +374,9 @@ async function loadNutSpecialty() {
   }
 }
 
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FEATURE 5: AI DIET GENERATOR
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 let _lastGeneratedDiet = null;
 
 function openDietGenModal() {
@@ -426,10 +426,10 @@ async function generateAIDiet() {
     const { data: an } = await sb.from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other,allergies,food_aversions,food_preferences').eq('patient_id', currentUser.id).maybeSingle();
     if (an) {
       const diseases = [...(an.diseases_general||[]), ...(an.diseases_chronic_auto||[])].filter(Boolean);
-      if (diseases.length) anamneseCtx += `doenças:${diseases.join(',')};`;
+      if (diseases.length) anamneseCtx += `doenÃ§as:${diseases.join(',')};`;
       if (an.diseases_other) anamneseCtx += `outras:${an.diseases_other};`;
       if ((an.allergies||[]).length) anamneseCtx += `alergias:${an.allergies.join(',')};`;
-      if (an.food_aversions) anamneseCtx += `aversões:${an.food_aversions};`;
+      if (an.food_aversions) anamneseCtx += `aversÃµes:${an.food_aversions};`;
       if (an.food_preferences) anamneseCtx += `prefs:${an.food_preferences};`;
     }
   } catch(e) {}
@@ -440,11 +440,11 @@ async function generateAIDiet() {
   if (btn) btn.disabled = true;
 
   // Build the shared context line (used in every day's prompt)
-  const ctx = `Usuário:${userLine}. Meta:${diaryGoal}kcal,água≥${diaryGoalWater}ml,açúcar≤${diaryGoalSugar}g. Obj:${goalSel}. Restr:${restrict}.${anamneseCtx ? ' ' + anamneseCtx : ''}${obs ? ' Obs:' + obs : ''}`;
+  const ctx = `UsuÃ¡rio:${userLine}. Meta:${diaryGoal}kcal,Ã¡guaâ‰¥${diaryGoalWater}ml,aÃ§Ãºcarâ‰¤${diaryGoalSugar}g. Obj:${goalSel}. Restr:${restrict}.${anamneseCtx ? ' ' + anamneseCtx : ''}${obs ? ' Obs:' + obs : ''}`;
 
   try {
     const askFn = window.callGroqLarge || window.callGroq;
-    const sysMsg = { role:'system', content:'Retorne SOMENTE JSON válido. Sem markdown, sem texto extra.' };
+    const sysMsg = { role:'system', content:'Retorne SOMENTE JSON vÃ¡lido. Sem markdown, sem texto extra.' };
 
     // Generate one day at a time to stay within Groq token limits
     const allDays = [];
@@ -456,13 +456,13 @@ async function generateAIDiet() {
         loadingEl.innerHTML = `<span>Gerando dia ${d} de ${numDays}...</span>`;
       }
 
-      const dayPrompt = `ATENÇÃO: Crie APENAS e EXCLUSIVAMENTE o Dia ${d}. NUNCA crie outros dias.
-Usuário: ${ctx}
-Refeições: exatamente ${numMeals} refeições no dia.
+      const dayPrompt = `ATENÃ‡ÃƒO: Crie APENAS e EXCLUSIVAMENTE o Dia ${d}. NUNCA crie outros dias.
+UsuÃ¡rio: ${ctx}
+RefeiÃ§Ãµes: exatamente ${numMeals} refeiÃ§Ãµes no dia.
 
 Retorne APENAS um objeto JSON. Nenhuma palavra antes ou depois.
 Formato exato:
-{"day":${d},"totalDayKcal":N,"totalDayProtein":N,"totalDayCarbs":N,"totalDayFat":N,"totalDaySugar":N,"meals":[{"meal":"Café da manhã","mealKey":"cafe","foods":[{"name":"Aveia","qty":"40g","kcal":150,"protein":5,"carbs":28,"fat":2,"sugar":4}],"totalKcal":350}]}
+{"day":${d},"totalDayKcal":N,"totalDayProtein":N,"totalDayCarbs":N,"totalDayFat":N,"totalDaySugar":N,"meals":[{"meal":"CafÃ© da manhÃ£","mealKey":"cafe","foods":[{"name":"Aveia","qty":"40g","kcal":150,"protein":5,"carbs":28,"fat":2,"sugar":4}],"totalKcal":350}]}
 `;
 
       const dayData = await askFn([sysMsg, { role:'user', content: dayPrompt }]);
@@ -490,7 +490,7 @@ Formato exato:
 
   } catch(e) {
     const msg = e.message?.includes('429')
-      ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
+      ? 'â³ Limite de requisiÃ§Ãµes da IA. Aguarde alguns segundos e tente novamente.'
       : 'Erro ao gerar dieta: ' + e.message;
     showToast(msg, 'error');
   } finally {
@@ -503,16 +503,16 @@ Formato exato:
 
 function renderDietResult(diet) {
   if (!diet || !diet.days) { showToast('Dados da dieta incompletos', 'error'); return; }
-  const mealEmoji = { cafe:'🌅', almoco:'☀️', lanche:'🍎', jantar:'🌙' };
+  const mealEmoji = { cafe:'ðŸŒ…', almoco:'â˜€ï¸', lanche:'ðŸŽ', jantar:'ðŸŒ™' };
 
   const html = diet.days.map(day => `
     <div style="margin-bottom:1.2rem;">
       <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;color:var(--green-deep);margin-bottom:0.6rem;">
-        ${diet.days.length > 1 ? `📅 Dia ${day.day}` : '📅 Plano do dia'}
+        ${diet.days.length > 1 ? `ðŸ“… Dia ${day.day}` : 'ðŸ“… Plano do dia'}
       </div>
       ${(day.meals||[]).map(meal => `
         <div class="diet-meal-block">
-          <div class="diet-meal-title">${mealEmoji[meal.mealKey]||'🍽️'} ${meal.meal} · ${meal.totalKcal} kcal</div>
+          <div class="diet-meal-title">${mealEmoji[meal.mealKey]||'ðŸ½ï¸'} ${meal.meal} Â· ${meal.totalKcal} kcal</div>
           ${(meal.foods||[]).map(f => `
             <div class="diet-food-row">
               <span>${f.name} <span style="color:var(--text-muted);font-size:0.78rem;">${f.qty}</span></span>
@@ -526,12 +526,12 @@ function renderDietResult(diet) {
 
   const summary = `
     <div style="background:linear-gradient(135deg,var(--green-deep),#1a4a1f);color:white;border-radius:var(--radius-mid);padding:1rem;margin-bottom:1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:0.5rem;text-align:center;">
-      <div><div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;">${diet.totalKcal||'—'}</div><div style="font-size:0.7rem;opacity:0.8;">kcal/dia</div></div>
-      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${diet.totalProtein||'—'}g</div><div style="font-size:0.7rem;opacity:0.8;">proteína</div></div>
-      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${diet.totalCarbs||'—'}g</div><div style="font-size:0.7rem;opacity:0.8;">carboidratos</div></div>
-      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${diet.totalFat||'—'}g</div><div style="font-size:0.7rem;opacity:0.8;">gorduras</div></div>
-      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#ffd54f;">${diet.totalSugar||'—'}g</div><div style="font-size:0.7rem;opacity:0.8;">açúcares</div></div>
-      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#80deea;">${diet.waterMl||diaryGoalWater}ml</div><div style="font-size:0.7rem;opacity:0.8;">água</div></div>
+      <div><div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;">${diet.totalKcal||'â€”'}</div><div style="font-size:0.7rem;opacity:0.8;">kcal/dia</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${diet.totalProtein||'â€”'}g</div><div style="font-size:0.7rem;opacity:0.8;">proteÃ­na</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${diet.totalCarbs||'â€”'}g</div><div style="font-size:0.7rem;opacity:0.8;">carboidratos</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${diet.totalFat||'â€”'}g</div><div style="font-size:0.7rem;opacity:0.8;">gorduras</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#ffd54f;">${diet.totalSugar||'â€”'}g</div><div style="font-size:0.7rem;opacity:0.8;">aÃ§Ãºcares</div></div>
+      <div><div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#80deea;">${diet.waterMl||diaryGoalWater}ml</div><div style="font-size:0.7rem;opacity:0.8;">Ã¡gua</div></div>
     </div>`;
 
   document.getElementById('dietGenContent').innerHTML = summary + html;
@@ -559,14 +559,14 @@ async function applyDietToday() {
   }
   closeDietGenModal();
   showPanel('diary', document.getElementById('nav-diary'));
-  showToast(`<i class="fa-solid fa-circle-check ic-check"></i> ${added} alimentos adicionados ao diário!`);
+  showToast(`<i class="fa-solid fa-circle-check ic-check"></i> ${added} alimentos adicionados ao diÃ¡rio!`);
 }
 
 function printDiet() {
   if (!_lastGeneratedDiet) return;
   const logoB64 = LOGO_LIGHT_B64;
-  const mealEmoji = { cafe:'🌅', almoco:'☀️', lanche:'🍎', jantar:'🌙' };
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Plano Alimentar — NutrIA</title>
+  const mealEmoji = { cafe:'ðŸŒ…', almoco:'â˜€ï¸', lanche:'ðŸŽ', jantar:'ðŸŒ™' };
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Plano Alimentar â€” NutrIA</title>
   <style>
     @media print { .no-print { display:none; } body { margin:0; } }
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -587,28 +587,28 @@ function printDiet() {
     button.no-print { display:block; margin:0 auto 20px; padding:10px 28px; background:#2a5c30; color:white; border:none; border-radius:50px; font-size:0.95rem; cursor:pointer; }
   </style></head><body>
   <div class="header"><img src="${logoB64}" width="44" height="44" style="border-radius:8px;"><div class="brand">Nutr<span>IA</span></div></div>
-  <button class="no-print" onclick="window.print()">🖨️ Salvar como PDF</button>
+  <button class="no-print" onclick="window.print()">ðŸ–¨ï¸ Salvar como PDF</button>
   <h1 style="font-size:1.4rem;margin-bottom:4px;">Plano Alimentar Personalizado</h1>
-  <p style="font-size:0.82rem;color:#666;margin-bottom:14px;">Gerado em ${new Date().toLocaleDateString('pt-BR')} · Meta: ${diaryGoal} kcal/dia · Água: ${diaryGoalWater}ml</p>
+  <p style="font-size:0.82rem;color:#666;margin-bottom:14px;">Gerado em ${new Date().toLocaleDateString('pt-BR')} Â· Meta: ${diaryGoal} kcal/dia Â· Ãgua: ${diaryGoalWater}ml</p>
   <div class="summary">
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalKcal||'—'}</div><div class="summary-lbl">kcal/dia</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalProtein||'—'}g</div><div class="summary-lbl">proteína</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalCarbs||'—'}g</div><div class="summary-lbl">carboidratos</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalFat||'—'}g</div><div class="summary-lbl">gorduras</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalSugar||'—'}g</div><div class="summary-lbl">açúcares</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.waterMl||diaryGoalWater}ml</div><div class="summary-lbl">água</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalKcal||'â€”'}</div><div class="summary-lbl">kcal/dia</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalProtein||'â€”'}g</div><div class="summary-lbl">proteÃ­na</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalCarbs||'â€”'}g</div><div class="summary-lbl">carboidratos</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalFat||'â€”'}g</div><div class="summary-lbl">gorduras</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalSugar||'â€”'}g</div><div class="summary-lbl">aÃ§Ãºcares</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.waterMl||diaryGoalWater}ml</div><div class="summary-lbl">Ã¡gua</div></div>
   </div>
   ${(_lastGeneratedDiet.days||[]).map(day => `
-    <h2>${_lastGeneratedDiet.days.length > 1 ? '📅 Dia '+day.day : '📅 Plano do dia'}</h2>
+    <h2>${_lastGeneratedDiet.days.length > 1 ? 'ðŸ“… Dia '+day.day : 'ðŸ“… Plano do dia'}</h2>
     ${(day.meals||[]).map(meal => `
       <div class="meal-block">
-        <div class="meal-title">${mealEmoji[meal.mealKey]||'🍽️'} ${meal.meal} · ${meal.totalKcal} kcal</div>
+        <div class="meal-title">${mealEmoji[meal.mealKey]||'ðŸ½ï¸'} ${meal.meal} Â· ${meal.totalKcal} kcal</div>
         ${(meal.foods||[]).map(f => `
           <div class="food-row"><span>${f.name} <span style="color:#888;font-size:0.75rem;">${f.qty}</span></span><span style="color:#2a5c30;font-weight:600;">${f.kcal} kcal</span></div>
         `).join('')}
       </div>`).join('')}
   `).join('')}
-  <div class="footer">Plano gerado automaticamente pela IA NutrIA. Consulte sempre um nutricionista. 🔒 LGPD (Lei 13.709/2018).</div>
+  <div class="footer">Plano gerado automaticamente pela IA NutrIA. Consulte sempre um nutricionista. ðŸ”’ LGPD (Lei 13.709/2018).</div>
   </body></html>`;
 
   const blob = new Blob([html], { type:'text/html' });
@@ -618,9 +618,9 @@ function printDiet() {
   setTimeout(() => URL.revokeObjectURL(url), 15000);
 }
 
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FEATURE 5.1: DIETA IA TRACKING & SAVING
-// ═══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 var _savedDietPlan = null;
 var _savedDietProgress = {};
 
@@ -713,7 +713,7 @@ function renderSavedDiet() {
 
   container.style.display = 'block';
   const progress = _savedDietProgress || {};
-  const mealEmoji = { cafe:'🌅', almoco:'☀️', lanche:'🍎', jantar:'🌙' };
+  const mealEmoji = { cafe:'ðŸŒ…', almoco:'â˜€ï¸', lanche:'ðŸŽ', jantar:'ðŸŒ™' };
 
   let totalItems = 0;
   let checkedItems = 0;
@@ -721,12 +721,12 @@ function renderSavedDiet() {
   const html = _savedDietPlan.days.map((day, dayIdx) => `
     <div style="margin-bottom:1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-mid); padding: 1.2rem;">
       <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--green-deep);margin-bottom:0.8rem; border-bottom: 2px solid var(--green-pale); padding-bottom: 0.4rem;">
-        ${_savedDietPlan.days.length > 1 ? `📅 Dia ${day.day}` : '📅 Plano Diário'}
+        ${_savedDietPlan.days.length > 1 ? `ðŸ“… Dia ${day.day}` : 'ðŸ“… Plano DiÃ¡rio'}
       </div>
       ${(day.meals||[]).map((meal, mealIdx) => `
         <div class="diet-meal-block" style="margin-bottom:1rem; border-left: 3px solid var(--green-mid); padding-left: 0.8rem;">
           <div class="diet-meal-title" style="font-weight:700; color:var(--text-main); font-size:0.95rem; margin-bottom:0.5rem;">
-            ${mealEmoji[meal.mealKey]||'🍽️'} ${meal.meal} · <span style="color:var(--orange-hot); font-weight:700;">${meal.totalKcal} kcal</span>
+            ${mealEmoji[meal.mealKey]||'ðŸ½ï¸'} ${meal.meal} Â· <span style="color:var(--orange-hot); font-weight:700;">${meal.totalKcal} kcal</span>
           </div>
           ${(meal.foods||[]).map((f, foodIdx) => {
             const key = `${dayIdx}-${mealIdx}-${foodIdx}`;
@@ -756,8 +756,8 @@ function renderSavedDiet() {
     <div style="background:var(--green-pale); border:1px solid var(--green-light); border-radius:var(--radius-mid); padding:1rem; margin-bottom:1.5rem;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
         <div>
-          <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:0.95rem; color:var(--green-deep);">ACOMPANHAMENTO DIÁRIO</div>
-          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">Você consumiu <strong>${checkedItems}</strong> de <strong>${totalItems}</strong> refeições (${pct}%)</div>
+          <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:0.95rem; color:var(--green-deep);">ACOMPANHAMENTO DIÃRIO</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.2rem;">VocÃª consumiu <strong>${checkedItems}</strong> de <strong>${totalItems}</strong> refeiÃ§Ãµes (${pct}%)</div>
         </div>
       </div>
       <div style="width:100%; height:8px; background:rgba(0,0,0,0.06); border-radius:10px; overflow:hidden; margin-top:0.6rem;">
@@ -804,7 +804,7 @@ saveDiaryToDB = async function(mealKey, item) {
   // Try inserting with sugar column, fall back without it
   let { data, error } = await supabase.from('diary_entries').insert({ ...payload, sugar: item.sugar||0 }).select().single();
   if (error && (error.code === '42703' || error.message?.includes('sugar'))) {
-    // Column doesn't exist yet — insert without it
+    // Column doesn't exist yet â€” insert without it
     const r2 = await supabase.from('diary_entries').insert(payload).select().single();
     data = r2.data; error = r2.error;
     if (!error) console.info('[NutrIA] Adicione coluna sugar: ALTER TABLE diary_entries ADD COLUMN IF NOT EXISTS sugar numeric DEFAULT 0;');
@@ -814,7 +814,7 @@ saveDiaryToDB = async function(mealKey, item) {
 
 // After app loads, bootstrap new features
 document.addEventListener('DOMContentLoaded', () => {
-  // nothing needed here — handled in initApp override below
+  // nothing needed here â€” handled in initApp override below
 });
 
 // Extend setupRoleUI to also call loadNutSpecialty
@@ -826,14 +826,14 @@ setupRoleUI = function() {
   }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// PATCH v2 — NutrIA Melhorias Integradas
-// 1. Açúcar e Água no diário (barras + metas por paciente)
-// 2. Formulários específicos por doença (IA) — conectado ao painel de pacientes
-// 3. Tipos de clínica/especialidade com métricas dinâmicas no formulário
-// 4. Remoção de "unidade" e "prato" das medidas de porção caseiras
-// 5. Gerador de dieta por IA com anamnese completa (incluindo nutricionista→paciente)
-// ═══════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// PATCH v2 â€” NutrIA Melhorias Integradas
+// 1. AÃ§Ãºcar e Ãgua no diÃ¡rio (barras + metas por paciente)
+// 2. FormulÃ¡rios especÃ­ficos por doenÃ§a (IA) â€” conectado ao painel de pacientes
+// 3. Tipos de clÃ­nica/especialidade com mÃ©tricas dinÃ¢micas no formulÃ¡rio
+// 4. RemoÃ§Ã£o de "unidade" e "prato" das medidas de porÃ§Ã£o caseiras
+// 5. Gerador de dieta por IA com anamnese completa (incluindo nutricionistaâ†’paciente)
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 
 
@@ -868,7 +868,7 @@ async function savePatientGoals() {
   }
   if (error) { showToast('Erro ao salvar metas: ' + error.message, 'error'); return; }
   closePatientGoalsModal();
-  showToast('<i class="fa-solid fa-bullseye ic-goal"></i> Metas do paciente salvas! (kcal, macros, açúcar, água)');
+  showToast('<i class="fa-solid fa-bullseye ic-goal"></i> Metas do paciente salvas! (kcal, macros, aÃ§Ãºcar, Ã¡gua)');
 }
 
 // Patch openPatientGoalsModal to also load and show sugar/water fields
@@ -882,10 +882,10 @@ function _p2_applyPatientGoalsModalPatch() {
     if (grid && !document.getElementById('pgSugar')) {
       const sugarDiv = document.createElement('div');
       sugarDiv.className = 'form-field';
-      sugarDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> Açúcar máx. (g/dia)</label><input type="number" id="pgSugar" class="form-input" placeholder="25">';
+      sugarDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-candy-cane" style="color:#e91e63;"></i> AÃ§Ãºcar mÃ¡x. (g/dia)</label><input type="number" id="pgSugar" class="form-input" placeholder="25">';
       const waterDiv = document.createElement('div');
       waterDiv.className = 'form-field';
-      waterDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> Água mínima (ml/dia)</label><input type="number" id="pgWater" class="form-input" placeholder="2000">';
+      waterDiv.innerHTML = '<label class="form-label"><i class="fa-solid fa-droplet ic-water"></i> Ãgua mÃ­nima (ml/dia)</label><input type="number" id="pgWater" class="form-input" placeholder="2000">';
       grid.appendChild(sugarDiv);
       grid.appendChild(waterDiv);
     }
@@ -908,11 +908,11 @@ function _p2_applyPatientGoalsModalPatch() {
   };
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// PATCH 2 — Formulário de doença específica acessível do painel de pacientes
-// Adiciona botão "Formulário Específico" no cartão do paciente
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PATCH 2 â€” FormulÃ¡rio de doenÃ§a especÃ­fica acessÃ­vel do painel de pacientes
+// Adiciona botÃ£o "FormulÃ¡rio EspecÃ­fico" no cartÃ£o do paciente
 // Applied via window reference to avoid cross-module ReferenceError
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _p2_applyLoadPatientsPatch() {
   if (typeof window.loadPatients !== 'function') return;
   const _orig = window.loadPatients;
@@ -940,9 +940,9 @@ function _p2_injectDiseaseButtons() {
 
     const btn = document.createElement('button');
     btn.className = 'btn-disease-form';
-    btn.title = 'Formulário específico por doença';
+    btn.title = 'FormulÃ¡rio especÃ­fico por doenÃ§a';
     btn.style.cssText = 'background:var(--orange-pale);border:1px solid var(--orange-mid);color:var(--orange-hot);border-radius:50px;padding:0.35rem 0.75rem;font-size:0.72rem;font-family:"Syne",sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;';
-    btn.innerHTML = '<i class="fa-solid fa-file-medical" style="color:inherit;margin-right:0.3rem;"></i>Form Doença';
+    btn.innerHTML = '<i class="fa-solid fa-file-medical" style="color:inherit;margin-right:0.3rem;"></i>Form DoenÃ§a';
     btn.onclick = (e) => {
       e.stopPropagation();
       _p2_openDiseaseFormForPatient(patId, patName, diseases);
@@ -952,16 +952,16 @@ function _p2_injectDiseaseButtons() {
 }
 
 async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
-  showToast('<i class="fa-solid fa-robot ic-chat"></i> Gerando formulário específico com IA...', 'success');
+  showToast('<i class="fa-solid fa-robot ic-chat"></i> Gerando formulÃ¡rio especÃ­fico com IA...', 'success');
   const diseaseList = Array.isArray(diseases) ? diseases.join(', ') : diseases;
 
   try {
     const data = await askClaude(
-      `Paciente com diagnóstico de: ${diseaseList}. Como nutricionista clínica, liste as perguntas específicas mais importantes para a anamnese. Retorne JSON: { "title": "string", "sections": [{ "name": "string", "questions": [{ "id": "q1", "label": "string", "type": "text|select|number|textarea", "options": ["opt1"] }] }] }. Máximo 12 perguntas distribuídas em até 3 seções.`,
-      'Você é especialista em nutrição clínica. Retorne SOMENTE JSON válido sem markdown.'
+      `Paciente com diagnÃ³stico de: ${diseaseList}. Como nutricionista clÃ­nica, liste as perguntas especÃ­ficas mais importantes para a anamnese. Retorne JSON: { "title": "string", "sections": [{ "name": "string", "questions": [{ "id": "q1", "label": "string", "type": "text|select|number|textarea", "options": ["opt1"] }] }] }. MÃ¡ximo 12 perguntas distribuÃ­das em atÃ© 3 seÃ§Ãµes.`,
+      'VocÃª Ã© especialista em nutriÃ§Ã£o clÃ­nica. Retorne SOMENTE JSON vÃ¡lido sem markdown.'
     );
 
-    if (!data || !data.sections) throw new Error('Resposta inválida da IA');
+    if (!data || !data.sections) throw new Error('Resposta invÃ¡lida da IA');
 
     // Store state
     if (typeof window._diseaseFormState !== 'undefined') {
@@ -973,7 +973,7 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
     // Build modal content
     const titleEl = document.getElementById('diseaseFormTitle');
     const bodyEl  = document.getElementById('diseaseFormContent');
-    if (!titleEl || !bodyEl) { showToast('Modal de formulário não encontrado.', 'error'); return; }
+    if (!titleEl || !bodyEl) { showToast('Modal de formulÃ¡rio nÃ£o encontrado.', 'error'); return; }
 
     const loadingEl = document.getElementById('diseaseFormLoading');
     if (loadingEl) loadingEl.style.display = 'none';
@@ -981,7 +981,7 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
     const actionsEl = document.getElementById('diseaseFormActions');
     if (actionsEl) actionsEl.style.display = 'flex';
 
-    titleEl.textContent = data.title || `Formulário — ${patientName}`;
+    titleEl.textContent = data.title || `FormulÃ¡rio â€” ${patientName}`;
 
     bodyEl.innerHTML = data.sections.map(section => `
       <div style="background:var(--green-pale);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-bottom:0.75rem;">
@@ -1052,17 +1052,17 @@ async function _p2_openDiseaseFormForPatient(patientId, patientName, diseases) {
     });
 
     document.getElementById('diseaseFormModal').classList.add('show');
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Formulário específico gerado pela IA!');
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> FormulÃ¡rio especÃ­fico gerado pela IA!');
   } catch(e) {
-    showToast('Erro ao gerar formulário: ' + e.message, 'error');
+    showToast('Erro ao gerar formulÃ¡rio: ' + e.message, 'error');
     console.error('[_p2_openDiseaseFormForPatient]', e);
   }
 }
 
-// ───────────────────────────────────────────────────────────────────────────
-// PATCH 3 — Tipo de clínica com métricas dinâmicas no formulário do paciente
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PATCH 3 â€” Tipo de clÃ­nica com mÃ©tricas dinÃ¢micas no formulÃ¡rio do paciente
 // Exibe/oculta campos relevantes conforme a especialidade do nutricionista
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _p2_applySpecialtyMetrics(specialtyType) {
   if (!specialtyType || !isProfessional()) return;
   const meta = NUT_SPECIALTY_META[specialtyType];
@@ -1108,7 +1108,7 @@ function _p2_applySpecialtyMetrics(specialtyType) {
     <span style="font-size:1.1rem;">${meta.icon}</span>
     <div>
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.75rem;text-transform:uppercase;color:var(--green-deep);">Especialidade: ${meta.label}</div>
-      <div style="font-size:0.72rem;color:var(--text-muted);">Campos prioritários: ${metrics.slice(0,6).join(', ')}</div>
+      <div style="font-size:0.72rem;color:var(--text-muted);">Campos prioritÃ¡rios: ${metrics.slice(0,6).join(', ')}</div>
     </div>`;
 
   // Highlight priority fields
@@ -1123,7 +1123,7 @@ function _p2_applySpecialtyMetrics(specialtyType) {
           if (label && !label.querySelector('.priority-star')) {
             const star = document.createElement('span');
             star.className = 'priority-star';
-            star.textContent = ' ★';
+            star.textContent = ' â˜…';
             star.style.color = '#ffb300';
             label.appendChild(star);
           }
@@ -1150,19 +1150,19 @@ saveNutType = async function() {
   }
 };
 
-// ───────────────────────────────────────────────────────────────────────────
-// PATCH 4 — Remove "unidade" e "prato" das medidas de porção caseiras
-// Garante que os selects de unidade usem apenas medidas caseiras válidas
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PATCH 4 â€” Remove "unidade" e "prato" das medidas de porÃ§Ã£o caseiras
+// Garante que os selects de unidade usem apenas medidas caseiras vÃ¡lidas
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PORCOES_CASEIRAS = [
   { value: 'g',                  label: 'g (gramas)' },
   { value: 'ml',                 label: 'ml (mililitros)' },
-  { value: 'xicara',            label: 'xícara (240ml)' },
+  { value: 'xicara',            label: 'xÃ­cara (240ml)' },
   { value: 'col_sopa',          label: 'col. de sopa (15g)' },
-  { value: 'col_cha',           label: 'col. de chá (5g)' },
+  { value: 'col_cha',           label: 'col. de chÃ¡ (5g)' },
   { value: 'col_sobremesa',     label: 'col. de sobremesa (10g)' },
   { value: 'fatia',             label: 'fatia' },
-  { value: 'porcao',            label: 'porção' },
+  { value: 'porcao',            label: 'porÃ§Ã£o' },
   { value: 'copo',              label: 'copo (200ml)' },
   { value: 'concha',            label: 'concha' },
   { value: 'kg',                label: 'kg (quilogramas)' },
@@ -1199,7 +1199,7 @@ openEditItem = function(mealKey, idx) {
     <input type="number" class="edit-field" id="editQty-${mealKey}-${idx}" value="${item.qty||100}" style="width:70px;" min="1">
     <select class="edit-field" id="editUnit-${mealKey}-${idx}">${unitOptions}</select>
     <button class="btn-save-edit" onclick="saveEditItem('${mealKey}',${idx})">Salvar</button>
-    <button onclick="document.getElementById('edit-form-${mealKey}').classList.remove('open')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">✕</button>
+    <button onclick="document.getElementById('edit-form-${mealKey}').classList.remove('open')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1rem;">âœ•</button>
   `;
   formEl.classList.add('open');
 }
@@ -1213,10 +1213,10 @@ showPanel = function(name, btn) {
   if (name === 'search' || name === 'diary') setTimeout(_p2_patchUnitSelects, 200);
 };
 
-// ───────────────────────────────────────────────────────────────────────────
-// PATCH 5 — Gerador de dieta por IA com anamnese completa + modo nutricionista
-// Permite nutricionista gerar dieta para paciente específico
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PATCH 5 â€” Gerador de dieta por IA com anamnese completa + modo nutricionista
+// Permite nutricionista gerar dieta para paciente especÃ­fico
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let _p2_dietPatientId   = null; // when null = generate for self
 let _p2_dietPatientName = null;
 
@@ -1229,7 +1229,7 @@ function openDietGenModalForPatient(patientId, patientName) {
   const badge = document.getElementById('dietGenPatientBadge');
   if (badge) {
     badge.style.display = 'flex';
-    badge.innerHTML = `<i class="fa-solid fa-user ic-user"></i> Gerando para: <strong style="margin-left:0.3rem;">${patientName}</strong> <button onclick="_p2_clearDietPatient()" style="background:none;border:none;cursor:pointer;font-size:0.9rem;color:var(--text-muted);margin-left:0.4rem;" title="Remover">✕</button>`;
+    badge.innerHTML = `<i class="fa-solid fa-user ic-user"></i> Gerando para: <strong style="margin-left:0.3rem;">${patientName}</strong> <button onclick="_p2_clearDietPatient()" style="background:none;border:none;cursor:pointer;font-size:0.9rem;color:var(--text-muted);margin-left:0.4rem;" title="Remover">âœ•</button>`;
   } else {
     _p2_ensureDietPatientBadge(patientName);
   }
@@ -1249,7 +1249,7 @@ function _p2_ensureDietPatientBadge(patientName) {
   const badgeDiv = document.createElement('div');
   badgeDiv.id = 'dietGenPatientBadge';
   badgeDiv.style.cssText = 'display:flex;align-items:center;gap:0.4rem;background:var(--green-pale);border:1px solid var(--green-light);border-radius:var(--radius-sm);padding:0.5rem 0.9rem;font-size:0.82rem;font-weight:600;color:var(--green-deep);margin-bottom:0.75rem;flex-wrap:wrap;';
-  badgeDiv.innerHTML = `<i class="fa-solid fa-user ic-user"></i> Gerando para: <strong style="margin-left:0.3rem;">${patientName}</strong> <button onclick="_p2_clearDietPatient()" style="background:none;border:none;cursor:pointer;font-size:0.9rem;color:var(--text-muted);margin-left:0.4rem;" title="Remover">✕</button>`;
+  badgeDiv.innerHTML = `<i class="fa-solid fa-user ic-user"></i> Gerando para: <strong style="margin-left:0.3rem;">${patientName}</strong> <button onclick="_p2_clearDietPatient()" style="background:none;border:none;cursor:pointer;font-size:0.9rem;color:var(--text-muted);margin-left:0.4rem;" title="Remover">âœ•</button>`;
   form.insertBefore(badgeDiv, form.firstChild);
 }
 
@@ -1263,7 +1263,7 @@ window.generateAIDiet = async function() {
   const obs      = document.getElementById('dietGenObs').value.trim();
 
   const targetUserId = _p2_dietPatientId || currentUser?.id;
-  const targetName   = _p2_dietPatientName || currentProfile?.name || 'Usuário';
+  const targetName   = _p2_dietPatientName || currentProfile?.name || 'UsuÃ¡rio';
 
   // Load profile
   let profile = currentProfile || {};
@@ -1288,14 +1288,14 @@ window.generateAIDiet = async function() {
     const { data: an } = await supabase.from('patient_anamnese').select('*').eq('patient_id', targetUserId).maybeSingle();
     if (an) {
       const diseases = [...(an.diseases_general||[]), ...(an.diseases_chronic_auto||[])].filter(Boolean);
-      if (diseases.length)      anamneseCtx += ` doenças: ${diseases.join(', ')};`;
-      if (an.diseases_other)    anamneseCtx += ` outras condições: ${an.diseases_other};`;
+      if (diseases.length)      anamneseCtx += ` doenÃ§as: ${diseases.join(', ')};`;
+      if (an.diseases_other)    anamneseCtx += ` outras condiÃ§Ãµes: ${an.diseases_other};`;
       if ((an.allergies||[]).length) anamneseCtx += ` alergias: ${an.allergies.join(', ')};`;
-      if (an.food_aversions)    anamneseCtx += ` aversões: ${an.food_aversions};`;
-      if (an.food_preferences)  anamneseCtx += ` preferências: ${an.food_preferences};`;
+      if (an.food_aversions)    anamneseCtx += ` aversÃµes: ${an.food_aversions};`;
+      if (an.food_preferences)  anamneseCtx += ` preferÃªncias: ${an.food_preferences};`;
       if (an.medications)       anamneseCtx += ` medicamentos: ${an.medications};`;
-      if (an.activity_type)     anamneseCtx += ` atividade física: ${an.activity_type} ${an.activity_freq||''}x/sem;`;
-      if (an.bowel_habit)       anamneseCtx += ` hábito intestinal: ${an.bowel_habit};`;
+      if (an.activity_type)     anamneseCtx += ` atividade fÃ­sica: ${an.activity_type} ${an.activity_freq||''}x/sem;`;
+      if (an.bowel_habit)       anamneseCtx += ` hÃ¡bito intestinal: ${an.bowel_habit};`;
       // Financial context for food selection
       if (an.income)            anamneseCtx += ` renda: ${an.income};`;
     }
@@ -1320,27 +1320,27 @@ window.generateAIDiet = async function() {
     ? `Especialidade do nutricionista: ${NUT_SPECIALTY_META[nutType].label}.`
     : '';
 
-  const prompt = `Você é uma nutricionista experiente. Crie um plano alimentar para ${numDays} dia(s) com ${numMeals} refeições por dia para o(a) paciente ${targetName}.
+  const prompt = `VocÃª Ã© uma nutricionista experiente. Crie um plano alimentar para ${numDays} dia(s) com ${numMeals} refeiÃ§Ãµes por dia para o(a) paciente ${targetName}.
 ${nutSpecCtx}
 
 DADOS DO PACIENTE:
-- ${profileCtx || 'Dados não informados'}
-- Meta calórica diária: ${targetGoalKcal} kcal
-- Água mínima: ${targetGoalWater}ml/dia
-- Açúcar máximo: ${targetGoalSugar}g/dia
+- ${profileCtx || 'Dados nÃ£o informados'}
+- Meta calÃ³rica diÃ¡ria: ${targetGoalKcal} kcal
+- Ãgua mÃ­nima: ${targetGoalWater}ml/dia
+- AÃ§Ãºcar mÃ¡ximo: ${targetGoalSugar}g/dia
 - Objetivo: ${goalSel}
-- Restrições alimentares: ${restrict}
-${anamneseCtx ? `- Histórico clínico (anamnese): ${anamneseCtx}` : ''}
-${obs ? `- Observações adicionais: ${obs}` : ''}
+- RestriÃ§Ãµes alimentares: ${restrict}
+${anamneseCtx ? `- HistÃ³rico clÃ­nico (anamnese): ${anamneseCtx}` : ''}
+${obs ? `- ObservaÃ§Ãµes adicionais: ${obs}` : ''}
 
-INSTRUÇÕES:
-- Adapte os alimentos ao perfil clínico (doenças, alergias, medicamentos)
-- Use medidas caseiras práticas (xícaras, colheres, gramas)
-- Distribua macros adequadamente à meta calórica
+INSTRUÃ‡Ã•ES:
+- Adapte os alimentos ao perfil clÃ­nico (doenÃ§as, alergias, medicamentos)
+- Use medidas caseiras prÃ¡ticas (xÃ­caras, colheres, gramas)
+- Distribua macros adequadamente Ã  meta calÃ³rica
 - Inclua variedade e praticidade nos preparos
-- Respeite aversões e preferências quando informadas
+- Respeite aversÃµes e preferÃªncias quando informadas
 
-Retorne SOMENTE um JSON válido com esta estrutura:
+Retorne SOMENTE um JSON vÃ¡lido com esta estrutura:
 {
   "totalKcal": number,
   "totalProtein": number,
@@ -1353,7 +1353,7 @@ Retorne SOMENTE um JSON válido com esta estrutura:
       "day": 1,
       "meals": [
         {
-          "meal": "Café da manhã",
+          "meal": "CafÃ© da manhÃ£",
           "mealKey": "cafe",
           "foods": [
             { "name": "Aveia com banana", "qty": "4 col. sopa (40g)", "kcal": 150, "protein": 5, "carbs": 28, "fat": 2, "sugar": 4 }
@@ -1372,7 +1372,7 @@ Retorne SOMENTE um JSON válido com esta estrutura:
   try {
     const askFn = window.callGroqLarge || window.callGroq;
     const msgs = [
-      { role:'system', content:'Você é nutricionista. Retorne SOMENTE JSON válido sem markdown nem texto adicional.' },
+      { role:'system', content:'VocÃª Ã© nutricionista. Retorne SOMENTE JSON vÃ¡lido sem markdown nem texto adicional.' },
       { role:'user', content: prompt }
     ];
     const data = await askFn(msgs);
@@ -1381,7 +1381,7 @@ Retorne SOMENTE um JSON válido com esta estrutura:
     renderDietResult(data);
   } catch(e) {
     const msg = e.message?.includes('429')
-      ? '⏳ Limite de requisições da IA. Aguarde alguns segundos e tente novamente.'
+      ? 'â³ Limite de requisiÃ§Ãµes da IA. Aguarde alguns segundos e tente novamente.'
       : 'Erro ao gerar dieta: ' + e.message;
     showToast(msg, 'error');
   } finally {
@@ -1424,9 +1424,9 @@ const _p2_moPatientsObs = new MutationObserver(() => {
 const profPanel = document.getElementById('panel-prof');
 if (profPanel) _p2_moPatientsObs.observe(profPanel, { childList: true, subtree: true });
 
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CSS additions for new elements
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 (function() {
   const style = document.createElement('style');
   style.textContent = `
@@ -1479,7 +1479,7 @@ if (profPanel) _p2_moPatientsObs.observe(profPanel, { childList: true, subtree: 
 })();
 
 // Apply patches that need window globals from other modules (deferred after all modules load)
-// ───────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 setTimeout(() => {
   _p2_patchUnitSelects();
   _p2_applyPatientGoalsModalPatch();
@@ -1487,9 +1487,9 @@ setTimeout(() => {
   if (typeof loadDietPlan === 'function') loadDietPlan();
 }, 1500);
 
-console.log('[NutrIA Patch v2] Todas as melhorias carregadas: açúcar/água no diário, formulários por doença, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
+console.log('[NutrIA Patch v2] Todas as melhorias carregadas: aÃ§Ãºcar/Ã¡gua no diÃ¡rio, formulÃ¡rios por doenÃ§a, tipos de especialidade, medidas caseiras, gerador de dieta com anamnese.');
 
-// Expor funções para o escopo global (sobrescreve versões do diary.js)
+// Expor funÃ§Ãµes para o escopo global (sobrescreve versÃµes do diary.js)
 window.loadGoalFromDB = loadGoalFromDB;
 window.saveGoalToDB = saveGoalToDB;
 window.loadDiaryForDate = loadDiaryForDate;
@@ -1519,5 +1519,5 @@ window.saveDietPlan = saveDietPlan;
 window.loadDietPlan = loadDietPlan;
 window.toggleDietFoodProgress = toggleDietFoodProgress;
 window.renderSavedDiet = renderSavedDiet;
- 
- 
+
+
