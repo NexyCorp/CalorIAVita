@@ -64,7 +64,13 @@ function extractJSON(text) {
   let start = (a===-1)?b:(b===-1?a:Math.min(a,b));
   if (start===-1) throw new Error('JSON not found');
   let end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));
-  return JSON.parse(s.substring(start, end+1));
+  let jsonStr = s.substring(start, end+1);
+  try {
+    return JSON.parse(jsonStr);
+  } catch(e) {
+    console.error("Failed to parse JSON. Length:", jsonStr.length, "Ends with:", jsonStr.slice(-100));
+    throw e; // throw the original error so it's shown in the UI
+  }
 }
 
 async function _groqFetch(model, messages, maxTokens = 1500) {
