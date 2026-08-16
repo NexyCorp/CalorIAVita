@@ -120,23 +120,21 @@ async function callGroq(messages, retries = 3, maxTokens = 1500) {
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  // Ajuste do maxTokens para 3500:
-  // A conta gratuita do Groq geralmente tem um limite de 6000 TPM (Tokens Per Minute) para o Llama 70B.
-  // Se pedirmos maxTokens = 6000 ou mais, a soma (prompt + maxTokens) ultrapassa 6000 e a API recusa (erro 413).
-  // Com 3500, temos tokens suficientes para gerar a dieta inteira, mas deixamos "espaço" para o tamanho do prompt.
-  return _groqFetch(GROQ_MODEL, messages, 3500).then(async res => {
+  // llama-3.3-70b-versatile: up to 6000 TPM in free tier.
+  // prompt for diet is ~1000 tokens; 3000 output = 4000 total, safely under 6000 TPM.
+  return _groqFetch(GROQ_MODEL, messages, 3000).then(async res => {
     if (!res.ok) {
       if (res.status === 429) {
         rotateGroqKey();
         throw new Error('429 — Todas as chaves atingiram o limite. Tente novamente.');
       }
       const body = await res.text().catch(()=>'');
-      throw new Error('Groq ' + res.status + ': ' + body.slice(0,120));
+      throw new Error('Groq ' + res.status + ': ' + body.slice(0,200));
     }
     const data = await res.json();
     if (!data.choices?.[0]?.message?.content) {
-      console.error("Erro da API Groq - Resposta inesperada:", data);
-      throw new Error('Resposta vazia da API.');
+      console.error('Groq empty response:', data);
+      throw new Error('Resposta vazia da API Groq.');
     }
     return extractJSON(data.choices[0].message.content);
   });

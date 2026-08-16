@@ -582,7 +582,7 @@ function printDiet() {
     .footer { margin-top:24px; font-size:0.7rem; color:#888; border-top:1px solid #ddd; padding-top:10px; }
     button.no-print { display:block; margin:0 auto 20px; padding:10px 28px; background:#2a5c30; color:white; border:none; border-radius:50px; font-size:0.95rem; cursor:pointer; }
   </style></head><body>
-  <div class="header"><img src="${logoB64}" width="44" height="44" style="border-radius:8px;"><div class="brand">Calor<span>IA</span></div></div>
+  <div class="header"><img src="${logoB64}" width="44" height="44" style="border-radius:8px;"><div class="brand">Nutr<span>IA</span></div></div>
   <button class="no-print" onclick="window.print()">🖨️ Salvar como PDF</button>
   <h1 style="font-size:1.4rem;margin-bottom:4px;">Plano Alimentar Personalizado</h1>
   <p style="font-size:0.82rem;color:#666;margin-bottom:14px;">Gerado em ${new Date().toLocaleDateString('pt-BR')} · Meta: ${diaryGoal} kcal/dia · Água: ${diaryGoalWater}ml</p>

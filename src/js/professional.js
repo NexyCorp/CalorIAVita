@@ -507,7 +507,7 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
   <div class="header">
     ${logoSvg}
     <div>
-      <div class="brand">Calor<span>IA</span></div>
+      <div class="brand">Nutr<span>IA</span></div>
       <div class="header-sub">Plataforma de Nutrição Inteligente</div>
     </div>
   </div>
@@ -1893,7 +1893,7 @@ window.printDossierPDF = function() {
   <div class="header">
     ${logoHtml}
     <div>
-      <div class="brand">Calor<span>IA</span></div>
+      <div class="brand">Nutr<span>IA</span></div>
       <div class="header-sub">Plataforma de Nutrição Inteligente</div>
     </div>
   </div>

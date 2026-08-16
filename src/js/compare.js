@@ -718,7 +718,7 @@ async function shareRecipeAsPdf(id) {
   </head><body>
   <div class="header">
     ${logoSvg}
-    <div class="brand">Calor<span>IA</span></div>
+    <div class="brand">Nutr<span>IA</span></div>
   </div>
   <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
   <h1>${r.title}</h1>

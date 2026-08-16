@@ -332,8 +332,13 @@ function handleCpAvatarUpload(event) {
 function toggleCpPasswordVisibility() {
   const inp = document.getElementById('cpPassword');
   const eye = document.getElementById('cpPasswordEye');
-  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
-  else { inp.type = 'password'; eye.textContent = '👁'; }
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    eye.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+  } else {
+    inp.type = 'password';
+    eye.innerHTML = '<i class="fa-solid fa-eye"></i>';
+  }
 }
 
 function showCpError(msg) {
@@ -972,7 +977,7 @@ async function printPatientAnamnese(patientId, patientName) {
   </head><body>
   <div class="header">
     ${logoSvg}
-    <div><div class="brand">Calor<span>IA</span></div><div style="font-size:0.72rem;color:#888;">Plataforma de Nutrição Inteligente</div></div>
+    <div><div class="brand">Nutr<span>IA</span></div><div style="font-size:0.72rem;color:#888;">Plataforma de Nutrição Inteligente</div></div>
   </div>
   <button class="btn-print no-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
   <h1>Anamnese Nutricional</h1>
