@@ -456,10 +456,14 @@ async function generateAIDiet() {
         loadingEl.innerHTML = `<span>Gerando dia ${d} de ${numDays}...</span>`;
       }
 
-      const dayPrompt = `Crie dia ${d} de uma dieta com ${numMeals} refeições. ${ctx}
-JSON (sem markdown):
+      const dayPrompt = `ATENÇÃO: Crie APENAS e EXCLUSIVAMENTE o Dia ${d}. NUNCA crie outros dias.
+Usuário: ${ctx}
+Refeições: exatamente ${numMeals} refeições no dia.
+
+Retorne APENAS um objeto JSON. Nenhuma palavra antes ou depois.
+Formato exato:
 {"day":${d},"totalDayKcal":N,"totalDayProtein":N,"totalDayCarbs":N,"totalDayFat":N,"totalDaySugar":N,"meals":[{"meal":"Café da manhã","mealKey":"cafe","foods":[{"name":"Aveia","qty":"40g","kcal":150,"protein":5,"carbs":28,"fat":2,"sugar":4}],"totalKcal":350}]}
-Use nomes curtos. Inclua exatamente ${numMeals} refeições (cafe/almoco/lanche/jantar).`;
+`;
 
       const dayData = await askFn([sysMsg, { role:'user', content: dayPrompt }]);
 
