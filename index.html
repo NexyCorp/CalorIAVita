@@ -1264,20 +1264,33 @@
               <label class="form-label" data-i18n="recipe_name">Nome da Receita</label>
               <input type="text" id="newRecipeName" class="form-input" placeholder="Ex: Bowl de Quinoa">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;">
-              <div class="form-field">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem;">
+              <div class="form-field" style="margin-bottom:0;">
                 <label class="form-label">Kcal</label>
                 <input type="number" id="newRecipeKcal" class="form-input" placeholder="380">
               </div>
-              <div class="form-field">
+              <div class="form-field" style="margin-bottom:0;">
                 <label class="form-label" data-i18n="protein">Proteína (g)</label>
                 <input type="number" id="newRecipeProt" class="form-input" placeholder="25">
               </div>
-              <div class="form-field">
+              <div class="form-field" style="margin-bottom:0;">
+                <label class="form-label">Carboidratos (g)</label>
+                <input type="number" id="newRecipeCarbs" class="form-input" placeholder="40">
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
+                <label class="form-label">Gorduras (g)</label>
+                <input type="number" id="newRecipeFat" class="form-input" placeholder="12">
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
+                <label class="form-label">Açúcar (g)</label>
+                <input type="number" id="newRecipeSugar" class="form-input" placeholder="0">
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
                 <label class="form-label">Total (g/kg)</label>
                 <input type="number" id="newRecipeTotalGrams" class="form-input" placeholder="400">
               </div>
             </div>
+            
             <div class="form-field">
               <label class="form-label" data-i18n="category">Categoria</label>
               <select id="newRecipeCat" class="form-select">
@@ -1288,8 +1301,13 @@
               </select>
             </div>
             <div class="form-field">
-              <label class="form-label" data-i18n="ingredients">Ingredientes (um por linha)</label>
-              <textarea id="newRecipeIngredients" class="form-input" rows="4" placeholder="200g frango&#10;100g quinoa&#10;..."></textarea>
+              <label class="form-label" data-i18n="ingredients" style="display:flex;justify-content:space-between;align-items:center;">
+                Ingredientes (um por linha)
+                <button type="button" onclick="estimateRecipeNutrients()" style="background:var(--orange-pale);color:var(--orange-hot);border:1px solid var(--orange-mid);border-radius:50px;padding:0.2rem 0.6rem;font-size:0.75rem;cursor:pointer;font-family:var(--font-body);font-weight:700;" title="Preencha os ingredientes primeiro">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Estimar Nutrientes com IA
+                </button>
+              </label>
+              <textarea id="newRecipeIngredients" class="form-input" rows="4" placeholder="200g frango&#10;100g batata doce..."></textarea>
             </div>
             <div class="form-field">
               <label class="form-label" data-i18n="steps">Modo de preparo (um passo por linha)</label>

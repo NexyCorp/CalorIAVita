@@ -291,6 +291,90 @@ function saveAiRecipe(data) {
   }, 200);
 }
 
+async function estimateRecipeNutrients() {
+  const ingredients = document.getElementById('newRecipeIngredients').value.trim();
+  if (!ingredients) {
+    showToast('Preencha os ingredientes primeiro para a IA estimar!', 'error');
+    return;
+  }
+  
+  const btn = event.currentTarget;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Estimando...';
+  btn.disabled = true;
+  
+  const prompt = `Analise os seguintes ingredientes e estime os macronutrientes TOTAIS aproximados da receita inteira.
+Ingredientes:
+${ingredients}
+
+Retorne APENAS um JSON estrito (sem formatação markdown) com estes campos numéricos exatos:
+{"kcal":N,"prot":N,"carbs":N,"fat":N,"sugar":N,"totalGrams":N}`;
+
+  try {
+    let data = null;
+    let lastErr = null;
+    
+    // Tenta até 2 vezes com modelo rápido
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const res = await window._groqFetch(
+        window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
+        [
+          { role: 'system', content: 'Você é um nutricionista. Retorne SOMENTE JSON válido. Responda apenas com os campos numéricos especificados.' },
+          { role: 'user', content: prompt }
+        ],
+        1000
+      );
+
+      if (res.status === 429) {
+        window.rotateGroqKey?.();
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        throw new Error('Limite de requisições atingido. Tente novamente mais tarde.');
+      }
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        lastErr = new Error('Erro ' + res.status);
+        if (attempt < 2) { await new Promise(r => setTimeout(r, 2000)); continue; }
+        throw lastErr;
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Resposta vazia da IA');
+      data = window.extractJSON(content);
+      break;
+    }
+    
+    if (data) {
+      if (data.kcal != null) document.getElementById('newRecipeKcal').value = Math.round(data.kcal);
+      if (data.prot != null) document.getElementById('newRecipeProt').value = Math.round(data.prot);
+      if (data.carbs != null) {
+        const carbsEl = document.getElementById('newRecipeCarbs');
+        if (carbsEl) carbsEl.value = Math.round(data.carbs);
+      }
+      if (data.fat != null) {
+        const fatEl = document.getElementById('newRecipeFat');
+        if (fatEl) fatEl.value = Math.round(data.fat);
+      }
+      if (data.sugar != null) {
+        const sugarEl = document.getElementById('newRecipeSugar');
+        if (sugarEl) sugarEl.value = Math.round(data.sugar);
+      }
+      if (data.totalGrams != null) document.getElementById('newRecipeTotalGrams').value = Math.round(data.totalGrams);
+      
+      showToast('<i class="fa-solid fa-check"></i> Nutrientes estimados com sucesso!');
+    }
+  } catch(e) {
+    console.error("estimateRecipeNutrients error", e);
+    showToast('Não foi possível estimar: ' + e.message, 'error');
+  } finally {
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  }
+}
 async function openPatientGoalsModal(patientId, patientName) {
   document.getElementById('patientGoalsPatientId').value = patientId;
   document.getElementById('patientGoalsDesc').textContent = 'Definir metas nutricionais para ' + patientName;
@@ -442,6 +526,9 @@ async function submitRecipe() {
   const name = document.getElementById('newRecipeName').value.trim();
   const kcal = parseInt(document.getElementById('newRecipeKcal').value) || 0;
   const prot = parseInt(document.getElementById('newRecipeProt').value) || 0;
+  const carbs = parseInt(document.getElementById('newRecipeCarbs')?.value) || 0;
+  const fat = parseInt(document.getElementById('newRecipeFat')?.value) || 0;
+  const sugar = parseInt(document.getElementById('newRecipeSugar')?.value) || 0;
   const totalGrams = parseInt(document.getElementById('newRecipeTotalGrams').value) || null;
   const cat = document.getElementById('newRecipeCat').value;
   const ingText = document.getElementById('newRecipeIngredients').value.trim();
@@ -489,7 +576,7 @@ async function submitRecipe() {
   // Objeto local (memória)
   const recipe = {
     id: Date.now(), icon: '<i class="fa-solid fa-utensils ic-recipes"></i>',
-    title: name, kcal, prot, totalGrams,
+    title: name, kcal, prot, carbs, fat, sugar, totalGrams,
     category: [cat, kcal < 250 ? 'lowcal' : null, prot > 25 ? 'highprot' : null].filter(Boolean),
     source: dbVisibility, ingredients, steps, photos: photoUrls,
     author: currentProfile?.name || 'Usuário',
@@ -499,7 +586,7 @@ async function submitRecipe() {
 
   // Payload completo (com TODOS os possíveis nomes de colunas)
   const fullPayload = {
-    title: name, kcal, prot, total_grams: totalGrams, category: cat,
+    title: name, kcal, prot, carbs, fat, sugar, total_grams: totalGrams, category: cat,
     ingredients: ingredients,
     steps: steps,
     photos: photoUrls.length ? JSON.stringify(photoUrls) : null,
@@ -841,4 +928,5 @@ window.submitRecipe = submitRecipe;
 window.setVisibility = setVisibility;
 window.previewRecipePhotos = previewRecipePhotos;
 window.closeModal = closeModal;
-window.shareRecipeAsPdf = shareRecipeAsPdf; 
+window.shareRecipeAsPdf = shareRecipeAsPdf;
+window.estimateRecipeNutrients = estimateRecipeNutrients;
