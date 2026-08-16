@@ -825,37 +825,20 @@ async function shareRecipeAsPdf(id) {
     }
   }
 
-  const logoB64 = LOGO_LIGHT_B64;
-  const logoSvg = `<img src="${logoB64}" width="48" height="48" style="border-radius:8px;">`;
-
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${r.title} — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body { margin: 0; } .no-print { display: none !important; } }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 32px 28px; color: #1a2e1b; background: #fff; }
-    .header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #2a5c30; padding-bottom: 16px; margin-bottom: 22px; }
-    .brand { font-size: 1.5rem; font-weight: 900; color: #2a5c30; letter-spacing: -0.5px; }
-    .brand span { color: #f5a623; }
-    h1 { font-size: 1.8rem; font-weight: 900; color: #1a4a1f; margin-bottom: 12px; }
     .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .chip { background: #e8f5e9; color: #1a4a1f; padding: 5px 14px; border-radius: 20px; font-size: 0.88rem; font-weight: 700; border: 1px solid #a5d6a7; }
-    .chip.kcal { background: #fff3e0; border-color: #ffcc80; }
-    .chip.prot { background: #e8f5e9; border-color: #a5d6a7; }
-    h3 { font-size: 1.05rem; font-weight: 800; color: #2a5c30; margin: 22px 0 10px; padding-bottom: 4px; border-bottom: 1px solid #e0f2e0; text-transform: uppercase; letter-spacing: 0.5px; }
-    ul, ol { padding-left: 1.4rem; line-height: 2; color: #2e3d2f; font-size: 0.95rem; }
-    li { margin-bottom: 2px; }
-    .footer { margin-top: 32px; font-size: 0.72rem; color: #888; border-top: 1px solid #ddd; padding-top: 14px; }
-    .lgpd-note { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
-    .btn-print { display: block; margin: 20px auto 28px; padding: 12px 32px; background: #2a5c30; color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-print:hover { background: #1a4a1f; }
+    .chip { background: var(--pdf-accent-bg); color: var(--pdf-brown); padding: 6px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
+    .chip.kcal { background: rgba(20, 184, 166, 0.15); border-color: var(--pdf-primary); color: var(--pdf-dark); }
+    .chip.prot { background: rgba(91, 33, 182, 0.1); border-color: var(--pdf-purple); color: var(--pdf-dark); }
+    h3 { font-size: 1.1rem; font-weight: 800; color: var(--pdf-primary); margin: 24px 0 12px; padding-bottom: 4px; border-bottom: 1.5px solid var(--pdf-accent-bg); text-transform: uppercase; letter-spacing: 0.5px; }
+    ul, ol { padding-left: 1.4rem; line-height: 2; color: var(--pdf-dark); font-size: 1rem; }
+    li { margin-bottom: 4px; }
   </style>
   </head><body>
-  <div class="header">
-    ${logoSvg}
-    <div class="brand">Nutr<span>IA</span></div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
-  <h1>${r.title}</h1>
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader(r.title) : ''}
+  
   <div class="chips">
     <span class="chip kcal">🔥 ${r.kcal} kcal</span>
     ${r.time ? `<span class="chip">⏱ ${r.time}</span>` : ''}
@@ -866,10 +849,10 @@ async function shareRecipeAsPdf(id) {
   <ul>${r.ingredients.map(i=>`<li>${typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) + (i.qty ? ` (${i.qty})` : '') : i}</li>`).join('')}</ul>
   <h3>📋 Modo de preparo</h3>
   <ol>${r.steps.map(s=>`<li>${typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s}</li>`).join('')}</ol>
-  <div class="footer">
+  
+  <div class="footer-pdf">
     <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
   </div>
-  <p class="lgpd-note">🔒 Seus dados são protegidos conforme a LGPD (Lei 13.709/2018). Esta receita é para uso pessoal.</p>
   <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 

@@ -452,68 +452,49 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
       </div>`;
     }).join('') || '<p style="color:#888;">Nenhum registro no período.</p>'}` : '';
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — ${patientName} — NutrIA</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  const html = \`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — \${patientName} — NutrIA</title>
+  \${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body { margin: 0; } .no-print { display: none !important; } .rec-day-block { page-break-inside: avoid; } }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 28px; color: #1a2e1b; background: #fff; }
-    .header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #2a5c30; padding-bottom: 16px; margin-bottom: 20px; }
-    .brand { font-family:'Playfair Display',serif; font-size: 1.6rem; font-weight: 900; font-style:italic; color: #2a5c30; letter-spacing: -0.5px; }
-    .brand span { color: #ffb300; }
-    .header-sub { font-size: 0.78rem; color: #888; margin-top: 2px; }
-    h1 { font-family:'Playfair Display',serif; font-size: 1.7rem; font-weight: 900; color: #1a4a1f; margin-bottom: 4px; }
-    .h1-sub { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
-    h3 { font-family:'Syne',sans-serif; font-size: 1rem; font-weight: 800; color: #2a5c30; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e8f5e9; text-transform: uppercase; letter-spacing: 0.5px; }
-    .btn-print { display: block; margin: 16px auto 24px; padding: 12px 32px; background: #2a5c30; color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-print:hover { background: #1a4a1f; }
+    h1 { font-family:'Righteous',cursive; font-size: 1.7rem; color: var(--pdf-purple); margin-bottom: 4px; }
+    .h1-sub { font-size: 0.9rem; color: var(--pdf-brown); margin-bottom: 20px; font-family:'Fredoka',sans-serif; opacity: 0.8; }
+    h3 { font-family:'Fredoka',sans-serif; font-size: 1rem; font-weight: 800; color: var(--pdf-primary); margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--pdf-accent-bg); text-transform: uppercase; letter-spacing: 0.5px; }
     .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; }
-    .rec-stat { background: #f5f7f5; border-radius: 12px; padding: 10px 14px; border: 1px solid #e0e0e0; }
-    .rec-stat-label { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; font-family:'Syne',sans-serif; margin-bottom: 2px; }
-    .rec-stat-value { font-size: 1.1rem; font-weight: 800; color: #1a2e1b; font-family:'Syne',sans-serif; }
-    .rec-goal-card { background: linear-gradient(135deg, #2a5c30 0%, #1a4a1f 100%); color: #fff; border-radius: 14px; padding: 16px; text-align: center; }
-    .rec-goal-value { font-family:'Playfair Display',serif; font-size: 1.8rem; font-weight: 900; }
-    .rec-chart-wrap { position: relative; height: 160px; border-bottom: 2px solid #ddd; margin-top: 8px; padding-top: 24px; }
+    .rec-stat { background: var(--pdf-bg); border-radius: 12px; padding: 10px 14px; border: 1px solid var(--pdf-accent-bg); }
+    .rec-stat-label { display: block; font-size: 0.7rem; color: var(--pdf-brown); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 2px; }
+    .rec-stat-value { font-size: 1.1rem; font-weight: 800; color: var(--pdf-dark); }
+    .rec-goal-card { background: linear-gradient(135deg, var(--pdf-purple) 0%, var(--pdf-primary) 100%); color: #fff; border-radius: 14px; padding: 16px; text-align: center; }
+    .rec-goal-value { font-family:'Righteous',cursive; font-size: 1.8rem; font-weight: 900; }
+    .rec-chart-wrap { position: relative; height: 160px; border-bottom: 2px solid var(--pdf-accent-bg); margin-top: 8px; padding-top: 24px; }
     .rec-chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 100%; }
     .rec-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
-    .rec-bar { width: 70%; background: #4caf50; border-radius: 4px 4px 0 0; min-height: 2px; }
+    .rec-bar { width: 70%; background: var(--pdf-primary); border-radius: 4px 4px 0 0; min-height: 2px; }
     .rec-bar.over { background: #ef5350; }
-    .rec-bar-label { font-size: 0.65rem; color: #888; margin-top: 4px; text-transform: capitalize; }
-    .rec-chart-goal-line { position: absolute; left: 0; right: 0; border-top: 2px dashed #ffb300; font-size: 0.65rem; color: #e65100; text-align: right; padding-right: 4px; font-weight: 700; }
+    .rec-bar-label { font-size: 0.65rem; color: var(--pdf-brown); margin-top: 4px; text-transform: capitalize; }
+    .rec-chart-goal-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--pdf-purple); font-size: 0.65rem; color: var(--pdf-purple); text-align: right; padding-right: 4px; font-weight: 700; }
     .rec-macro-bar { display: flex; height: 28px; border-radius: 14px; overflow: hidden; }
     .rec-macro-seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75rem; font-weight: 700; }
-    .rec-macro-seg.carbs { background: #4caf50; }
-    .rec-macro-seg.prot { background: #ff9800; }
+    .rec-macro-seg.carbs { background: var(--pdf-primary); }
+    .rec-macro-seg.prot { background: var(--pdf-purple); }
     .rec-macro-seg.fat { background: #ffb300; }
-    .rec-macro-legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 0.8rem; color: #555; }
+    .rec-macro-legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 0.8rem; color: var(--pdf-brown); }
     .rec-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
-    .rec-dot.carbs { background: #4caf50; } .rec-dot.prot { background: #ff9800; } .rec-dot.fat { background: #ffb300; }
-    .rec-day-block { margin-bottom: 14px; background: #fafbfa; border: 1px solid #eee; border-radius: 12px; padding: 12px 14px; }
-    .rec-day-header { font-family:'Syne',sans-serif; font-weight: 800; font-size: 0.88rem; color: #1a4a1f; text-transform: capitalize; display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .rec-day-total { color: #2a5c30; }
+    .rec-dot.carbs { background: var(--pdf-primary); } .rec-dot.prot { background: var(--pdf-purple); } .rec-dot.fat { background: #ffb300; }
+    .rec-day-block { margin-bottom: 14px; background: var(--pdf-bg); border: 1px solid var(--pdf-accent-bg); border-radius: 12px; padding: 12px 14px; }
+    .rec-day-header { font-family:'Fredoka',sans-serif; font-weight: 800; font-size: 0.88rem; color: var(--pdf-purple); text-transform: capitalize; display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .rec-day-total { color: var(--pdf-primary); }
     .rec-meal-block { margin-bottom: 6px; }
-    .rec-meal-name { font-size: 0.78rem; font-weight: 700; color: #2d7a35; margin-bottom: 2px; }
-    .rec-meal-block ul { padding-left: 1.2rem; font-size: 0.85rem; color: #444; line-height: 1.6; }
-    .rec-item-kcal { color: #888; font-size: 0.78rem; }
-    .record-ai-section { background: linear-gradient(135deg, #fff8e1 0%, #e8f5e9 100%); border-radius: 14px; padding: 16px 18px; margin-top: 24px; border: 1px solid #ffe082; }
-    .record-ai-section h3 { border: none; margin-top: 0; color: #2a5c30; }
-    .record-ai-label { font-weight: 800; font-family:'Syne',sans-serif; font-size: 0.85rem; margin: 10px 0 4px; }
-    .record-ai-section ul { padding-left: 1.3rem; font-size: 0.88rem; line-height: 1.7; color: #2e3d2f; }
-    .record-ai-disclaimer { font-size: 0.7rem; color: #999; margin-top: 12px; line-height: 1.5; }
-    .footer { margin-top: 32px; font-size: 0.72rem; color: #888; border-top: 1px solid #ddd; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-    .lgpd-note { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
+    .rec-meal-name { font-size: 0.78rem; font-weight: 700; color: var(--pdf-brown); margin-bottom: 2px; }
+    .rec-meal-block ul { padding-left: 1.2rem; font-size: 0.85rem; color: var(--pdf-dark); line-height: 1.6; }
+    .rec-item-kcal { color: var(--pdf-brown); font-size: 0.78rem; opacity: 0.8; }
+    .record-ai-section { background: var(--pdf-accent-bg); border-radius: 14px; padding: 16px 18px; margin-top: 24px; border: 1px solid rgba(0,0,0,0.05); }
+    .record-ai-section h3 { border: none; margin-top: 0; color: var(--pdf-primary); }
+    .record-ai-label { font-weight: 800; font-size: 0.85rem; margin: 10px 0 4px; }
+    .record-ai-section ul { padding-left: 1.3rem; font-size: 0.88rem; line-height: 1.7; color: var(--pdf-dark); }
+    .record-ai-disclaimer { font-size: 0.7rem; color: var(--pdf-brown); margin-top: 12px; line-height: 1.5; opacity: 0.8; }
   </style>
   </head><body>
-  <div class="header">
-    ${logoSvg}
-    <div>
-      <div class="brand">Nutr<span>IA</span></div>
-      <div class="header-sub">Plataforma de Nutrição Inteligente</div>
-    </div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
-  <h1>Prontuário Nutricional</h1>
-  <p class="h1-sub">Período: ${periodLabel} (${periodRange})</p>
+  \${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Prontuário Nutricional', \`Período: \${periodLabel} (\${periodRange})\`) : ''}
+
   ${profileHtml}
   ${goalHtml}
   ${summaryHtml}
@@ -1884,44 +1865,25 @@ window.printDossierPDF = function() {
   const logoSrc = typeof getLogoSrc === 'function' ? getLogoSrc() : LOGO_LIGHT_B64;
   const logoHtml = `<img src="${logoSrc}" width="52" height="52" style="border-radius:8px;">`;
   
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title} — NutrIA</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  const html = \`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>\${title} — NutrIA</title>
+  \${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body { margin: 0; } .no-print { display: none !important; } }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 28px; color: #1a2e1b; background: #fff; }
-    .header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #2a5c30; padding-bottom: 16px; margin-bottom: 20px; }
-    .brand { font-family:'Playfair Display',serif; font-size: 1.6rem; font-weight: 900; font-style:italic; color: #2a5c30; letter-spacing: -0.5px; }
-    .brand span { color: #ffb300; }
-    .header-sub { font-size: 0.78rem; color: #888; margin-top: 2px; }
-    h1 { font-family:'Playfair Display',serif; font-size: 1.7rem; font-weight: 900; color: #1a4a1f; margin-bottom: 20px; }
-    .btn-print { display: block; margin: 16px auto 24px; padding: 12px 32px; background: #2a5c30; color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-print:hover { background: #1a4a1f; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-    td { padding: 6px 12px 6px 0; vertical-align: top; border-bottom: 1px solid #eee; }
+    td { padding: 6px 12px 6px 0; vertical-align: top; border-bottom: 1px solid rgba(0,0,0,0.05); color: var(--pdf-dark); }
     tr:last-child td { border-bottom: none; }
-    .footer { margin-top: 32px; font-size: 0.72rem; color: #888; border-top: 1px solid #ddd; padding-top: 14px; }
-    .lgpd-note { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
     /* Custom layouts styles */
-    table th { padding: 6px 10px; text-align: left; font-weight: 700; background: #f4f6f9; border-bottom: 1px solid #ddd; }
+    table th { padding: 6px 10px; text-align: left; font-weight: 700; background: var(--pdf-accent-bg); border-bottom: 1px solid rgba(0,0,0,0.1); color: var(--pdf-primary); }
   </style>
   </head><body>
-  <div class="header">
-    ${logoHtml}
-    <div>
-      <div class="brand">Nutr<span>IA</span></div>
-      <div class="header-sub">Plataforma de Nutrição Inteligente</div>
-    </div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
-  <h1>${title}</h1>
+  \${window.getNutriaPdfHeader ? window.getNutriaPdfHeader(title) : ''}
+  
   <div class="dossier-print-content">
-    ${content}
+    \${content}
   </div>
-  <div class="footer">
+  <div class="footer-pdf">
     <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+    <p style="margin-top:4px; opacity:0.8;">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </div>
-  <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </body></html>`;
 
   const win = window.open('', '_blank');

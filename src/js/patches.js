@@ -589,6 +589,20 @@ function renderDietResult(diet) {
   document.getElementById('dietGenContent').innerHTML = summary + html;
   document.getElementById('dietGenForm').style.display = 'none';
   document.getElementById('dietGenResult').style.display = 'block';
+
+  // If professional generating for a patient: show "Enviar ao Paciente", hide patient-only buttons
+  const sendBtn = document.getElementById('dietGenSendToPatientBtn');
+  const applyBtn = document.getElementById('dietGenApplyBtn');
+  const saveBtn = document.querySelector('#dietGenResult button[onclick="saveDietPlan()"]');
+  if (typeof _p2_dietPatientId !== 'undefined' && _p2_dietPatientId) {
+    if (sendBtn) sendBtn.style.display = 'flex';
+    if (applyBtn) applyBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'none';
+  } else {
+    if (sendBtn) sendBtn.style.display = 'none';
+    if (applyBtn) applyBtn.style.display = '';
+    if (saveBtn) saveBtn.style.display = '';
+  }
 }
 
 async function applyDietToday() {
@@ -616,39 +630,29 @@ async function applyDietToday() {
 
 function printDiet() {
   if (!_lastGeneratedDiet) return;
-  const logoB64 = LOGO_LIGHT_B64;
-  const mealEmoji = { cafe:'ðŸŒ…', almoco:'â˜€ï¸', lanche:'ðŸŽ', jantar:'ðŸŒ™' };
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Plano Alimentar â€” NutrIA</title>
+  const mealEmoji = { cafe:'☕', almoco:'☀️', lanche:'🥪', jantar:'🌙' };
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Plano Alimentar — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { .no-print { display:none; } body { margin:0; } }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:'Segoe UI',Arial,sans-serif; max-width:760px; margin:0 auto; padding:28px; color:#1a2e1b; }
-    .header { display:flex; align-items:center; gap:12px; border-bottom:3px solid #2a5c30; padding-bottom:14px; margin-bottom:18px; }
-    .brand { font-size:1.5rem; font-weight:900; color:#2a5c30; font-style:italic; }
-    .brand span { color:#ffb300; }
-    h2 { font-size:1.1rem; color:#2a5c30; margin:18px 0 8px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid #e0f0e0; padding-bottom:4px; }
-    .meal-block { background:#f0f9f0; border-radius:12px; padding:10px 14px; margin-bottom:10px; }
-    .meal-title { font-weight:800; font-size:0.9rem; color:#1a4a1f; margin-bottom:6px; }
-    .food-row { display:flex; justify-content:space-between; font-size:0.85rem; padding:2px 0; border-bottom:1px solid rgba(0,0,0,0.05); }
-    .food-row:last-child { border:none; }
-    .summary { display:flex; gap:10px; flex-wrap:wrap; background:#2a5c30; color:white; border-radius:12px; padding:14px; margin-bottom:18px; text-align:center; }
-    .summary-item { flex:1; min-width:70px; }
-    .summary-val { font-size:1.2rem; font-weight:900; }
-    .summary-lbl { font-size:0.68rem; opacity:0.8; }
-    .footer { margin-top:24px; font-size:0.7rem; color:#888; border-top:1px solid #ddd; padding-top:10px; }
-    button.no-print { display:block; margin:0 auto 20px; padding:10px 28px; background:#2a5c30; color:white; border:none; border-radius:50px; font-size:0.95rem; cursor:pointer; }
+    h2 { font-size: 1.2rem; color: var(--pdf-primary); margin: 20px 0 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid var(--pdf-accent-bg); padding-bottom: 4px; }
+    .meal-block { background: var(--pdf-accent-bg); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; page-break-inside: avoid; }
+    .meal-title { font-weight: 800; font-size: 0.95rem; color: var(--pdf-purple); margin-bottom: 8px; }
+    .food-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 4px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .food-row:last-child { border: none; }
+    .summary { display: flex; gap: 10px; flex-wrap: wrap; background: linear-gradient(135deg, var(--pdf-purple), var(--pdf-primary)); color: white; border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center; }
+    .summary-item { flex: 1; min-width: 70px; }
+    .summary-val { font-size: 1.3rem; font-weight: 900; font-family: 'Righteous', cursive; }
+    .summary-lbl { font-size: 0.75rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
   </style></head><body>
-  <div class="header"><img src="${logoB64}" width="44" height="44" style="border-radius:8px;"><div class="brand">Nutr<span>IA</span></div></div>
-  <button class="no-print" onclick="window.print()">ðŸ–¨ï¸ Salvar como PDF</button>
-  <h1 style="font-size:1.4rem;margin-bottom:4px;">Plano Alimentar Personalizado</h1>
-  <p style="font-size:0.82rem;color:#666;margin-bottom:14px;">Gerado em ${new Date().toLocaleDateString('pt-BR')} Â· Meta: ${diaryGoal} kcal/dia Â· Ãgua: ${diaryGoalWater}ml</p>
-  <div class="summary">
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalKcal||'â€”'}</div><div class="summary-lbl">kcal/dia</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalProtein||'â€”'}g</div><div class="summary-lbl">proteÃ­na</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalCarbs||'â€”'}g</div><div class="summary-lbl">carboidratos</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalFat||'â€”'}g</div><div class="summary-lbl">gorduras</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalSugar||'â€”'}g</div><div class="summary-lbl">aÃ§Ãºcares</div></div>
-    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.waterMl||diaryGoalWater}ml</div><div class="summary-lbl">Ã¡gua</div></div>
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Plano Alimentar Personalizado', `Gerado em ${new Date().toLocaleDateString('pt-BR')} &bull; Meta: ${diaryGoal} kcal/dia &bull; Água: ${diaryGoalWater}ml`) : ''}
+  
+  <div class="summary avoid-break">
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalKcal||'—'}</div><div class="summary-lbl">kcal/dia</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalProtein||'—'}g</div><div class="summary-lbl">proteína</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalCarbs||'—'}g</div><div class="summary-lbl">carboidratos</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalFat||'—'}g</div><div class="summary-lbl">gorduras</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.totalSugar||'—'}g</div><div class="summary-lbl">açúcares</div></div>
+    <div class="summary-item"><div class="summary-val">${_lastGeneratedDiet.waterMl||diaryGoalWater}ml</div><div class="summary-lbl">água</div></div>
   </div>
   ${(_lastGeneratedDiet.days||[]).map(day => `
     <h2>${_lastGeneratedDiet.days.length > 1 ? 'ðŸ“… Dia '+day.day : 'ðŸ“… Plano do dia'}</h2>
@@ -660,8 +664,8 @@ function printDiet() {
         `).join('')}
       </div>`).join('')}
   `).join('')}
-  <div class="footer">Plano gerado automaticamente pela IA NutrIA. Consulte sempre um nutricionista. ðŸ”’ LGPD (Lei 13.709/2018).</div>
-  </body></html>`;
+  <div class="footer-pdf">Plano gerado automaticamente pela IA NutrIA. Consulte sempre um nutricionista. 🔒 LGPD (Lei 13.709/2018).</div>
+  </body></html>\`;
 
   const blob = new Blob([html], { type:'text/html' });
   const url  = URL.createObjectURL(blob);

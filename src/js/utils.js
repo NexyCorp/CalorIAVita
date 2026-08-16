@@ -1238,5 +1238,252 @@ window.requestUpgrade = async function(tier) {
 };
 
 
+// ═══════════════════════════════════════════════════════════════════
+// PDF BRANDING — NutrIA  (used by all PDF generators)
+// ═══════════════════════════════════════════════════════════════════
 
+window.getNutriaPdfStyle = function() {
+  return `
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* ── Variables ── */
+  :root {
+    --pdf-primary:   #14B8A6;
+    --pdf-purple:    #5B21B6;
+    --pdf-brown:     #422D18;
+    --pdf-dark:      #1C1C2E;
+    --pdf-bg:        #F8F9FA;
+    --pdf-accent-bg: #EDF6F9;
+    --pdf-border:    #D9E6E4;
+  }
+
+  /* ── Page ── */
+  @media print {
+    body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+  }
+  body {
+    font-family: 'Newsreader', 'Georgia', serif;
+    font-size: 10.5pt;
+    line-height: 1.65;
+    color: var(--pdf-dark);
+    background: #fff;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+
+  /* ── Header block (injected by getNutriaPdfHeader) ── */
+  .pdf-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 3px solid var(--pdf-primary);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  .pdf-logo-wrap svg { display: block; }
+  .pdf-brand-name {
+    font-family: 'Righteous', cursive;
+    font-size: 1.7rem;
+    color: var(--pdf-purple);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .pdf-brand-name span { color: var(--pdf-primary); }
+  .pdf-brand-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.75rem;
+    color: var(--pdf-brown);
+    margin-top: 2px;
+  }
+  .pdf-header-meta {
+    margin-left: auto;
+    text-align: right;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.78rem;
+    color: var(--pdf-brown);
+    line-height: 1.4;
+  }
+
+  /* ── Doc title ── */
+  .pdf-doc-title {
+    font-family: 'Righteous', cursive;
+    font-size: 1.4rem;
+    color: var(--pdf-purple);
+    margin-bottom: 3px;
+  }
+  .pdf-doc-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.82rem;
+    color: var(--pdf-brown);
+    margin-bottom: 20px;
+    opacity: 0.85;
+  }
+
+  /* ── Section headings ── */
+  h2, h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    color: var(--pdf-purple);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 5px;
+    border-bottom: 1.5px solid var(--pdf-accent-bg);
+    margin: 22px 0 10px;
+  }
+  h2 { font-size: 1rem; }
+  h3 { font-size: 0.9rem; }
+
+  /* ── Print button (hidden on print) ── */
+  .btn-print-pdf {
+    display: block;
+    margin: 0 auto 20px;
+    padding: 10px 28px;
+    background: linear-gradient(135deg, var(--pdf-purple), var(--pdf-primary));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── Info grid (anamnese / profile cards) ── */
+  .pdf-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .pdf-info-card {
+    background: var(--pdf-accent-bg);
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--pdf-border);
+    page-break-inside: avoid;
+  }
+  .pdf-info-label {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    color: var(--pdf-brown);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    margin-bottom: 2px;
+  }
+  .pdf-info-value {
+    font-family: 'Righteous', cursive;
+    font-size: 1.05rem;
+    color: var(--pdf-dark);
+  }
+
+  /* ── Summary strip (dieta / metas) ── */
+  .summary, .pdf-summary {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, var(--pdf-purple), var(--pdf-primary));
+    color: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+  .summary-item, .pdf-summary-item { flex: 1; min-width: 70px; }
+  .summary-val, .pdf-summary-val {
+    font-family: 'Righteous', cursive;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .summary-lbl, .pdf-summary-lbl {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.7rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  /* ── Meal / day blocks ── */
+  .meal-block, .rec-day-block {
+    background: var(--pdf-accent-bg);
+    border-radius: 11px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--pdf-border);
+    page-break-inside: avoid;
+  }
+  .meal-title, .rec-day-header {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--pdf-purple);
+    margin-bottom: 7px;
+  }
+  .food-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .food-row:last-child { border: none; }
+
+  /* ── AI section ── */
+  .record-ai-section {
+    background: var(--pdf-accent-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-top: 20px;
+    border: 1px solid var(--pdf-border);
+  }
+
+  /* ── Footer ── */
+  .footer-pdf {
+    margin-top: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.72rem;
+    color: var(--pdf-brown);
+    border-top: 1px solid var(--pdf-border);
+    padding-top: 12px;
+    opacity: 0.85;
+  }
+</style>`;
+};
+
+window.getNutriaPdfHeader = function(title, subtitle) {
+  // SVG logo: stylised leaf + bar chart — NutrIA brand mark
+  const logoSvg = `<svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="52" height="52" rx="12" fill="#5B21B6"/>
+    <path d="M13 38 C13 28 22 16 34 14 C34 24 26 36 13 38Z" fill="#14B8A6" opacity="0.9"/>
+    <rect x="15" y="30" width="5" height="9" rx="2" fill="white" opacity="0.85"/>
+    <rect x="23" y="24" width="5" height="15" rx="2" fill="white" opacity="0.85"/>
+    <rect x="31" y="19" width="5" height="20" rx="2" fill="white" opacity="0.85"/>
+  </svg>`;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+
+  return `
+  <div class="pdf-header avoid-break">
+    <div class="pdf-logo-wrap">${logoSvg}</div>
+    <div>
+      <div class="pdf-brand-name">Nutr<span>IA</span></div>
+      <div class="pdf-brand-sub">Plataforma de Nutrição Inteligente</div>
+    </div>
+    <div class="pdf-header-meta">
+      <div>${dateStr}</div>
+      <div>${timeStr}</div>
+    </div>
+  </div>
+  <button class="btn-print-pdf no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
+  ${title ? `<div class="pdf-doc-title">${title}</div>` : ''}
+  ${subtitle ? `<div class="pdf-doc-sub">${subtitle}</div>` : ''}`;
+};

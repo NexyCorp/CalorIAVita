@@ -944,46 +944,36 @@ async function printPatientAnamnese(patientId, patientName) {
   const v = (val, unit='') => (val !== null && val !== undefined && val !== '') ? `${val}${unit}` : '—';
   const arr2str = (arr) => Array.isArray(arr) && arr.length ? arr.join(', ') : '—';
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-  <title>Anamnese Nutricional — ${name}</title>
+  const html = \`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Anamnese Nutricional — \${name}</title>
+  \${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body{margin:0} .no-print{display:none!important} section{page-break-inside:avoid} }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',Arial,sans-serif;max-width:820px;margin:0 auto;padding:28px 24px;color:#1a2e1b;background:#fff;font-size:13px}
-    .header{display:flex;align-items:center;gap:12px;border-bottom:3px solid #2a5c30;padding-bottom:14px;margin-bottom:20px}
-    .brand{font-size:1.4rem;font-weight:900;color:#2a5c30;letter-spacing:-0.5px}
-    .brand span{color:#f5a623}
-    h1{font-size:1.4rem;font-weight:900;color:#1a4a1f;margin-bottom:2px}
-    .subtitle{font-size:0.78rem;color:#888;margin-bottom:16px}
-    section{margin-bottom:18px}
-    h3{font-size:0.85rem;font-weight:800;color:#2a5c30;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1.5px solid #e8f5e9;padding-bottom:4px;margin-bottom:10px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 12px}
-    .field{padding:5px 0;border-bottom:1px dotted #ddd}
-    .label{font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.4px;font-weight:700;display:block;margin-bottom:1px}
-    .val{font-size:0.88rem;color:#1a2e1b;font-weight:500}
-    .val.empty{color:#ccc}
-    .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
-    .tag{background:#e8f5e9;color:#1a4a1f;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;border:1px solid #c8e6c9}
-    .tag.red{background:#fdecea;color:#c62828;border-color:#f5c6c6}
-    .tag.yellow{background:#fff8e1;color:#7a5200;border-color:#ffe082}
-    .text-block{font-size:0.88rem;color:#1a2e1b;line-height:1.5;background:#f5f7f5;padding:6px 10px;border-radius:6px;white-space:pre-wrap;border:1px solid #e0e0e0}
-    .btn-print{display:block;margin:14px auto 22px;padding:10px 28px;background:#2a5c30;color:white;border:none;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit}
-    .write-line{border:none;border-bottom:1px solid #ccc;width:100%;margin-bottom:2px;height:20px;display:block}
-    .write-block{border:1px solid #ccc;border-radius:4px;width:100%;min-height:48px;display:block;margin-top:2px}
-    .footer{margin-top:24px;font-size:0.68rem;color:#aaa;border-top:1px solid #ddd;padding-top:10px;display:flex;justify-content:space-between}
-    table{width:100%;border-collapse:collapse;font-size:0.82rem}
-    th{background:#e8f5e9;color:#1a4a1f;padding:5px 8px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.4px}
-    td{padding:5px 8px;border-bottom:1px solid #f0f0f0}
-    tr:nth-child(even) td{background:#fafbfa}
+    section { margin-bottom: 24px; }
+    h3 { 
+      font-size: 0.95rem; font-weight: 800; color: var(--pdf-primary); 
+      text-transform: uppercase; letter-spacing: 0.8px; 
+      border-bottom: 1.5px solid var(--pdf-accent-bg); 
+      padding-bottom: 4px; margin-bottom: 12px; 
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 12px; }
+    .field { padding: 5px 0; border-bottom: 1px dotted rgba(0,0,0,0.1); }
+    .label { font-size: 0.7rem; color: var(--pdf-brown); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; display: block; margin-bottom: 1px; opacity: 0.7; }
+    .val { font-size: 0.95rem; color: var(--pdf-dark); font-weight: 500; font-family: 'Fredoka', sans-serif; }
+    .val.empty { color: #ccc; }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+    .tag { background: var(--pdf-accent-bg); color: var(--pdf-brown); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
+    .tag.red { background: #fdecea; color: #c62828; border-color: #f5c6c6; }
+    .tag.yellow { background: #fff8e1; color: #7a5200; border-color: #ffe082; }
+    .text-block { font-size: 0.9rem; color: var(--pdf-dark); line-height: 1.5; background: var(--pdf-bg); padding: 8px 12px; border-radius: 6px; white-space: pre-wrap; border: 1px solid var(--pdf-accent-bg); }
+    .write-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 2px; height: 20px; display: block; }
+    .write-block { border: 1px solid #ccc; border-radius: 4px; width: 100%; min-height: 48px; display: block; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+    th { background: var(--pdf-accent-bg); color: var(--pdf-brown); padding: 6px 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
+    td { padding: 6px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
   </style>
   </head><body>
-  <div class="header">
-    ${logoSvg}
-    <div><div class="brand">Nutr<span>IA</span></div><div style="font-size:0.72rem;color:#888;">Plataforma de Nutrição Inteligente</div></div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-  <h1>Anamnese Nutricional</h1>
-  <p class="subtitle">Paciente: <strong>${name}</strong> • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p>
+  \${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Anamnese Nutricional', \`Paciente: <strong>\${name}</strong> &bull; Gerado em \${new Date().toLocaleDateString('pt-BR')} às \${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}\`) : ''}
 
   <section>
     <h3>1. Identificação</h3>
@@ -1142,12 +1132,11 @@ async function printPatientAnamnese(patientId, patientName) {
     <div style="margin-top:8px"><span class="label">Relatório / Observações</span><span class="write-block"></span></div>
   </section>
 
-  <div class="footer">
+  <div class="footer-pdf">
     <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
-    <span>🔒 Documento protegido pela LGPD (Lei 13.709/2018)</span>
+    &nbsp;&nbsp;🔒 Documento protegido pela LGPD (Lei 13.709/2018)
   </div>
-  <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`;
+  </body></html>\`;
 
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);

@@ -2846,11 +2846,14 @@ function closeLgpdModal() {
       <div id="dietGenResult" style="display:none;">
         <div id="dietGenContent"></div>
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem;">
-          <button class="btn-primary" style="flex:1;" onclick="applyDietToday()">
+          <button class="btn-primary" style="flex:1;" onclick="applyDietToday()" id="dietGenApplyBtn">
             <i class="fa-solid fa-book ic-diary" style="color:white!important;margin-right:0.3rem;"></i> Aplicar hoje no diário
           </button>
           <button onclick="saveDietPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--orange-mid);border-radius:50px;background:var(--orange-pale);cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--orange-hot);">
             <i class="fa-solid fa-thumbtack"></i> Salvar e Acompanhar Plano
+          </button>
+          <button id="dietGenSendToPatientBtn" onclick="sendGeneratedDietToPatient()" style="display:none;flex:1;padding:0.9rem;border:2px solid #5c6bc0;border-radius:50px;background:#e8eaf6;cursor:pointer;font-family:var(--font-body);font-weight:700;color:#3949ab;">
+            <i class="fa-solid fa-paper-plane" style="color:#3949ab;margin-right:0.3rem;"></i> Enviar ao Paciente
           </button>
           <button onclick="printDiet()" style="flex:1;padding:0.9rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--text-muted);">
             <i class="fa-solid fa-print ic-search"></i> Imprimir / PDF
