@@ -975,9 +975,7 @@ function showPanel(name, navEl) {
   // Highlight nav
   const navBtn = navEl || document.getElementById('nav-' + name);
   if (navBtn) navBtn.classList.add('active');
-
-  // Persistir tela no sessionStorage para restaurar ao recarregar
-  sessionStorage.setItem('nutria_last_panel', name);
+  setBottomNav(name);
 
   // Close sidebar on mobile
   if (window.innerWidth < 768) closeSidebar();

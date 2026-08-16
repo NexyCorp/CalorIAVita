@@ -528,8 +528,8 @@ function applyProfileUpdate(newData) {
   setupRoleUI();
   applyPlanRestrictions();
   renderSidebarUser();
-  // Se cargo ou plano mudou, volta para o painel inicial para evitar tela errada
-  if (oldRole !== newData.role || oldPlan !== newData.plan) {
+  // Se cargo ou plano mudou DURANTE a sessão (ignora o load inicial quando era undefined), volta para o painel inicial
+  if (oldRole !== undefined && (oldRole !== newData.role || oldPlan !== newData.plan)) {
     showPanel('home', document.getElementById('nav-home'));
     if (newData.role !== oldRole) {
       showToast('<i class="fa-solid fa-arrows-rotate ic-water"></i> Cargo atualizado: ' + (newData.role || 'padrão'));
