@@ -1971,6 +1971,44 @@ window.saveProfile = async function() {
   renderSidebarUser();
   updateHomePanel();
   profileUpdateFatClassification();
+  
+  // ── AI Diagnosis ──
+  if (weight && height) {
+    showToast('🤖 IA analisando seu perfil nutricional...', 'info');
+    
+    const bmi = (weight / ((height/100)**2)).toFixed(1);
+    const userCtx = `Idade: ${age||'?'}, Sexo: ${sex==='m'?'M':'F'}, Peso: ${weight}kg, Altura: ${height}cm, IMC: ${bmi}, Gordura: ${body_fat_pct||'?'}%, Doenças: ${diseases||'nenhuma'}, Diabetes: ${is_diabetic?'sim':'não'}`;
+    const prompt = `Analise o perfil e retorne um diagnóstico nutricional preliminar focado no peso (ex: Eutrofia, Sobrepeso, Obesidade grau I/II/III, Baixo peso) usando nomenclatura profissional e amigável.
+Perfil: ${userCtx}.
+Retorne APENAS um JSON: {"classification":"Nome do diagnóstico", "message":"Uma frase curta e encorajadora sobre o estado atual e o que focar."}`;
+    
+    try {
+      // Use fire-and-forget or await depending on UX. Let's do it inline without blocking the UI fully, but showing the final result.
+      const res = await window._groqFetch(
+        window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
+        [
+          { role: 'system', content: 'Você é um nutricionista. Retorne SOMENTE JSON válido. Seja empático.' },
+          { role: 'user', content: prompt }
+        ],
+        1000
+      );
+      if (res.ok) {
+        const json = await res.json();
+        const content = json.choices?.[0]?.message?.content;
+        const data = window.extractJSON(content);
+        if (data && data.classification) {
+          showSuccessAnimated(
+            `Perfil Salvo! Diagnóstico: ${data.classification}`, 
+            `IMC: ${bmi}. ${data.message}`
+          );
+          return;
+        }
+      }
+    } catch(e) {
+      console.warn("Erro no diagnóstico IA:", e);
+    }
+  }
+
   showSuccessAnimated('Perfil Salvo!', 'Suas informações foram atualizadas com sucesso.');
 };
 
