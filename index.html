@@ -922,6 +922,7 @@
         <div>
           <div class="nutritionist-label" data-i18n="linked_nutritionist">Nutricionista responsável</div>
           <div class="nutritionist-name" id="linkedNutritionistName">—</div>
+          <div class="nutritionist-specialties" id="linkedNutritionistSpecialties" style="display:none;"></div>
         </div>
       </div>
 
@@ -1393,7 +1394,7 @@
           </label>
         </div>
 
-        <!-- Photo upload area (patient only) -->
+        <!-- Photo upload area -->
         <div id="chatPhotoArea" style="display:none;margin-bottom:0.75rem;padding:0.6rem;background:var(--bg-app);border-radius:var(--radius-sm);border:1px dashed var(--border);">
           <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:var(--text-muted);">
             <i class="fa-solid fa-image" style="color:#64b5f6;font-size:1.1rem;"></i>
@@ -1407,9 +1408,8 @@
 
         <!-- Patient selector (nutritionist) -->
         <div id="chatPatientSelector" style="display:none;margin-bottom:0.5rem;">
-          <select id="chatPatientSelect" class="form-select" onchange="loadChatMessages()">
-            <option value="" data-i18n="chat_select_patient">Selecionar paciente...</option>
-          </select>
+          <div class="chat-patient-selector-title" data-i18n="chat_select_patient">Selecionar paciente...</div>
+          <div id="chatPatientList" class="chat-patient-list"></div>
         </div>
 
         <!-- Input -->

@@ -1958,6 +1958,12 @@ i.fa-hourglass-half { color: #ffb74d; }
 .patient-info { flex: 1; }
 .patient-name { font-weight: 600; color: var(--text-main); font-size: 0.9rem; }
 .patient-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 0.4rem; }
+.nutritionist-specialties {
+  margin-top: 0.15rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
 .patient-role-chip {
   font-size: 0.68rem; font-family: var(--font-title); font-weight: 700;
   padding: 1px 7px; border-radius: 50px;
@@ -2626,6 +2632,81 @@ i.fa-hourglass-half { color: #ffb74d; }
 #chatMessages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 #chatPdfArea { display: flex; align-items: center; }
 #chatInput:focus { outline: 2px solid var(--green-mid); }
+.chat-patient-selector-title {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  margin-bottom: 0.45rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.chat-patient-list {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+}
+.chat-patient-option {
+  min-width: 210px;
+  max-width: 260px;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-app);
+  color: var(--text-main);
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition);
+}
+.chat-patient-option:hover,
+.chat-patient-option.active {
+  border-color: var(--green-mid);
+  background: var(--green-pale);
+}
+.chat-patient-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+  color: white;
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+.chat-patient-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.chat-patient-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+.chat-patient-text strong,
+.chat-patient-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-patient-text strong {
+  font-size: 0.84rem;
+}
+.chat-patient-text small,
+.chat-patient-empty {
+  color: var(--text-muted);
+  font-size: 0.73rem;
+}
 .fa-comments { color: #80cbc4 !important; }
 .fa-file-pdf  { color: #ef9a9a !important; }
 .fa-paper-plane { color: white !important; }

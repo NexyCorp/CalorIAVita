@@ -978,6 +978,12 @@ async function loadLinkedNutritionist() {
   const { data } = await supabase.from('profiles').select('*').eq('id', currentProfile.nutritionist_id).single();
   if (data?.name) {
     document.getElementById('linkedNutritionistName').textContent = data.name;
+    const specEl = document.getElementById('linkedNutritionistSpecialties');
+    const specialties = getProfessionalSpecialties(data);
+    if (specEl && specialties) {
+      specEl.textContent = specialties;
+      specEl.style.display = 'block';
+    }
     document.getElementById('nutritionistCard').style.display = 'flex';
   }
 }
@@ -1765,6 +1771,40 @@ async function requestUpgrade(plan) {
 let _chatChannel = null;
 let _chatPatientId = null;
 let _chatInitialized = false;
+let _chatPatients = [];
+
+function getInitials(nameOrEmail) {
+  return (nameOrEmail || 'P').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'P';
+}
+
+function renderChatPatientList(patients) {
+  const list = document.getElementById('chatPatientList');
+  if (!list) return;
+  if (!patients.length) {
+    list.innerHTML = `<p class="chat-patient-empty">${t('chat_select_patient_prompt')}</p>`;
+    return;
+  }
+  list.innerHTML = patients.map(p => {
+    const label = p.name || p.email || 'Paciente';
+    const avatar = p.avatar_url
+      ? `<img src="${window.escapeHtml(p.avatar_url)}" alt="${window.escapeHtml(label)}">`
+      : window.escapeHtml(getInitials(label));
+    return `
+      <button type="button" class="chat-patient-option ${p.id === _chatPatientId ? 'active' : ''}" onclick="selectChatPatient('${p.id}')">
+        <span class="chat-patient-avatar">${avatar}</span>
+        <span class="chat-patient-text">
+          <strong>${window.escapeHtml(label)}</strong>
+          ${p.email ? `<small>${window.escapeHtml(p.email)}</small>` : ''}
+        </span>
+      </button>`;
+  }).join('');
+}
+
+async function selectChatPatient(patientId) {
+  _chatPatientId = patientId;
+  renderChatPatientList(_chatPatients);
+  await loadChatMessages();
+}
 
 async function initChatPanel() {
   if (_chatInitialized) { await loadChatMessages(); return; }
@@ -1772,6 +1812,8 @@ async function initChatPanel() {
   const isProf = isProfessional();
 
   document.getElementById('chatPdfArea').style.display = isProf ? 'flex' : 'none';
+  const photoArea = document.getElementById('chatPhotoArea');
+  if (photoArea) photoArea.style.display = (isProf || (currentProfile?.role === 'patient' && currentProfile?.nutritionist_id)) ? 'flex' : 'none';
 
   if (isProf) {
     document.getElementById('chatPatientSelector').style.display = 'block';
@@ -1784,22 +1826,23 @@ async function initChatPanel() {
     const { data: links } = await supabase.from('professional_patients').select('patient_id').eq('professional_id', currentUser.id);
     if (links && links.length) {
       const ids = links.map(l => l.patient_id);
-      const { data: pts } = await supabase.from('profiles').select('id,name,email').in('id', ids);
-      const sel = document.getElementById('chatPatientSelect');
-      sel.innerHTML = `<option value="">${t('chat_select_patient')}</option>` +
-        (pts || []).map(p => `<option value="${p.id}">${p.name || p.email}</option>`).join('');
+      const { data: pts } = await supabase.from('profiles').select('id,name,email,avatar_url').in('id', ids);
+      _chatPatients = pts || [];
+      renderChatPatientList(_chatPatients);
+    } else {
+      _chatPatients = [];
+      renderChatPatientList(_chatPatients);
     }
   } else if (currentProfile?.role === 'patient' && currentProfile?.nutritionist_id) {
     _chatPatientId = currentUser.id;
-    const { data: nut } = await supabase.from('profiles').select('name,plan').eq('id', currentProfile.nutritionist_id).single();
+    const { data: nut } = await supabase.from('profiles').select('name,plan,professional_specialties,nutritionist_type,specialty').eq('id', currentProfile.nutritionist_id).single();
     document.getElementById('chatPartnerName').textContent = nut?.name || t('chat_default_partner');
+    const specialties = getProfessionalSpecialties(nut);
+    if (specialties) document.getElementById('chatSubtitle').textContent = `${t('chat_subtitle_patient')} · ${specialties}`;
     if (nut?.plan === 'gold') {
       const b = document.getElementById('chatNutBadge');
       if (b) { b.innerHTML = t('chat_clinic_badge'); b.style.cssText+='display:inline-block;background:#1de9b6;color:#004d40;'; }
     }
-    document.getElementById('chatSubtitle').textContent = t('chat_subtitle_patient');
-    const photoArea = document.getElementById('chatPhotoArea');
-    if (photoArea) photoArea.style.display = 'flex';
     await loadChatMessages();
     subscribeChat(currentProfile.nutritionist_id, currentUser.id);
   }
@@ -1809,12 +1852,12 @@ async function loadChatMessages() {
   const isProf = isProfessional();
   let nutId, patId;
   if (isProf) {
-    const sel = document.getElementById('chatPatientSelect');
-    patId = sel?.value;
+    patId = _chatPatientId;
     nutId = currentUser.id;
     if (!patId) { document.getElementById('chatMessages').innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:2rem;font-size:0.85rem;">${t('chat_select_patient_prompt')}</p>`; return; }
     _chatPatientId = patId;
-    document.getElementById('chatPartnerName').textContent = sel.options[sel.selectedIndex]?.text || t('chat_default_patient_name');
+    const selectedPatient = _chatPatients.find(p => p.id === patId);
+    document.getElementById('chatPartnerName').textContent = selectedPatient?.name || selectedPatient?.email || t('chat_default_patient_name');
   } else {
     patId = currentUser.id;
     nutId = currentProfile?.nutritionist_id;
@@ -1992,6 +2035,7 @@ window.requestUpgrade = requestUpgrade;
 window.initChatPanel = initChatPanel;
 window.loadChatMessages = loadChatMessages;
 window.renderChatMessages = renderChatMessages;
+window.selectChatPatient = selectChatPatient;
 window.sendChatMessage = sendChatMessage;
 window.uploadChatPdf = uploadChatPdf;
 window.uploadChatPhoto = uploadChatPhoto;
