@@ -1934,12 +1934,27 @@ window.saveProfile = async function() {
   const is_diabetic = document.getElementById('profileDiabetes')?.checked || false;
   const diseases = document.getElementById('profileDiseases')?.value.trim() || '';
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
+  const isProfProfile = typeof isProfessional === 'function' ? (isProfessional() || isAdmin()) : ['professional','nutritionist','admin'].includes(currentProfile?.role);
+  const professional_crn = document.getElementById('profileProfessionalCrn')?.value.trim() || null;
+  const professional_instagram = document.getElementById('profileProfessionalInstagram')?.value.trim() || null;
+  const professional_specialties = document.getElementById('profileProfessionalSpecialties')?.value.trim() || null;
+  const professional_bio = document.getElementById('profileProfessionalBio')?.value.trim() || null;
 
   const payload = { name, username: username || null, sex, age, weight, height, body_fat_pct, dob };
+  if (isProfProfile) {
+    payload.professional_crn = professional_crn;
+    payload.professional_instagram = professional_instagram;
+    payload.professional_specialties = professional_specialties;
+    payload.professional_bio = professional_bio;
+  }
   let { error } = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
   if (error && error.code === '42703') {
     if (error.message?.includes('dob')) delete payload.dob;
     if (error.message?.includes('body_fat_pct')) delete payload.body_fat_pct;
+    delete payload.professional_crn;
+    delete payload.professional_instagram;
+    delete payload.professional_specialties;
+    delete payload.professional_bio;
     const retry = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
     error = retry.error;
   }
@@ -1958,6 +1973,9 @@ window.saveProfile = async function() {
   } catch(e) { console.warn('[NutrIA] Não foi possível atualizar user_metadata:', e); }
 
   currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob, is_diabetic, diseases };
+  if (isProfProfile) {
+    currentProfile = { ...currentProfile, professional_crn, professional_instagram, professional_specialties, professional_bio };
+  }
   localStorage.setItem('cv_is_diabetic', is_diabetic);
   renderSidebarUser();
   updateHomePanel();

@@ -975,10 +975,127 @@ function closePhotoLightbox() {
 
 async function loadLinkedNutritionist() {
   if (!currentProfile?.nutritionist_id) return;
-  const { data } = await supabase.from('profiles').select('name').eq('id', currentProfile.nutritionist_id).single();
+  const { data } = await supabase.from('profiles').select('*').eq('id', currentProfile.nutritionist_id).single();
   if (data?.name) {
     document.getElementById('linkedNutritionistName').textContent = data.name;
     document.getElementById('nutritionistCard').style.display = 'flex';
+  }
+}
+
+const NUTRIA_EXAMPLE_PROFESSIONAL = {
+  id: 'nutria-example-professional',
+  name: 'Dra. Helena Costa',
+  professional_crn: 'CRN-3 00000',
+  professional_instagram: '@dra.helenanutria',
+  professional_specialties: 'Nutricao clinica, emagrecimento, diabetes e educacao alimentar',
+  professional_bio: 'Atendimento humanizado com foco em rotina real, metas possiveis e acompanhamento de pacientes com condicoes metabolicas.'
+};
+
+function getProfessionalSpecialties(profile) {
+  return profile?.professional_specialties || profile?.nutritionist_type || profile?.specialty || 'Nutricao clinica';
+}
+
+function getProfessionalBio(profile) {
+  return profile?.professional_bio || profile?.bio || profile?.description || 'Profissional disponivel para acompanhamento nutricional personalizado pela NutrIA.';
+}
+
+function instagramHref(handle) {
+  if (!handle) return '';
+  const clean = String(handle).trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/\/$/, '');
+  return clean ? `https://instagram.com/${encodeURIComponent(clean)}` : '';
+}
+
+function renderProfessionalCard(profile, options = {}) {
+  const linked = !!options.linked;
+  const safeName = window.escapeHtml(profile?.name || 'Profissional NutrIA');
+  const crn = profile?.professional_crn || profile?.crn || '';
+  const instagram = profile?.professional_instagram || profile?.instagram || '';
+  const instaUrl = instagramHref(instagram);
+  const specialties = getProfessionalSpecialties(profile);
+  const bio = getProfessionalBio(profile);
+  const initials = (profile?.name || 'PN').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const action = linked
+    ? `<button class="btn-secondary professional-card-action" onclick="showPanel('chat',document.getElementById('nav-chat')); if(typeof initChatPanel==='function') initChatPanel();"><i class="fa-solid fa-comments"></i> Abrir canal</button>`
+    : `<button class="btn-primary professional-card-action" onclick="requestProfessionalHire('${profile.id}')"><i class="fa-solid fa-handshake"></i> Contratar</button>`;
+
+  return `
+    <article class="professional-card ${linked ? 'is-linked' : ''}">
+      <div class="professional-card-head">
+        <div class="professional-avatar">${window.escapeHtml(initials || 'PN')}</div>
+        <div>
+          <h3>${safeName}</h3>
+          <p>${window.escapeHtml(specialties)}</p>
+        </div>
+      </div>
+      <div class="professional-card-meta">
+        ${crn ? `<span><i class="fa-solid fa-id-card-clip"></i> ${window.escapeHtml(crn)}</span>` : ''}
+        ${instagram ? `<a href="${instaUrl}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> ${window.escapeHtml(instagram)}</a>` : ''}
+      </div>
+      <p class="professional-card-bio">${window.escapeHtml(bio)}</p>
+      ${action}
+    </article>`;
+}
+
+async function renderProfessionalsPanel() {
+  const title = document.getElementById('professionalsPanelTitle');
+  const sub = document.getElementById('professionalsPanelSub');
+  const content = document.getElementById('professionalsPanelContent');
+  if (!content) return;
+
+  content.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Carregando profissionais...</p>';
+
+  if (isPatient() && currentProfile?.nutritionist_id) {
+    if (title) title.textContent = 'Meu profissional';
+    if (sub) sub.textContent = 'Dados publicos do profissional vinculado ao seu acompanhamento.';
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', currentProfile.nutritionist_id).single();
+    if (error || !data) {
+      content.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Nao foi possivel carregar o profissional vinculado agora.</p>';
+      return;
+    }
+    content.innerHTML = renderProfessionalCard(data, { linked: true });
+    return;
+  }
+
+  if (title) title.textContent = 'Profissionais da NutrIA';
+  if (sub) sub.textContent = 'Conheca profissionais disponiveis e escolha quem pode acompanhar sua rotina alimentar.';
+
+  let professionals = [];
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').limit(50);
+    if (!error && Array.isArray(data)) {
+      professionals = data.filter(p => ['professional', 'nutritionist'].includes(p.role));
+    }
+  } catch(e) {
+    console.warn('[renderProfessionalsPanel] profiles lookup failed:', e);
+  }
+
+  const items = [NUTRIA_EXAMPLE_PROFESSIONAL, ...professionals.filter(p => p.id !== NUTRIA_EXAMPLE_PROFESSIONAL.id)];
+  content.innerHTML = items.length
+    ? items.map(p => renderProfessionalCard(p)).join('')
+    : renderProfessionalCard(NUTRIA_EXAMPLE_PROFESSIONAL);
+}
+
+async function requestProfessionalHire(professionalId) {
+  if (!currentUser) {
+    showToast('Entre na sua conta para contratar um profissional.', 'error');
+    return;
+  }
+  if (professionalId === NUTRIA_EXAMPLE_PROFESSIONAL.id) {
+    showToast('Profissional de exemplo selecionado. Em producao, aqui abre o fluxo de contratacao.');
+    return;
+  }
+  try {
+    const { error } = await supabase.from('professional_hire_requests').insert({
+      user_id: currentUser.id,
+      professional_id: professionalId,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    });
+    if (error) throw error;
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao enviada ao profissional.');
+  } catch(e) {
+    console.warn('[requestProfessionalHire]', e);
+    showToast('Profissional selecionado. Fluxo de contratacao sera finalizado pelo admin.');
   }
 }
 
@@ -1434,7 +1551,27 @@ async function saveProfile() {
   const height = parseFloat(document.getElementById('profileHeight').value) || null;
 
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
-  const { error } = await supabase.from('profiles').update({ name, username: username || null, sex, age, weight, height }).eq('id', currentUser.id);
+  const isProfProfile = isProfessional() || isAdmin();
+  const professional_crn = document.getElementById('profileProfessionalCrn')?.value.trim() || null;
+  const professional_instagram = document.getElementById('profileProfessionalInstagram')?.value.trim() || null;
+  const professional_specialties = document.getElementById('profileProfessionalSpecialties')?.value.trim() || null;
+  const professional_bio = document.getElementById('profileProfessionalBio')?.value.trim() || null;
+  const payload = { name, username: username || null, sex, age, weight, height };
+  if (isProfProfile) {
+    payload.professional_crn = professional_crn;
+    payload.professional_instagram = professional_instagram;
+    payload.professional_specialties = professional_specialties;
+    payload.professional_bio = professional_bio;
+  }
+  let { error } = await supabase.from('profiles').update(payload).eq('id', currentUser.id);
+  if (error && error.code === '42703') {
+    delete payload.professional_crn;
+    delete payload.professional_instagram;
+    delete payload.professional_specialties;
+    delete payload.professional_bio;
+    const retry = await supabase.from('profiles').update(payload).eq('id', currentUser.id);
+    error = retry.error;
+  }
   if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
 
   // Sincroniza o nome também no auth.user_metadata para não reverter ao relogar
@@ -1450,6 +1587,9 @@ async function saveProfile() {
   }
 
   currentProfile = { ...currentProfile, name, sex, age, weight, height };
+  if (isProfProfile) {
+    currentProfile = { ...currentProfile, professional_crn, professional_instagram, professional_specialties, professional_bio };
+  }
   renderSidebarUser();
   updateHomePanel();
   if (typeof showSuccessAnimated === 'function') {
@@ -1828,6 +1968,8 @@ window.setRecordPeriod = setRecordPeriod;
 window.generatePatientRecordPdf = generatePatientRecordPdf;
 window.buildRecordHtml = buildRecordHtml;
 window.loadLinkedNutritionist = loadLinkedNutritionist;
+window.renderProfessionalsPanel = renderProfessionalsPanel;
+window.requestProfessionalHire = requestProfessionalHire;
 window.checkPatientNotifications = checkPatientNotifications;
 window.loadAdminPanel = loadAdminPanel;
 window.refreshAdminUsers = refreshAdminUsers;

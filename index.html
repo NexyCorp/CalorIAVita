@@ -592,6 +592,9 @@
       <button class="nav-item" id="nav-recipes" onclick="showPanel('recipes',this)">
         <span class="nav-icon"><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="nav_recipes">Receitas</span>
       </button>
+      <button class="nav-item" id="nav-professionals" onclick="showPanel('professionals',this)">
+        <span class="nav-icon"><i class="fa-solid fa-user-doctor ic-stethoscope"></i></span><span>Profissionais</span>
+      </button>
       <button class="nav-item" id="nav-subscription" onclick="showPanel('subscription',this)">
         <span class="nav-icon"><i class="fa-solid fa-credit-card"></i></span><span>Assinatura</span>
       </button>
@@ -1427,6 +1430,17 @@
       </div>
     </div>
 
+    <!-- ══ PROFESSIONALS PANEL ══ -->
+    <div class="panel" id="panel-professionals">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> <span id="professionalsPanelTitle">Profissionais da NutrIA</span></div>
+        <div class="card-sub" id="professionalsPanelSub">Conheca profissionais disponiveis e escolha quem pode acompanhar sua rotina alimentar.</div>
+        <div id="professionalsPanelContent" class="professionals-grid" style="margin-top:1.25rem;">
+          <p style="color:var(--text-muted);font-size:0.88rem;">Carregando profissionais...</p>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ ADMIN PANEL ══ -->
     <div class="panel" id="panel-admin">
       <div class="card">
@@ -1559,6 +1573,28 @@
               <button type="button" onclick="profileCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 0.9rem;font-family:var(--font-body);font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-calculator"></i> Calcular</button>
             </div>
             <div id="profileFatClassification" style="display:none;margin-top:0.4rem;padding:0.4rem 0.75rem;border-radius:var(--radius-sm);font-size:0.78rem;font-weight:600;"></div>
+          </div>
+        </div>
+
+        <div id="professionalPublicProfileFields" class="professional-public-fields" style="display:none;">
+          <div class="professional-public-title"><i class="fa-solid fa-id-card-clip ic-stethoscope"></i> Perfil publico para pacientes</div>
+          <div class="profile-grid">
+            <div class="form-field">
+              <label class="form-label">CRN</label>
+              <input type="text" id="profileProfessionalCrn" class="form-input" placeholder="Ex: CRN-3 12345">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Instagram</label>
+              <input type="text" id="profileProfessionalInstagram" class="form-input" placeholder="@seuinstagram">
+            </div>
+            <div class="form-field" style="grid-column:1/-1;">
+              <label class="form-label">Especializacoes</label>
+              <input type="text" id="profileProfessionalSpecialties" class="form-input" placeholder="Ex: Nutricao clinica, diabetes, emagrecimento">
+            </div>
+            <div class="form-field" style="grid-column:1/-1;">
+              <label class="form-label">Descricao profissional</label>
+              <textarea id="profileProfessionalBio" class="form-input" rows="4" placeholder="Conte aos pacientes como voce trabalha e quais cuidados oferece." style="resize:vertical;"></textarea>
+            </div>
           </div>
         </div>
 

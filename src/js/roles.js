@@ -177,6 +177,19 @@ function applyPlanRestrictions() {
 // Garante que o painel de perfil sempre reflita os dados mais recentes salvos
 function fillProfilePanel() {
   renderSidebarUser();
+  const publicFields = document.getElementById('professionalPublicProfileFields');
+  const showPublicFields = isProfessional() || isAdmin();
+  if (publicFields) publicFields.style.display = showPublicFields ? 'block' : 'none';
+  if (showPublicFields) {
+    const setVal = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.value = value || '';
+    };
+    setVal('profileProfessionalCrn', currentProfile?.professional_crn || currentProfile?.crn || '');
+    setVal('profileProfessionalInstagram', currentProfile?.professional_instagram || currentProfile?.instagram || '');
+    setVal('profileProfessionalSpecialties', currentProfile?.professional_specialties || currentProfile?.nutritionist_type || '');
+    setVal('profileProfessionalBio', currentProfile?.professional_bio || currentProfile?.bio || currentProfile?.description || '');
+  }
   loadMyNutritionistRequestStatus();
 }
 
