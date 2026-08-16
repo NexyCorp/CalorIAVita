@@ -67,7 +67,7 @@ function extractJSON(text) {
   return JSON.parse(s.substring(start, end+1));
 }
 
-async function _groqFetch(model, messages, maxTokens = 4096) {
+async function _groqFetch(model, messages, maxTokens = 1500) {
   const key = getGroqKey();
   if (!key || key.length < 10) throw new Error('401 — Chave Groq não configurada');
   let res;
@@ -83,7 +83,7 @@ async function _groqFetch(model, messages, maxTokens = 4096) {
   return res;
 }
 
-async function callGroq(messages, retries = 3, maxTokens = 4096) {
+async function callGroq(messages, retries = 3, maxTokens = 1500) {
   let lastErr;
   for (let attempt = 0; attempt < retries; attempt++) {
     // Na última tentativa, usa modelo menor como fallback
