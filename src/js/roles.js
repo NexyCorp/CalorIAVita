@@ -269,11 +269,15 @@ function renderSidebarUser() {
   }
 
   // Dropdown
-  document.getElementById('dropdownName').textContent = name || currentUser?.email?.split('@')[0] || '—';
-  document.getElementById('dropdownEmail').textContent = currentUser?.email || '—';
+  const ddName = document.getElementById('dropdownName');
+  if (ddName) ddName.textContent = name || currentUser?.email?.split('@')[0] || '—';
+  const ddEmail = document.getElementById('dropdownEmail');
+  if (ddEmail) ddEmail.textContent = currentUser?.email || '—';
   const badge = document.getElementById('dropdownPlanBadge');
-  badge.textContent = _getPlanBadgeText();
-  badge.className = 'plan-badge-inline ' + _getPlanBadgeClass();
+  if (badge) {
+    badge.textContent = _getPlanBadgeText();
+    badge.className = 'plan-badge-inline ' + _getPlanBadgeClass();
+  }
 
   // Profile panel
   // Exibe @username e plano abaixo do avatar
@@ -283,14 +287,17 @@ function renderSidebarUser() {
   const pbadge = document.getElementById('profilePlanBadgeDisplay');
   if (pbadge) pbadge.innerHTML = _getPlanLabel().replace('ic-admin','ic-stethoscope').replace('ic-search','ic-leaf') || '';
 
-  document.getElementById('profileUsername') && (document.getElementById('profileUsername').value = uname);
-  document.getElementById('profileName').value = currentProfile?.name || '';
-  document.getElementById('profileEmail').value = currentUser?.email || '';
-  document.getElementById('profileSex').value = currentProfile?.sex || 'f';
-  document.getElementById('profileAge').value = currentProfile?.age || '';
-  document.getElementById('profileWeight').value = currentProfile?.weight || '';
-  document.getElementById('profileHeight').value = currentProfile?.height || '';
-  document.getElementById('profileInitialsBig').textContent = initials;
+  const elPName = document.getElementById('profileUsername'); if (elPName) elPName.value = uname;
+  const elPFullName = document.getElementById('profileName'); if (elPFullName) elPFullName.value = currentProfile?.name || '';
+  const elPEmail = document.getElementById('profileEmail'); if (elPEmail) elPEmail.value = currentUser?.email || '';
+  const elPSex = document.getElementById('profileSex'); if (elPSex) elPSex.value = currentProfile?.sex || 'f';
+  const elPAge = document.getElementById('profileAge'); if (elPAge) elPAge.value = currentProfile?.age || '';
+  const elPWeight = document.getElementById('profileWeight'); if (elPWeight) elPWeight.value = currentProfile?.weight || '';
+  const elPHeight = document.getElementById('profileHeight'); if (elPHeight) elPHeight.value = currentProfile?.height || '';
+  
+  const pInitials = document.getElementById('profileInitialsBig');
+  if (pInitials) pInitials.textContent = initials;
+
   if (currentProfile?.avatar_url) {
     const bigDiv = document.getElementById('profileAvatarBig');
     if (currentProfile.avatar_url.startsWith('__emoji__')) {
