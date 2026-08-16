@@ -1718,10 +1718,12 @@ function closeLgpdModal() {
 </script>
 
 <!-- Create Patient Modal -->
-<div class="modal-overlay" id="createPatientModal">
-  <div class="modal-box" style="max-width:620px;width:95vw;max-height:92vh;overflow-y:auto;">
-    <button class="modal-close" onclick="safeCloseCreatePatientModal()" title="Fechar / Minimizar"><i class="fa-solid fa-xmark ic-alert"></i></button>
-    <div class="modal-title"><i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_title">Cadastrar Paciente</span></div>
+<div class="modal-overlay" id="createPatientModal" onmousedown="if(event.target===this) safeCloseCreatePatientModal(true)">
+  <div class="modal-box" style="max-width:620px;width:95vw;max-height:92vh;overflow-y:auto;position:relative;">
+    <div style="position:sticky; top:0; z-index:100; background:var(--bg-card); display:flex; justify-content:space-between; align-items:center; padding:1.2rem 0; margin-top:-1.2rem; margin-bottom:1rem; border-bottom:1px solid var(--border);">
+      <div class="modal-title" style="margin:0;"><i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_title">Cadastrar Paciente</span></div>
+      <button class="modal-close" style="position:static; margin:0;" onclick="safeCloseCreatePatientModal(false)" title="Fechar / Minimizar"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    </div>
     <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.2rem;" data-i18n="create_patient_desc">Crie a conta do paciente diretamente. Na primeira entrada ele deverá trocar a senha.</p>
 
     <!-- Avatar -->
@@ -3018,6 +3020,11 @@ function closeLgpdModal() {
 
 
 <script src="/globals.js"></script>
+<!-- Floating Badge for Minimized Patient Registration Form -->
+<button id="cpMinimizedBadge" style="display:none; position:fixed; bottom:80px; right:20px; background:var(--orange-hot); color:white; border:none; border-radius:50px; padding:0.8rem 1.2rem; font-family:var(--font-body); font-weight:700; font-size:0.9rem; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:9999; cursor:pointer;" onclick="restoreCreatePatientModal()">
+  <i class="fa-solid fa-pen-to-square"></i> Cadastro Minimizado
+</button>
+
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

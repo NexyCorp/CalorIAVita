@@ -302,6 +302,8 @@ function openCreatePatientModal() {
 
 function closeCreatePatientModal() {
   document.getElementById('createPatientModal').classList.remove('show');
+  const badge = document.getElementById('cpMinimizedBadge');
+  if (badge) badge.style.display = 'none';
 }
 
 function updateCpInitial() {
@@ -2085,24 +2087,42 @@ window.cancelSubscription = cancelSubscription;
 // saveProfile and renderSidebarUser extended above — do not overwrite
 
 // Item 14: Safe close for patient registration modal (confirm discard or minimize)
-window.safeCloseCreatePatientModal = function() {
+window.restoreCreatePatientModal = function() {
+  document.getElementById('createPatientModal')?.classList.add('show');
+  document.getElementById('cpMinimizedBadge').style.display = 'none';
+};
+
+// Item 14: Safe close for patient registration modal (confirm discard or minimize)
+window.safeCloseCreatePatientModal = function(forceMinimize) {
   const modal = document.getElementById('createPatientModal');
+  const badge = document.getElementById('cpMinimizedBadge');
   if (!modal) return;
+
+  if (forceMinimize) {
+    modal.classList.remove('show');
+    if (badge) badge.style.display = 'block';
+    return;
+  }
+
   // Check if any fields have been filled
   const nameVal = document.getElementById('cpName')?.value.trim();
   const emailVal = document.getElementById('cpEmail')?.value.trim();
   const hasData = nameVal || emailVal;
+
   if (hasData) {
     const choice = confirm('O que deseja fazer com o formulário?\n\nClique "OK" para descartar e fechar.\nClique "Cancelar" para minimizar (manter em segundo plano).');
     if (choice) {
       // Discard: close and clear
       closeCreatePatientModal();
+      if (badge) badge.style.display = 'none';
     } else {
       // Minimize: just hide without clearing
       modal.classList.remove('show');
+      if (badge) badge.style.display = 'block';
     }
   } else {
     closeCreatePatientModal();
+    if (badge) badge.style.display = 'none';
   }
 };
 
