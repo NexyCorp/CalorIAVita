@@ -120,9 +120,11 @@ async function callGroq(messages, retries = 3, maxTokens = 1500) {
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  // Use GROQ_MODEL_FAST (llama-3.1-8b-instant) which has a higher TPM limit (30k)
-  // This allows us to request 6000 tokens without hitting 429 instantly.
-  return _groqFetch(GROQ_MODEL_FAST, messages, 6000).then(async res => {
+  // Ajuste do maxTokens para 3500:
+  // A conta gratuita do Groq geralmente tem um limite de 6000 TPM (Tokens Per Minute) para o Llama 70B.
+  // Se pedirmos maxTokens = 6000 ou mais, a soma (prompt + maxTokens) ultrapassa 6000 e a API recusa (erro 413).
+  // Com 3500, temos tokens suficientes para gerar a dieta inteira, mas deixamos "espaço" para o tamanho do prompt.
+  return _groqFetch(GROQ_MODEL, messages, 3500).then(async res => {
     if (!res.ok) {
       if (res.status === 429) {
         rotateGroqKey();
