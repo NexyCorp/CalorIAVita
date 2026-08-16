@@ -1554,8 +1554,12 @@
         </div>
 
         <div class="form-field" style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; margin-bottom:0.75rem;">
-          <input type="checkbox" id="profileDiabetes" onchange="localStorage.setItem('cv_is_diabetic', this.checked)">
+          <input type="checkbox" id="profileDiabetes">
           <label for="profileDiabetes" data-i18n="diabetes_label" style="font-size:0.85rem; cursor:pointer; user-select:none; font-weight:600; color:var(--orange-hot);">Tenho Diabetes ou Pré-Diabetes</label>
+        </div>
+        <div class="form-field" style="margin-bottom:0.75rem;">
+          <label class="form-label" style="font-size:0.85rem; font-weight:600; color:var(--orange-hot);">Outras Doenças/Restrições (Ex: Hipertensão)</label>
+          <input type="text" id="profileDiseases" class="form-input" placeholder="Separado por vírgulas...">
         </div>
 
         <div class="form-field" style="margin-top:0.75rem;">
@@ -1696,9 +1700,9 @@ function closeLgpdModal() {
 </script>
 
 <!-- Create Patient Modal -->
-<div class="modal-overlay" id="createPatientModal" onclick="if(event.target===this)closeCreatePatientModal()">
+<div class="modal-overlay" id="createPatientModal">
   <div class="modal-box" style="max-width:620px;width:95vw;max-height:92vh;overflow-y:auto;">
-    <button class="modal-close" onclick="closeCreatePatientModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    <button class="modal-close" onclick="safeCloseCreatePatientModal()" title="Fechar / Minimizar"><i class="fa-solid fa-xmark ic-alert"></i></button>
     <div class="modal-title"><i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_title">Cadastrar Paciente</span></div>
     <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.2rem;" data-i18n="create_patient_desc">Crie a conta do paciente diretamente. Na primeira entrada ele deverá trocar a senha.</p>
 

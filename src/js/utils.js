@@ -934,6 +934,12 @@ function showPanel(name, navEl) {
   // Paywall para painel profissional
   if (name === 'prof' && !isProfessional() && !isAdmin()) return;
 
+  // Restrições de paciente: sem assinatura, sem calculadora/meta
+  if (isPatient()) {
+    if (name === 'subscription') { showToast('<i class="fa-solid fa-lock"></i> Assinatura não disponível para pacientes.', 'error'); return; }
+    if (name === 'goal') { showToast('<i class="fa-solid fa-lock"></i> Calculadora não disponível para pacientes.', 'error'); return; }
+  }
+
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
@@ -967,6 +973,9 @@ function showPanel(name, navEl) {
   // Highlight nav
   const navBtn = navEl || document.getElementById('nav-' + name);
   if (navBtn) navBtn.classList.add('active');
+
+  // Persistir tela no sessionStorage para restaurar ao recarregar
+  sessionStorage.setItem('nutria_last_panel', name);
 
   // Close sidebar on mobile
   if (window.innerWidth < 768) closeSidebar();
@@ -1177,6 +1186,55 @@ window.loadSubscriptionDashboard = async function() {
       </div>`;
   }
 };
+
+// ═══════════════════════════════════════
+// Item 8: Auto-upgrade Standard Free → Standard Pro
+// (sem necessidade de aprovação de admin)
+// ═══════════════════════════════════════
+window.autoUpgradeStandardPro = async function() {
+  if (!window.currentUser) { showToast('Você precisa estar logado.', 'error'); return; }
+  if (!window.isStandardFree || !window.isStandardFree()) {
+    showToast('Upgrade disponível apenas para usuários Gratuitos.', 'error');
+    return;
+  }
+
+  showToast('<i class="fa-solid fa-spinner fa-spin"></i> Processando upgrade...', 'info');
+  const db = window.supabase || window._db || (typeof supabase !== 'undefined' ? supabase : null);
+  try {
+    const { error } = await db.from('profiles').update({ plan: 'standard_pro' }).eq('id', window.currentUser.id);
+    if (error) throw error;
+
+    // Atualizar o perfil local
+    if (window.currentProfile) window.currentProfile.plan = 'standard_pro';
+    if (typeof window.setupRoleUI === 'function') window.setupRoleUI();
+    if (typeof window.applyPlanRestrictions === 'function') window.applyPlanRestrictions();
+    if (typeof window.renderSidebarUser === 'function') window.renderSidebarUser();
+    if (typeof window.loadSubscriptionDashboard === 'function') window.loadSubscriptionDashboard();
+
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Parabéns! Você agora é Standard Pro!');
+  } catch(err) {
+    console.error('[autoUpgradeStandardPro]', err);
+    showToast('Erro ao fazer upgrade: ' + err.message, 'error');
+  }
+};
+
+// Item 13: requestUpgrade - roteador de upgrade automático vs. com aprovação de admin
+window.requestUpgrade = async function(tier) {
+  // Standard Free → Standard Pro: automático, sem admin
+  if (!tier || tier === 'standard_pro') {
+    return window.autoUpgradeStandardPro();
+  }
+  // Para profissional: requer CRN e aprovação de admin
+  if (tier === 'professional_basic' || tier === 'professional_gold') {
+    if (typeof window.openNutritionistRequest === 'function') {
+      window.openNutritionistRequest(tier);
+    }
+    return;
+  }
+  // Fallback: abre modal de upgrade
+  if (typeof window.openUpgradeModal === 'function') window.openUpgradeModal();
+};
+
 
 
 

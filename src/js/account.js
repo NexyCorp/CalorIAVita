@@ -1940,6 +1940,8 @@ window.saveProfile = async function() {
   const height = parseFloat(document.getElementById('profileHeight')?.value) || null;
   const body_fat_pct = parseFloat(document.getElementById('profileBodyFat')?.value) || null;
   const dob = document.getElementById('profileDob')?.value || null;
+  const is_diabetic = document.getElementById('profileDiabetes')?.checked || false;
+  const diseases = document.getElementById('profileDiseases')?.value.trim() || '';
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
 
   const payload = { name, username: username || null, sex, age, weight, height, body_fat_pct, dob };
@@ -1953,11 +1955,19 @@ window.saveProfile = async function() {
   if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
 
   try {
-    await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name } });
-    if (currentUser?.user_metadata) { currentUser.user_metadata.name = name; currentUser.user_metadata.full_name = name; }
+    await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name, body_fat_pct, dob, is_diabetic, diseases } });
+    if (currentUser?.user_metadata) { 
+      currentUser.user_metadata.name = name; 
+      currentUser.user_metadata.full_name = name; 
+      currentUser.user_metadata.body_fat_pct = body_fat_pct;
+      currentUser.user_metadata.dob = dob;
+      currentUser.user_metadata.is_diabetic = is_diabetic;
+      currentUser.user_metadata.diseases = diseases;
+    }
   } catch(e) { console.warn('[NutrIA] Não foi possível atualizar user_metadata:', e); }
 
-  currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob };
+  currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob, is_diabetic, diseases };
+  localStorage.setItem('cv_is_diabetic', is_diabetic);
   renderSidebarUser();
   updateHomePanel();
   profileUpdateFatClassification();
@@ -1968,21 +1978,30 @@ window.saveProfile = async function() {
 const _origRenderSidebarUser = window.renderSidebarUser;
 window.renderSidebarUser = function() {
   _origRenderSidebarUser();
-  if (currentProfile?.dob) {
+  const meta = currentUser?.user_metadata || {};
+  const dobVal = currentProfile?.dob || meta.dob;
+  const bfVal = currentProfile?.body_fat_pct || meta.body_fat_pct;
+  const isDiab = currentProfile?.is_diabetic || meta.is_diabetic || localStorage.getItem('cv_is_diabetic') === 'true';
+  const disVal = currentProfile?.diseases || meta.diseases || '';
+
+  if (dobVal) {
     const dobEl = document.getElementById('profileDob');
-    if (dobEl) dobEl.value = currentProfile.dob;
+    if (dobEl) dobEl.value = dobVal;
     profileUpdateAgeFromDob();
     profileDetectLifeStage();
   }
-  if (currentProfile?.body_fat_pct) {
+  if (bfVal) {
     const bfEl = document.getElementById('profileBodyFat');
-    if (bfEl) { bfEl.value = currentProfile.body_fat_pct; profileUpdateFatClassification(); }
+    if (bfEl) { bfEl.value = bfVal; profileUpdateFatClassification(); }
   }
-  const isDiabetic = localStorage.getItem('cv_is_diabetic') === 'true';
+  
   const profileDiabEl = document.getElementById('profileDiabetes');
-  if (profileDiabEl) profileDiabEl.checked = isDiabetic;
+  if (profileDiabEl) profileDiabEl.checked = !!isDiab;
   const calcDiabEl = document.getElementById('calcDiabetes');
-  if (calcDiabEl) calcDiabEl.checked = isDiabetic;
+  if (calcDiabEl) calcDiabEl.checked = !!isDiab;
+  
+  const disEl = document.getElementById('profileDiseases');
+  if (disEl) disEl.value = disVal;
 };
 
 // Expor funções para o escopo global
@@ -2026,4 +2045,42 @@ window.saveDiseaseFormData = saveDiseaseFormData;
 window.loadSubscriptionDashboard = loadSubscriptionDashboard;
 window.cancelSubscription = cancelSubscription;
 // saveProfile and renderSidebarUser extended above — do not overwrite
+
+// Item 14: Safe close for patient registration modal (confirm discard or minimize)
+window.safeCloseCreatePatientModal = function() {
+  const modal = document.getElementById('createPatientModal');
+  if (!modal) return;
+  // Check if any fields have been filled
+  const nameVal = document.getElementById('cpName')?.value.trim();
+  const emailVal = document.getElementById('cpEmail')?.value.trim();
+  const hasData = nameVal || emailVal;
+  if (hasData) {
+    const choice = confirm('O que deseja fazer com o formulário?\n\nClique "OK" para descartar e fechar.\nClique "Cancelar" para minimizar (manter em segundo plano).');
+    if (choice) {
+      // Discard: close and clear
+      closeCreatePatientModal();
+    } else {
+      // Minimize: just hide without clearing
+      modal.classList.remove('show');
+    }
+  } else {
+    closeCreatePatientModal();
+  }
+};
+
+// Item 17/18/19: Esconder itens de nav restritos para pacientes
+window._applyPatientUIRestrictions = function() {
+  if (!isPatient()) return;
+  // Esconder nav de assinatura e metas para pacientes
+  const navSub = document.getElementById('nav-subscription');
+  if (navSub) navSub.style.display = 'none';
+  const navGoal = document.getElementById('nav-goal');
+  if (navGoal) navGoal.style.display = 'none';
+  // Esconder botão de gerar dieta/receita com IA para pacientes
+  const aiDietBtn = document.getElementById('generateAIDietBtn');
+  if (aiDietBtn) aiDietBtn.style.display = 'none';
+  const aiRecipeBtn = document.getElementById('aiRecipeBtn');
+  if (aiRecipeBtn) aiRecipeBtn.style.display = 'none';
+};
+
 

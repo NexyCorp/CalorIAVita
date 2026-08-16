@@ -318,6 +318,9 @@ function renderSidebarUser() {
     const dbn = document.getElementById('dropdownBecomeNut');
     if (dbn) dbn.style.display = 'none';
   }
+
+  // Apply patient-specific UI restrictions (Items 17, 18, 19)
+  if (typeof window._applyPatientUIRestrictions === 'function') window._applyPatientUIRestrictions();
 }
 
 // Helper for plan naming

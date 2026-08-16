@@ -1348,7 +1348,23 @@ async function reviewNutritionistRequest(requestId, action) {
     return;
   }
 
-  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao negada e motivo registrado.');
+  // Notificar o usuário que sua solicitação foi negada (Item 11)
+  const tierLabel = req.requested_tier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+  const rejReasonLabels = {
+    dados_incorretos: 'Dados informados estao errados',
+    dados_inconsistentes: 'Dados informados nao condizem com outros dados',
+    documentacao_insuficiente: 'Documentacao ou informacoes insuficientes'
+  };
+  const rejReasonText = rejReasonLabels[reason] || reason;
+  const rejFieldsText = selectedFields.join(', ');
+  await _getSb().from('admin_notices').insert({
+    admin_id: currentUser.id,
+    user_id: req.user_id,
+    title: `❌ Solicitação Negada — ${tierLabel}`,
+    message: `Sua solicitação para o plano ${tierLabel} foi negada. Motivo: ${rejReasonText}. Campos com problema: ${rejFieldsText}. Corrija as informações e envie uma nova solicitação.`
+  });
+
+  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao negada e usuário notificado.');
   await loadNutritionistRequests();
 }
 

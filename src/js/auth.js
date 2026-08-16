@@ -426,7 +426,17 @@ async function initApp(user) {
     applyPlanRestrictions();
     renderSidebarUser();
     initDiaryDate();
-    showPanel('home', document.getElementById('nav-home'));
+
+    // Restaurar tela da sessão anterior (Item 9)
+    const lastPanel = sessionStorage.getItem('nutria_last_panel') || 'home';
+    const restrictedForPatient = ['subscription', 'goal', 'prof', 'admin'];
+    const restrictedForFree = ['diary', 'camera', 'recipes'];
+    let panelToRestore = lastPanel;
+    if (isPatient() && restrictedForPatient.includes(lastPanel)) panelToRestore = 'home';
+    if (isStandardFree() && restrictedForFree.includes(lastPanel)) panelToRestore = 'home';
+    if ((lastPanel === 'prof' || lastPanel === 'admin') && !isProfessional() && !isAdmin()) panelToRestore = 'home';
+    showPanel(panelToRestore, document.getElementById('nav-' + panelToRestore));
+
     applyLanguage();
     _appInitialized = true;
     setAuthLoading(false);
