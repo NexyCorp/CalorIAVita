@@ -1,4 +1,4 @@
-﻿// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // FEATURE 1: SUGAR & WATER TRACKING
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 // VariÃ¡veis globais declaradas em globals.js
@@ -443,7 +443,21 @@ async function generateAIDiet() {
   const ctx = `UsuÃ¡rio:${userLine}. Meta:${diaryGoal}kcal,Ã¡guaâ‰¥${diaryGoalWater}ml,aÃ§Ãºcarâ‰¤${diaryGoalSugar}g. Obj:${goalSel}. Restr:${restrict}.${anamneseCtx ? ' ' + anamneseCtx : ''}${obs ? ' Obs:' + obs : ''}`;
 
   try {
-    const askFn = window.callGroqLarge || window.callGroq;
+    // Force use of GROQ_MODEL_FAST (30,000 TPM limit) instead of 70b (6,000 TPM limit)
+    // This prevents silent token truncation when requesting 7 days consecutively.
+    const askFn = async (msgs) => {
+      const res = await window._groqFetch(window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant', msgs, 2000);
+      if (!res.ok) {
+        if (res.status === 429) {
+          window.rotateGroqKey?.();
+          throw new Error('429');
+        }
+        throw new Error('Groq Error');
+      }
+      const data = await res.json();
+      return window.extractJSON(data.choices[0].message.content);
+    };
+
     const sysMsg = { role:'system', content:'Retorne SOMENTE JSON vÃ¡lido. Sem markdown, sem texto extra.' };
 
     // Generate one day at a time to stay within Groq token limits
