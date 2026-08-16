@@ -1519,3 +1519,5 @@ window.saveDietPlan = saveDietPlan;
 window.loadDietPlan = loadDietPlan;
 window.toggleDietFoodProgress = toggleDietFoodProgress;
 window.renderSavedDiet = renderSavedDiet;
+ 
+ 
