@@ -20,6 +20,16 @@ function setAuthLoading(on) {
 }
 
 let _loginInProgress = false;
+const LOADING_ANIMATION_MIN_MS = 3000;
+const _loadingStartedAt = Date.now();
+
+function hideLoadingOverlayWhenReady() {
+  const lo = document.getElementById('loadingOverlay');
+  if (!lo || lo.classList.contains('hidden')) return;
+  const elapsed = Date.now() - _loadingStartedAt;
+  const wait = Math.max(0, LOADING_ANIMATION_MIN_MS - elapsed);
+  setTimeout(() => lo.classList.add('hidden'), wait);
+}
 
 function withTimeout(promise, ms, label) {
   return Promise.race([
@@ -465,9 +475,7 @@ async function initApp(user) {
 function showApp(user) {
   document.getElementById('authOverlay').classList.add('hidden');
   document.getElementById('landingPage').classList.add('hidden');
-  // Hide loading overlay with a short delay for smoothness
-  const lo = document.getElementById('loadingOverlay');
-  if (lo) setTimeout(() => lo.classList.add('hidden'), 400);
+  hideLoadingOverlayWhenReady();
   document.getElementById('appShell').classList.add('visible');
   document.getElementById('appShell').style.display = 'flex';
   startProfileRealtime(user.id);
@@ -578,9 +586,7 @@ function applyProfileUpdate(newData) {
     _cookieDel(_CV_COOKIE);
     _appInitialized = false; _initAppRunning = false;
     currentUser = null; currentProfile = null;
-    // Hide loading overlay, show landing page instead of auth
-    const lo = document.getElementById('loadingOverlay');
-    if (lo) lo.classList.add('hidden');
+    hideLoadingOverlayWhenReady();
     document.getElementById('landingPage').classList.remove('hidden');
     document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('appShell').classList.remove('visible');
@@ -609,8 +615,7 @@ setTimeout(() => {
     } else {
       // No user — show landing page
       setAuthLoading(false);
-      const lo = document.getElementById('loadingOverlay');
-      if (lo) lo.classList.add('hidden');
+      hideLoadingOverlayWhenReady();
       document.getElementById('landingPage').classList.remove('hidden');
       document.getElementById('authOverlay').classList.add('hidden');
       if (typeof initLandingPage === 'function') initLandingPage();
