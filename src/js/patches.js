@@ -406,18 +406,18 @@ function getSelectedRestrictions() {
 async function generateAIDiet() {
   const goalSel  = document.getElementById('dietGenGoal').value;
   const restrict = getSelectedRestrictions();
-  const numMeals = document.getElementById('dietGenMeals').value;
-  const numDays  = document.getElementById('dietGenDays').value;
+  const numMeals = parseInt(document.getElementById('dietGenMeals').value) || 4;
+  const numDays  = parseInt(document.getElementById('dietGenDays').value) || 1;
   const obs      = document.getElementById('dietGenObs').value.trim();
 
   // Build context from user profile + anamnese
   const p = currentProfile || {};
-  const profileCtx = [
-    p.age    ? `idade: ${p.age} anos`    : '',
-    p.sex    ? `sexo: ${p.sex === 'm' ? 'masculino' : 'feminino'}` : '',
-    p.weight ? `peso: ${p.weight}kg`     : '',
-    p.height ? `altura: ${p.height}cm`   : '',
-  ].filter(Boolean).join(', ');
+  const userLine = [
+    p.age    ? `${p.age}a` : '',
+    p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
+    p.weight ? `${p.weight}kg` : '',
+    p.height ? `${p.height}cm` : '',
+  ].filter(Boolean).join('/');
 
   // Fetch anamnese if available
   let anamneseCtx = '';
@@ -426,39 +426,63 @@ async function generateAIDiet() {
     const { data: an } = await sb.from('patient_anamnese').select('diseases_general,diseases_chronic_auto,diseases_other,allergies,food_aversions,food_preferences').eq('patient_id', currentUser.id).maybeSingle();
     if (an) {
       const diseases = [...(an.diseases_general||[]), ...(an.diseases_chronic_auto||[])].filter(Boolean);
-      if (diseases.length) anamneseCtx += ` doenças: ${diseases.join(', ')};`;
-      if (an.diseases_other) anamneseCtx += ` outras condições: ${an.diseases_other};`;
-      if ((an.allergies||[]).length) anamneseCtx += ` alergias: ${an.allergies.join(', ')};`;
-      if (an.food_aversions) anamneseCtx += ` aversões: ${an.food_aversions};`;
-      if (an.food_preferences) anamneseCtx += ` preferências: ${an.food_preferences};`;
+      if (diseases.length) anamneseCtx += `doenças:${diseases.join(',')};`;
+      if (an.diseases_other) anamneseCtx += `outras:${an.diseases_other};`;
+      if ((an.allergies||[]).length) anamneseCtx += `alergias:${an.allergies.join(',')};`;
+      if (an.food_aversions) anamneseCtx += `aversões:${an.food_aversions};`;
+      if (an.food_preferences) anamneseCtx += `prefs:${an.food_preferences};`;
     }
   } catch(e) {}
 
-  // Compact prompt to stay within Groq Free Tier token limits
-  const userLine = [
-    p.age    ? `${p.age}a` : '',
-    p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
-    p.weight ? `${p.weight}kg` : '',
-    p.height ? `${p.height}cm` : '',
-  ].filter(Boolean).join('/');
+  const loadingEl = document.getElementById('dietGenLoading');
+  const btn = document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]');
+  loadingEl.style.display = 'block';
+  if (btn) btn.disabled = true;
 
-  const prompt = `Crie dieta ${numDays}d x ${numMeals}ref/dia. Usuário: ${userLine}. Meta: ${diaryGoal}kcal, água≥${diaryGoalWater}ml, açúcar≤${diaryGoalSugar}g. Objetivo: ${goalSel}. Restrições: ${restrict}.${anamneseCtx ? ' Histórico: ' + anamneseCtx : ''}${obs ? ' Obs: ' + obs : ''}
-Responda APENAS com JSON (sem markdown):
-{"totalKcal":N,"totalProtein":N,"totalCarbs":N,"totalFat":N,"totalSugar":N,"waterMl":N,"days":[{"day":1,"meals":[{"meal":"Café","mealKey":"cafe","foods":[{"name":"Aveia","qty":"40g","kcal":150,"protein":5,"carbs":28,"fat":2,"sugar":4}],"totalKcal":350}]}]}
-Use nomes curtos. Preencha todos os ${numDays} dias e ${numMeals} refeições por dia.`;
-
-  document.getElementById('dietGenLoading').style.display = 'block';
-  document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]').disabled = true;
+  // Build the shared context line (used in every day's prompt)
+  const ctx = `Usuário:${userLine}. Meta:${diaryGoal}kcal,água≥${diaryGoalWater}ml,açúcar≤${diaryGoalSugar}g. Obj:${goalSel}. Restr:${restrict}.${anamneseCtx ? ' ' + anamneseCtx : ''}${obs ? ' Obs:' + obs : ''}`;
 
   try {
     const askFn = window.callGroqLarge || window.callGroq;
-    const msgs = [
-      { role:'system', content:'Retorne SOMENTE JSON válido. Sem markdown, sem texto extra.' },
-      { role:'user', content: prompt }
-    ];
-    const data = await askFn(msgs);
-    _lastGeneratedDiet = data;
-    renderDietResult(data);
+    const sysMsg = { role:'system', content:'Retorne SOMENTE JSON válido. Sem markdown, sem texto extra.' };
+
+    // Generate one day at a time to stay within Groq token limits
+    const allDays = [];
+    let totKcal = 0, totProt = 0, totCarbs = 0, totFat = 0, totSugar = 0;
+
+    for (let d = 1; d <= numDays; d++) {
+      // Update loading indicator
+      if (numDays > 1) {
+        loadingEl.innerHTML = `<span>Gerando dia ${d} de ${numDays}...</span>`;
+      }
+
+      const dayPrompt = `Crie dia ${d} de uma dieta com ${numMeals} refeições. ${ctx}
+JSON (sem markdown):
+{"day":${d},"totalDayKcal":N,"totalDayProtein":N,"totalDayCarbs":N,"totalDayFat":N,"totalDaySugar":N,"meals":[{"meal":"Café da manhã","mealKey":"cafe","foods":[{"name":"Aveia","qty":"40g","kcal":150,"protein":5,"carbs":28,"fat":2,"sugar":4}],"totalKcal":350}]}
+Use nomes curtos. Inclua exatamente ${numMeals} refeições (cafe/almoco/lanche/jantar).`;
+
+      const dayData = await askFn([sysMsg, { role:'user', content: dayPrompt }]);
+
+      allDays.push({ day: d, meals: dayData.meals || [] });
+      totKcal  += dayData.totalDayKcal   || 0;
+      totProt  += dayData.totalDayProtein || 0;
+      totCarbs += dayData.totalDayCarbs   || 0;
+      totFat   += dayData.totalDayFat     || 0;
+      totSugar += dayData.totalDaySugar   || 0;
+    }
+
+    const combined = {
+      totalKcal:    Math.round(totKcal   / numDays),
+      totalProtein: Math.round(totProt   / numDays),
+      totalCarbs:   Math.round(totCarbs  / numDays),
+      totalFat:     Math.round(totFat    / numDays),
+      totalSugar:   Math.round(totSugar  / numDays),
+      waterMl:      diaryGoalWater || 2000,
+      days: allDays,
+    };
+
+    _lastGeneratedDiet = combined;
+    renderDietResult(combined);
 
   } catch(e) {
     const msg = e.message?.includes('429')
@@ -466,11 +490,12 @@ Use nomes curtos. Preencha todos os ${numDays} dias e ${numMeals} refeições po
       : 'Erro ao gerar dieta: ' + e.message;
     showToast(msg, 'error');
   } finally {
-    document.getElementById('dietGenLoading').style.display = 'none';
-    const btn = document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]');
+    loadingEl.style.display = 'none';
+    loadingEl.innerHTML = '';
     if (btn) btn.disabled = false;
   }
 }
+
 
 function renderDietResult(diet) {
   if (!diet || !diet.days) { showToast('Dados da dieta incompletos', 'error'); return; }
