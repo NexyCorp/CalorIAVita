@@ -174,7 +174,7 @@ async function generateAiRecipe() {
   document.getElementById('aiRecipeLoading').style.display = 'block';
   document.getElementById('aiRecipeResult').style.display = 'none';
 
-  // Build user profile + body fat context
+  // Build user profile context
   let p = currentProfile || {};
   if (_targetAiRecipePatientId) {
     try {
@@ -184,20 +184,62 @@ async function generateAiRecipe() {
   }
 
   const userCtx = [
-    p.age ? `idade: ${p.age} anos` : '',
-    p.sex ? `sexo: ${p.sex === 'm' ? 'masculino' : 'feminino'}` : '',
-    p.weight ? `peso: ${p.weight}kg` : '',
-    p.height ? `altura: ${p.height}cm` : '',
-    p.body_fat_pct ? `percentual de gordura corporal: ${p.body_fat_pct}%` : ''
-  ].filter(Boolean).join(', ');
+    p.age    ? `${p.age}a` : '',
+    p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
+    p.weight ? `${p.weight}kg` : '',
+    p.height ? `${p.height}cm` : '',
+    p.body_fat_pct ? `${p.body_fat_pct}%gord` : ''
+  ].filter(Boolean).join('/');
 
-    const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
-DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
-Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
-Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (APENAS array de strings, ex: ["100g de frango", "sal a gosto"]), steps (APENAS array de strings) }`;
+  // Prompt compacto para evitar truncamento
+  const prompt = `Receita saudável para: "${food}". Máx ${maxKcal}kcal, mín ${minProt}g proteína. Usuário: ${userCtx || 'não informado'}.
+Retorne APENAS este JSON (sem mais nada):
+{"title":"Nome","kcal":N,"prot":N,"carbs":N,"fat":N,"totalGrams":N,"time":"15min","category":"almoco","ingredients":["100g frango","sal a gosto"],"steps":["Passo 1","Passo 2"]}`;
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional. Certifique-se de que ingredients e steps sejam APENAS arrays de strings.');
+    let data = null;
+    let lastErr = null;
+
+    // Retry up to 3x com backoff para 429, usando modelo 8B (30k TPM)
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const res = await window._groqFetch(
+        window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
+        [
+          { role: 'system', content: 'Retorne SOMENTE JSON válido. Sem markdown, sem texto extra. ingredients e steps devem ser APENAS arrays de strings simples.' },
+          { role: 'user', content: prompt }
+        ],
+        2500
+      );
+
+      if (res.status === 429) {
+        window.rotateGroqKey?.();
+        if (attempt < 3) {
+          const waitSec = attempt * 10;
+          document.getElementById('aiRecipeLoading').innerHTML = `<div class="pulse-ring" style="margin:0 auto 0.6rem;"></div><p style="color:var(--text-muted);font-size:0.88rem;">⏳ Aguardando ${waitSec}s (limite atingido)…</p>`;
+          await sleep(waitSec * 1000);
+          document.getElementById('aiRecipeLoading').innerHTML = '<div class="pulse-ring" style="margin:0 auto 0.6rem;"></div><p style="color:var(--text-muted);font-size:0.88rem;">Gerando receita com IA…</p>';
+          continue;
+        }
+        throw new Error('⏳ Limite de requisições atingido. Aguarde 1 minuto e tente novamente.');
+      }
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        lastErr = new Error('Erro ' + res.status + ': ' + body.slice(0, 100));
+        if (attempt < 3) { await sleep(3000); continue; }
+        throw lastErr;
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Resposta vazia da IA');
+      data = window.extractJSON(content);
+      break;
+    }
+
+    if (!data) throw new Error('Não foi possível gerar a receita.');
 
     const el = document.getElementById('aiRecipeResult');
     el.style.display = 'block';
@@ -223,8 +265,10 @@ Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, ca
     showToast('Erro ao gerar receita: ' + e.message, 'error');
   } finally {
     document.getElementById('aiRecipeLoading').style.display = 'none';
+    document.getElementById('aiRecipeLoading').innerHTML = '<div class="pulse-ring" style="margin:0 auto 0.6rem;"></div><p style="color:var(--text-muted);font-size:0.88rem;">Gerando receita personalizada com IA…</p>';
   }
 }
+
 
 function saveAiRecipe(data) {
   // Use global lastAiRecipeData if no data passed (called from onclick with no args)
