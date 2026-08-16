@@ -443,19 +443,32 @@ async function generateAIDiet() {
   const ctx = `UsuÃ¡rio:${userLine}. Meta:${diaryGoal}kcal,Ã¡guaâ‰¥${diaryGoalWater}ml,aÃ§Ãºcarâ‰¤${diaryGoalSugar}g. Obj:${goalSel}. Restr:${restrict}.${anamneseCtx ? ' ' + anamneseCtx : ''}${obs ? ' Obs:' + obs : ''}`;
 
   try {
-    // Force use of GROQ_MODEL_FAST (30,000 TPM limit) instead of 70b (6,000 TPM limit)
-    // This prevents silent token truncation when requesting 7 days consecutively.
-    const askFn = async (msgs) => {
+    // Helper: sleep for ms milliseconds
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    // askFn with automatic retry on 429 (max 3 attempts, exponential backoff)
+    const askFn = async (msgs, attempt = 1) => {
       const res = await window._groqFetch(window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant', msgs, 2000);
       if (!res.ok) {
         if (res.status === 429) {
           window.rotateGroqKey?.();
-          throw new Error('429');
+          if (attempt <= 3) {
+            const waitSec = attempt * 12; // 12s, 24s, 36s
+            if (numDays > 1) {
+              loadingEl.innerHTML = `<span>â ³ Limite de IA atingido. Aguardando ${waitSec}s antes de continuar...</span>`;
+            }
+            await sleep(waitSec * 1000);
+            return askFn(msgs, attempt + 1);
+          }
+          throw new Error('429 â€” Limite da IA atingido em todas as tentativas. Tente novamente em 1 minuto.');
         }
-        throw new Error('Groq Error');
+        const errText = await res.text().catch(() => '');
+        throw new Error('Groq ' + res.status + ': ' + errText.slice(0, 120));
       }
       const data = await res.json();
-      return window.extractJSON(data.choices[0].message.content);
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Resposta vazia da IA');
+      return window.extractJSON(content);
     };
 
     const sysMsg = { role:'system', content:'Retorne SOMENTE JSON vÃ¡lido. Sem markdown, sem texto extra.' };
@@ -467,7 +480,7 @@ async function generateAIDiet() {
     for (let d = 1; d <= numDays; d++) {
       // Update loading indicator
       if (numDays > 1) {
-        loadingEl.innerHTML = `<span>Gerando dia ${d} de ${numDays}...</span>`;
+        loadingEl.innerHTML = `<span>â ³ Gerando dia ${d} de ${numDays}...</span>`;
       }
 
       const dayPrompt = `ATENÃ‡ÃƒO: Crie APENAS e EXCLUSIVAMENTE o Dia ${d}. NUNCA crie outros dias.
@@ -487,6 +500,9 @@ Formato exato:
       totCarbs += dayData.totalDayCarbs   || 0;
       totFat   += dayData.totalDayFat     || 0;
       totSugar += dayData.totalDaySugar   || 0;
+
+      // Pause between days to avoid TPM rate limit in rapid succession
+      if (d < numDays) await sleep(3000);
     }
 
     const combined = {
