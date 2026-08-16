@@ -109,7 +109,10 @@ async function callGroq(messages, retries = 3, maxTokens = 1500) {
       throw lastErr;
     }
     const data = await res.json();
-    if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
+    if (!data.choices?.[0]?.message?.content) {
+      console.error("Erro da API Groq - Resposta inesperada:", data);
+      throw new Error('Resposta vazia da API. (Consulte o console F12)');
+    }
     return extractJSON(data.choices[0].message.content);
   }
   throw lastErr || new Error('429 — Todas as chaves atingiram o limite (Rate Limit). Tente novamente em alguns minutos.');
