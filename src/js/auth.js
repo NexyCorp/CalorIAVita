@@ -439,12 +439,7 @@ async function initApp(user) {
 
     // Restaurar tela da sessão anterior (Item 9)
     const lastPanel = localStorage.getItem('nutria_last_panel') || 'home';
-    const restrictedForPatient = ['subscription', 'goal', 'prof', 'admin'];
-    const restrictedForFree = ['diary', 'camera', 'recipes'];
-    let panelToRestore = lastPanel;
-    if (isPatient() && restrictedForPatient.includes(lastPanel)) panelToRestore = 'home';
-    if (isStandardFree() && restrictedForFree.includes(lastPanel)) panelToRestore = 'home';
-    if ((lastPanel === 'prof' || lastPanel === 'admin') && !isProfessional() && !isAdmin()) panelToRestore = 'home';
+    const panelToRestore = typeof getAccessiblePanelOrHome === 'function' ? getAccessiblePanelOrHome(lastPanel) : 'home';
     showPanel(panelToRestore, document.getElementById('nav-' + panelToRestore));
 
     applyLanguage();
@@ -536,12 +531,17 @@ function applyProfileUpdate(newData) {
   setupRoleUI();
   applyPlanRestrictions();
   renderSidebarUser();
-  // Se cargo ou plano mudou DURANTE a sessão (ignora o load inicial quando era undefined), volta para o painel inicial
+  const activePanel = document.querySelector('.panel.active')?.id?.replace('panel-', '') || localStorage.getItem('nutria_last_panel') || 'home';
   if (oldRole !== undefined && (oldRole !== newData.role || oldPlan !== newData.plan)) {
-    showPanel('home', document.getElementById('nav-home'));
+    const panelToKeep = typeof getAccessiblePanelOrHome === 'function' ? getAccessiblePanelOrHome(activePanel) : 'home';
+    if (panelToKeep !== activePanel) showPanel(panelToKeep, document.getElementById('nav-' + panelToKeep));
     if (newData.role !== oldRole) {
       showToast('<i class="fa-solid fa-arrows-rotate ic-water"></i> Cargo atualizado: ' + (newData.role || 'padrão'));
     }
+  } else if (oldRole === undefined) {
+    const lastPanel = localStorage.getItem('nutria_last_panel') || activePanel;
+    const panelToRestore = typeof getAccessiblePanelOrHome === 'function' ? getAccessiblePanelOrHome(lastPanel) : activePanel;
+    if (panelToRestore !== activePanel) showPanel(panelToRestore, document.getElementById('nav-' + panelToRestore));
   }
 }
 

@@ -926,6 +926,29 @@ const panelTitles = {
   subscription: () => currentLang === 'en' ? 'Subscription' : 'Minha Assinatura'
 };
 
+function canAccessPanel(name) {
+  if (!name || !document.getElementById('panel-' + name)) return false;
+  if (!currentProfile) return name === 'home';
+
+  if (isStandardFree() && ['diary', 'camera', 'recipes'].includes(name)) return false;
+  if (name === 'prof' && !isProfessional() && !isAdmin()) return false;
+  if (name === 'admin' && !isAdmin()) return false;
+  if (name === 'chat' && !(isProfessionalGold() || isPatientGold())) return false;
+
+  if (isPatient()) {
+    const hasNutri = !!currentProfile?.nutritionist_id;
+    if (name === 'subscription' && hasNutri) return false;
+    if (name === 'goal') return false;
+    if (name === 'dietaia' || name === 'aiRecipe') return false;
+  }
+
+  return true;
+}
+
+function getAccessiblePanelOrHome(name) {
+  return canAccessPanel(name) ? name : 'home';
+}
+
 function showPanel(name, navEl) {
   // Paywall check para usuários free
   if (currentProfile && isStandardFree()) {
@@ -1018,6 +1041,8 @@ document.addEventListener('click', e => {
 window.escapeHtml = escapeHtml;
 window.i18n = i18n;
 window.t = t;
+window.canAccessPanel = canAccessPanel;
+window.getAccessiblePanelOrHome = getAccessiblePanelOrHome;
 window.applyLanguage = applyLanguage;
 window.setLanguage = setLanguage;
 window.initTheme = initTheme;
