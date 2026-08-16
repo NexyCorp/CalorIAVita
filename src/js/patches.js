@@ -434,51 +434,26 @@ async function generateAIDiet() {
     }
   } catch(e) {}
 
-  const prompt = `Você é uma nutricionista experiente. Crie um plano alimentar para ${numDays} dia(s) com ${numMeals} refeições por dia.
+  // Compact prompt to stay within Groq Free Tier token limits
+  const userLine = [
+    p.age    ? `${p.age}a` : '',
+    p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
+    p.weight ? `${p.weight}kg` : '',
+    p.height ? `${p.height}cm` : '',
+  ].filter(Boolean).join('/');
 
-DADOS DO USUÁRIO:
-- ${profileCtx}
-- Meta calórica diária: ${diaryGoal} kcal
-- Água mínima: ${diaryGoalWater}ml/dia
-- Açúcar máximo: ${diaryGoalSugar}g/dia
-- Objetivo: ${goalSel}
-- Restrições: ${restrict}
-${anamneseCtx ? `- Histórico clínico: ${anamneseCtx}` : ''}
-${obs ? `- Obs. adicionais: ${obs}` : ''}
-
-Retorne SOMENTE um JSON válido com esta estrutura:
-{
-  "totalKcal": number,
-  "totalProtein": number,
-  "totalCarbs": number,
-  "totalFat": number,
-  "totalSugar": number,
-  "waterMl": number,
-  "days": [
-    {
-      "day": 1,
-      "meals": [
-        {
-          "meal": "Café da manhã",
-          "mealKey": "cafe",
-          "foods": [
-            { "name": "Aveia com banana", "qty": "40g", "kcal": 150, "protein": 5, "carbs": 28, "fat": 2, "sugar": 4 }
-          ],
-          "totalKcal": 350
-        }
-      ]
-    }
-  ]
-}`;
+  const prompt = `Crie dieta ${numDays}d x ${numMeals}ref/dia. Usuário: ${userLine}. Meta: ${diaryGoal}kcal, água≥${diaryGoalWater}ml, açúcar≤${diaryGoalSugar}g. Objetivo: ${goalSel}. Restrições: ${restrict}.${anamneseCtx ? ' Histórico: ' + anamneseCtx : ''}${obs ? ' Obs: ' + obs : ''}
+Responda APENAS com JSON (sem markdown):
+{"totalKcal":N,"totalProtein":N,"totalCarbs":N,"totalFat":N,"totalSugar":N,"waterMl":N,"days":[{"day":1,"meals":[{"meal":"Café","mealKey":"cafe","foods":[{"name":"Aveia","qty":"40g","kcal":150,"protein":5,"carbs":28,"fat":2,"sugar":4}],"totalKcal":350}]}]}
+Use nomes curtos. Preencha todos os ${numDays} dias e ${numMeals} refeições por dia.`;
 
   document.getElementById('dietGenLoading').style.display = 'block';
   document.getElementById('dietGenForm').querySelector('button[onclick="generateAIDiet()"]').disabled = true;
 
   try {
-    // Usa callGroqLarge (8192 tokens) para dietas que exigem resposta longa
     const askFn = window.callGroqLarge || window.callGroq;
     const msgs = [
-      { role:'system', content:'Você é nutricionista. Retorne SOMENTE JSON válido sem markdown nem texto adicional.' },
+      { role:'system', content:'Retorne SOMENTE JSON válido. Sem markdown, sem texto extra.' },
       { role:'user', content: prompt }
     ];
     const data = await askFn(msgs);
