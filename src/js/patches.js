@@ -435,6 +435,9 @@ async function generateAIDiet() {
     p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
     p.weight ? `${p.weight}kg` : '',
     p.height ? `${p.height}cm` : '',
+    p.body_fat_pct ? `${p.body_fat_pct}%gord` : '',
+    p.is_diabetic ? `diabetes` : '',
+    p.diseases ? `doenças:${p.diseases}` : ''
   ].filter(Boolean).join('/');
 
   // Fetch anamnese if available
@@ -501,9 +504,10 @@ async function generateAIDiet() {
         loadingEl.innerHTML = `<span>â ³ Gerando dia ${d} de ${numDays}...</span>`;
       }
 
-      const dayPrompt = `ATENÃ‡ÃƒO: Crie APENAS e EXCLUSIVAMENTE o Dia ${d}. NUNCA crie outros dias.
-UsuÃ¡rio: ${ctx}
-RefeiÃ§Ãµes: exatamente ${numMeals} refeiÃ§Ãµes no dia.
+      const dayPrompt = `ATENÇÃO: Crie APENAS e EXCLUSIVAMENTE o Dia ${d}. NUNCA crie outros dias.
+IMPORTANTE: Respeite rigorosamente todas as doenças, alergias e restrições alimentares do usuário se houver, não sugerindo alimentos contra-indicados.
+Usuário: ${ctx}
+Refeições: exatamente ${numMeals} refeições no dia.
 
 Retorne APENAS um objeto JSON. Nenhuma palavra antes ou depois.
 Formato exato:

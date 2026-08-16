@@ -188,11 +188,14 @@ async function generateAiRecipe() {
     p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
     p.weight ? `${p.weight}kg` : '',
     p.height ? `${p.height}cm` : '',
-    p.body_fat_pct ? `${p.body_fat_pct}%gord` : ''
+    p.body_fat_pct ? `${p.body_fat_pct}%gord` : '',
+    p.is_diabetic ? `diabetes` : '',
+    p.diseases ? `doenças:${p.diseases}` : ''
   ].filter(Boolean).join('/');
 
   // Prompt compacto para evitar truncamento
   const prompt = `Receita saudável para: "${food}". Máx ${maxKcal}kcal, mín ${minProt}g proteína. Usuário: ${userCtx || 'não informado'}.
+IMPORTANTE: Respeite rigorosamente as doenças e restrições alimentares do usuário (se houver).
 Retorne APENAS este JSON (sem mais nada):
 {"title":"Nome","kcal":N,"prot":N,"carbs":N,"fat":N,"totalGrams":N,"time":"15min","category":"almoco","ingredients":["100g frango","sal a gosto"],"steps":["Passo 1","Passo 2"]}`;
 
