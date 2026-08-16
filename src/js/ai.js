@@ -120,7 +120,24 @@ async function callGroq(messages, retries = 3, maxTokens = 1500) {
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  return callGroq(messages, 3, 2500);
+  // Use GROQ_MODEL_FAST (llama-3.1-8b-instant) which has a higher TPM limit (30k)
+  // This allows us to request 6000 tokens without hitting 429 instantly.
+  return _groqFetch(GROQ_MODEL_FAST, messages, 6000).then(async res => {
+    if (!res.ok) {
+      if (res.status === 429) {
+        rotateGroqKey();
+        throw new Error('429 — Todas as chaves atingiram o limite. Tente novamente.');
+      }
+      const body = await res.text().catch(()=>'');
+      throw new Error('Groq ' + res.status + ': ' + body.slice(0,120));
+    }
+    const data = await res.json();
+    if (!data.choices?.[0]?.message?.content) {
+      console.error("Erro da API Groq - Resposta inesperada:", data);
+      throw new Error('Resposta vazia da API.');
+    }
+    return extractJSON(data.choices[0].message.content);
+  });
 }
 
 async function askClaude(prompt, sys) {
