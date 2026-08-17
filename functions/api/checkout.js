@@ -11,19 +11,19 @@ const CORS_HEADERS = {
 const PLANS = {
   pro: {
     reason: 'NutrIA Standard Pro – Assinatura Mensal',
-    amount: 0.01,
+    amount: 30.00,
     role: 'standard',
     plan: 'pro'
   },
   professional_basic: {
     reason: 'NutrIA Professional Basic – Assinatura Mensal',
-    amount: 0.01,
+    amount: 100.00,
     role: 'professional',
     plan: 'pro'
   },
   professional_gold: {
     reason: 'NutrIA Professional Gold – Assinatura Mensal',
-    amount: 0.01,
+    amount: 197.00,
     role: 'professional',
     plan: 'gold'
   }
