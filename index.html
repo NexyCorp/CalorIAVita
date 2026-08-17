@@ -6,22 +6,433 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="CalorIA">
-<meta name="theme-color" content="#2a5c30">
-<title>CalorIA — Nutrição Inteligentes</title>
+<meta name="apple-mobile-web-app-title" content="NutrIA">
+<meta name="theme-color" content="#422D18">
+<title>NutrIA — Plataforma Nutricional com IA</title>
+<meta name="description" content="Plataforma de nutrição inteligente com IA para profissionais de saúde e seus pacientes.">
 <link rel="icon" type="image/png" id="dynamic-favicon" href="">
 <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
 <link rel="manifest" id="dynamic-manifest" href="">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous">
 <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
 
-<!-- AUTH OVERLAY -->
-<div id="authOverlay">
+<!-- ═══ LOADING OVERLAY ═══ -->
+<div id="loadingOverlay">
+  <object class="loading-motion-logo" type="image/svg+xml" data="/assets/logo-motion-nutria.svg" aria-label="NutrIA carregando"></object>
+</div>
+
+<!-- ═══ LANDING PAGE ═══ -->
+<div id="landingPage" class="hidden">
+
+  <!-- Cursor customizado -->
+  <div class="lp-cursor-dot" id="lpCursorDot"></div>
+  <div class="lp-cursor-ring" id="lpCursorRing"></div>
+
+  <!-- Mobile Menu -->
+  <div class="lp-mobile-menu" id="lpMobileMenu">
+    <span class="lp-mobile-close" id="lpMobileClose">✕</span>
+    <a href="#lp-funcionalidades" onclick="closeLpMenu()">Funcionalidades</a>
+    <a href="#lp-como-funciona" onclick="closeLpMenu()">Como funciona</a>
+    <a href="#lp-planos" onclick="closeLpMenu()">Planos</a>
+    <a href="#lp-faq" onclick="closeLpMenu()">FAQ</a>
+    <button class="lp-btn-primary" onclick="closeLpMenu();openAuthOverlay()" style="margin-top:1rem;">Começar agora ↗</button>
+  </div>
+
+  <!-- NAV -->
+  <nav class="lp-nav" id="lpNav">
+    <a href="#" class="lp-nav-logo" style="display:flex;align-items:center;gap:0.5rem;font-family:var(--font-title);font-style:normal;text-decoration:none;">
+      <img class="app-logo-img" src="" alt="NutrIA" style="height:32px;width:auto;display:block;">
+      <span class="lp-brand-calor" style="font-family:var(--font-title);font-style:normal;font-weight:700;transition:color 0.3s;">Nutr</span><span class="lp-brand-ia" style="font-family:var(--font-title);font-style:normal;font-weight:700;margin-left:-0.1rem;transition:color 0.3s;">IA</span>
+    </a>
+    <div class="lp-nav-links">
+      <a href="#lp-funcionalidades">Funcionalidades</a>
+      <a href="#lp-como-funciona">Como funciona</a>
+      <a href="#lp-planos">Planos</a>
+      <a href="#lp-faq">FAQ</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <button id="lpThemeBtn" onclick="toggleTheme()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;padding:0.25rem;">🌙</button>
+      <button class="lp-nav-cta" onclick="openAuthOverlay()">Entrar / Cadastrar ↗</button>
+    </div>
+    <div class="lp-nav-hamburger" id="lpHamburger">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="lp-hero" id="lp-home">
+    <div class="lp-hero-bg-blob"></div>
+    <div class="lp-hero-bg-lines"></div>
+    <div class="lp-hero-decor-circle"></div>
+
+    <div class="lp-hero-left">
+      <div class="lp-hero-tag lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-tag-dot"></span>
+        Plataforma Nutricional com IA — 2025
+      </div>
+      <h1 class="lp-hero-headline lp-reveal" style="transition-delay:0.2s">
+        Nutrição<br>
+        <span class="hl-verde">inteligente</span><br>
+        para <span class="hl-mark">profissionais</span><br>
+        <span class="hl-outline">de verdade.</span>
+      </h1>
+      <p class="lp-hero-body lp-reveal" style="transition-delay:0.3s">
+        NutrIA é a plataforma que você indica para seus pacientes — e ainda gerencia o progresso de todos em um painel unificado. IA de nutrição + acompanhamento em tempo real.
+      </p>
+      <div class="lp-hero-actions lp-reveal" style="transition-delay:0.4s">
+        <button class="lp-btn-primary" onclick="openAuthOverlay()">Começar agora ↗</button>
+        <a href="https://celadon-llama-666ed4.netlify.app/#app" class="lp-btn-ghost" target="_blank">Ver demonstração</a>
+      </div>
+      <div class="lp-hero-stats lp-reveal" style="transition-delay:0.5s">
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">120+</div>
+          <div class="lp-stat-label">Profissionais ativos</div>
+        </div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">4.9★</div>
+          <div class="lp-stat-label">Avaliação média</div>
+        </div>
+        <div class="lp-stat-item">
+          <div class="lp-stat-num">900K+</div>
+          <div class="lp-stat-label">Alimentos na base</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lp-hero-right lp-reveal-right" style="transition-delay:0.25s">
+      <div class="lp-dashboard-mockup">
+        <div class="lp-dash-topbar">
+          <div class="lp-dash-dots"><span></span><span></span><span></span></div>
+          <div class="lp-dash-title">Painel do Profissional — NutrIA</div>
+        </div>
+        <div class="lp-dash-body">
+          <div class="lp-dash-section-title">Pacientes ativos hoje</div>
+          <div class="lp-dash-patient-card">
+            <div class="lp-dash-avatar">ML</div>
+            <div class="lp-dash-info">
+              <div class="lp-dash-name">Maria Lima</div>
+              <div class="lp-dash-sub">1.840 kcal · meta: 1.900 kcal</div>
+            </div>
+            <div class="lp-dash-badge lp-badge-ok">No alvo</div>
+          </div>
+          <div class="lp-dash-patient-card">
+            <div class="lp-dash-avatar" style="background:linear-gradient(135deg,#e84c2b,#ff7555)">JS</div>
+            <div class="lp-dash-info">
+              <div class="lp-dash-name">João Silva</div>
+              <div class="lp-dash-sub">2.430 kcal · meta: 2.100 kcal</div>
+            </div>
+            <div class="lp-dash-badge lp-badge-no">Acima</div>
+          </div>
+          <div class="lp-dash-patient-card">
+            <div class="lp-dash-avatar" style="background:linear-gradient(135deg,#d4a017,#f5c842)">AC</div>
+            <div class="lp-dash-info">
+              <div class="lp-dash-name">Ana Costa</div>
+              <div class="lp-dash-sub">680 kcal · meta: 1.800 kcal</div>
+            </div>
+            <div class="lp-dash-badge lp-badge-at">Atenção</div>
+          </div>
+          <div class="lp-dash-kpi-row">
+            <div class="lp-dash-kpi"><div class="lp-dash-kpi-num">14</div><div class="lp-dash-kpi-label">Pacientes</div></div>
+            <div class="lp-dash-kpi"><div class="lp-dash-kpi-num">92%</div><div class="lp-dash-kpi-label">Adesão</div></div>
+            <div class="lp-dash-kpi"><div class="lp-dash-kpi-num">6</div><div class="lp-dash-kpi-label">Planos</div></div>
+          </div>
+          <div class="lp-dash-ai-chip">
+            <div style="font-size:1.4rem;">🤖</div>
+            <div class="lp-dash-ai-text"><strong>IA detectou:</strong> João ultrapassou a meta calórica por 3 dias seguidos. Recomendação automática gerada.</div>
+          </div>
+        </div>
+      </div>
+      <div class="lp-float-pill lp-p1"><div class="lp-pdot"></div>IA analisa por foto 📷</div>
+      <div class="lp-float-pill lp-p2"><div class="lp-pdot"></div>Diário em tempo real 🔄</div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="lp-marquee-strip">
+    <div class="lp-marquee-track">
+      <div class="lp-marquee-item"><span>📸</span> Câmera IA <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥦</span> 900K+ Alimentos <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📊</span> Painel do Profissional <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>⚡</span> Cálculo de TMB e TDEE <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥗</span> Receitas saudáveis <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🔒</span> LGPD compliant <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📱</span> 100% responsivo <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🏥</span> Ideal para clínicas <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📸</span> Câmera IA <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥦</span> 900K+ Alimentos <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📊</span> Painel do Profissional <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>⚡</span> Cálculo de TMB e TDEE <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🥗</span> Receitas saudáveis <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🔒</span> LGPD compliant <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>📱</span> 100% responsivo <span class="lp-marquee-sep">◆</span></div>
+      <div class="lp-marquee-item"><span>🏥</span> Ideal para clínicas <span class="lp-marquee-sep">◆</span></div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="lp-features" id="lp-funcionalidades">
+    <div class="lp-features-bg-text">NUTRIÇÃO</div>
+    <div class="lp-features-hdr">
+      <div class="lp-section-badge lp-reveal">Funcionalidades</div>
+      <h2 class="lp-section-h lp-reveal">Tudo que o profissional<br><em>precisa</em> em um lugar só.</h2>
+    </div>
+    <div class="lp-feat-grid">
+      <div class="lp-fc lp-fc-1 lp-reveal-left">
+        <div class="lp-fc-chip">⭐ Destaque principal</div>
+        <div class="lp-fc-title">Painel de pacientes com acompanhamento em tempo real</div>
+        <p class="lp-fc-body">Veja o diário alimentar de cada paciente, receba alertas inteligentes quando alguém ultrapassa ou fica abaixo da meta calórica, e acompanhe a evolução semanal sem precisar pedir foto por WhatsApp.</p>
+        <div><div class="lp-fc-num">14+</div><div class="lp-fc-num-label">pacientes por profissional</div></div>
+      </div>
+      <div class="lp-fc lp-fc-2 lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-fc-icon">📷</span>
+        <div class="lp-fc-title">Câmera IA identifica alimentos</div>
+        <p class="lp-fc-body">O paciente fotografa o prato e a IA retorna automaticamente calorias, macros e informações nutricionais completas.</p>
+      </div>
+      <div class="lp-fc lp-fc-3 lp-reveal" style="transition-delay:0.15s">
+        <span class="lp-fc-icon">🔍</span>
+        <div class="lp-fc-title">Base com 900 mil+ alimentos</div>
+        <p class="lp-fc-body">Dados TACO e USDA integrados. Busca em português com resultados por porção.</p>
+        <div class="lp-nutrient-bar">
+          <div class="lp-nt-row"><span class="lp-nt-label">Proteína</span><div class="lp-nt-track"><div class="lp-nt-fill lp-nf-prot" style="width:62%"></div></div><span class="lp-nt-val">26g</span></div>
+          <div class="lp-nt-row"><span class="lp-nt-label">Carboidr.</span><div class="lp-nt-track"><div class="lp-nt-fill lp-nf-carb" style="width:48%"></div></div><span class="lp-nt-val">20g</span></div>
+          <div class="lp-nt-row"><span class="lp-nt-label">Gordura</span><div class="lp-nt-track"><div class="lp-nt-fill lp-nf-gord" style="width:30%"></div></div><span class="lp-nt-val">12g</span></div>
+        </div>
+      </div>
+      <div class="lp-fc lp-fc-4 lp-reveal" style="transition-delay:0.05s">
+        <span class="lp-fc-icon">⚡</span>
+        <div class="lp-fc-title" style="color:white;">Calculadora TMB + TDEE</div>
+        <p class="lp-fc-body" style="color:rgba(255,255,255,0.6)">Harris-Benedict com ajuste por nível de atividade. Distribui macros automaticamente.</p>
+      </div>
+      <div class="lp-fc lp-fc-5 lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-fc-icon">📖</span>
+        <div class="lp-fc-title">Diário alimentar por refeição</div>
+        <p class="lp-fc-body">Café, almoço, lanche e jantar com barra de progresso de macros em tempo real.</p>
+      </div>
+      <div class="lp-fc lp-fc-6 lp-reveal" style="transition-delay:0.15s">
+        <span class="lp-fc-icon">⚖️</span>
+        <div class="lp-fc-title" style="color:white;">Comparador de alimentos</div>
+        <p class="lp-fc-body" style="color:rgba(255,255,255,0.85)">Compare dois alimentos lado a lado em calorias, proteínas, carboidratos e gorduras.</p>
+      </div>
+      <div class="lp-fc lp-fc-7 lp-reveal" style="transition-delay:0.05s">
+        <span class="lp-fc-icon">🥗</span>
+        <div class="lp-fc-title" style="color:white;">Receitas saudáveis com IA</div>
+        <p class="lp-fc-body" style="color:rgba(255,255,255,0.8)">Receitas filtradas por objetivo e geradas por inteligência artificial sob demanda.</p>
+      </div>
+      <div class="lp-fc lp-fc-8 lp-reveal" style="transition-delay:0.1s">
+        <span class="lp-fc-icon">📋</span>
+        <div class="lp-fc-title">Planos alimentares personalizados</div>
+        <p class="lp-fc-body">Monte e envie planos detalhados para cada paciente com um clique.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMO FUNCIONA -->
+  <section class="lp-how" id="lp-como-funciona">
+    <div class="lp-section-badge lp-reveal">Como funciona</div>
+    <h2 class="lp-section-h lp-reveal" style="margin-top:0.5rem">Em 4 passos você já está<br><em>usando com seus pacientes</em></h2>
+    <div class="lp-how-grid">
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.05s">
+        <div class="lp-step-num-circle">1</div>
+        <div class="lp-step-title">Crie sua conta de profissional</div>
+        <p class="lp-step-body">Cadastre-se como profissional de saúde. Menos de 2 minutos.</p>
+      </div>
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.12s">
+        <div class="lp-step-num-circle">2</div>
+        <div class="lp-step-title">Convide seus pacientes</div>
+        <p class="lp-step-body">Envie o link pelo WhatsApp. O paciente cria a conta e já fica vinculado a você.</p>
+      </div>
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.2s">
+        <div class="lp-step-num-circle">3</div>
+        <div class="lp-step-title">Configure as metas individuais</div>
+        <p class="lp-step-body">Defina calorias e macros para cada paciente dentro do painel.</p>
+      </div>
+      <div class="lp-step-card lp-reveal" style="transition-delay:0.28s">
+        <div class="lp-step-num-circle">4</div>
+        <div class="lp-step-title">Acompanhe em tempo real</div>
+        <p class="lp-step-body">Veja o diário de todos os pacientes, receba alertas e intervenha quando necessário.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROVA SOCIAL -->
+  <section class="lp-social-proof">
+    <div class="lp-section-badge lp-reveal" style="color:#b5f05a">Números que provam</div>
+    <h2 class="lp-section-h lp-reveal" style="color:#fff;margin-top:0.5rem">Resultados <em style="color:#b5f05a">reais</em> de profissionais</h2>
+    <div class="lp-sp-grid">
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.05s"><div class="lp-sp-num">120+</div><div class="lp-sp-label">Profissionais ativos na plataforma</div></div>
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.1s"><div class="lp-sp-num">900K+</div><div class="lp-sp-label">Alimentos na base de dados</div></div>
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.15s"><div class="lp-sp-num">4.9★</div><div class="lp-sp-label">Avaliação média dos usuários</div></div>
+      <div class="lp-sp-card lp-reveal" style="transition-delay:0.2s"><div class="lp-sp-num">98%</div><div class="lp-sp-label">Taxa de satisfação dos pacientes</div></div>
+    </div>
+  </section>
+
+  <!-- PREÇOS -->
+  <section class="lp-pricing" id="lp-planos">
+    <div class="lp-pricing-hdr">
+      <div class="lp-section-badge lp-reveal" style="margin:0 auto 1rem;">Planos</div>
+      <h2 class="lp-section-h lp-reveal">Escolha o plano <em>ideal</em></h2>
+    </div>
+    <div class="lp-pricing-grid">
+      <!-- Gratuito -->
+      <div class="lp-plan-card lp-reveal">
+        <div class="lp-plan-name">Gratuito</div>
+        <div class="lp-plan-price">R$0</div>
+        <div class="lp-plan-period">/mês — para sempre</div>
+        <div class="lp-plan-desc">Ideal para começar a registrar sua alimentação e aprender sobre nutrição.</div>
+        <ul class="lp-plan-features">
+          <li><span class="lp-plan-check">✓</span>Diário alimentar</li>
+          <li><span class="lp-plan-check">✓</span>Busca de alimentos</li>
+          <li><span class="lp-plan-check">✓</span>Calculadora calórica</li>
+          <li><span class="lp-plan-check">✓</span>Receitas básicas</li>
+        </ul>
+        <button class="lp-btn-plan" onclick="openAuthOverlay()">Começar grátis</button>
+      </div>
+      <!-- Standard Pro (featured) -->
+      <div class="lp-plan-card featured lp-reveal" style="transition-delay:0.1s">
+        <div class="lp-plan-featured-badge">MAIS POPULAR</div>
+        <div class="lp-plan-name">Standard Pro</div>
+        <div class="lp-plan-price">R$25</div>
+        <div class="lp-plan-period">/mês</div>
+        <div class="lp-plan-desc">Para usuários que querem o melhor da plataforma para sua própria saúde.</div>
+        <ul class="lp-plan-features">
+          <li><span class="lp-plan-check">✓</span>Tudo do Gratuito</li>
+          <li><span class="lp-plan-check">✓</span>Câmera IA ilimitada</li>
+          <li><span class="lp-plan-check">✓</span>Dieta IA personalizada</li>
+          <li><span class="lp-plan-check">✓</span>Relatório em PDF</li>
+          <li><span class="lp-plan-check">✓</span>Histórico avançado</li>
+        </ul>
+        <button class="lp-btn-plan" onclick="openAuthOverlay()">Assinar agora</button>
+      </div>
+      <!-- Professional -->
+      <div class="lp-plan-card lp-reveal" style="transition-delay:0.2s">
+        <div class="lp-plan-name">Professional</div>
+        <div class="lp-plan-price">R$100+</div>
+        <div class="lp-plan-period">/mês</div>
+        <div class="lp-plan-desc">Para nutricionistas, personal trainers e outros profissionais de saúde que atendem pacientes.</div>
+        <ul class="lp-plan-features">
+          <li><span class="lp-plan-check">✓</span>Tudo do Standard Pro</li>
+          <li><span class="lp-plan-check">✓</span>Painel de pacientes</li>
+          <li><span class="lp-plan-check">✓</span>Canal direto com pacientes</li>
+          <li><span class="lp-plan-check">✓</span>Prontuário clínico</li>
+          <li><span class="lp-plan-check">✓</span>Planos alimentares</li>
+        </ul>
+        <button class="lp-btn-plan" onclick="openAuthOverlay()">Solicitar acesso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEPOIMENTOS -->
+  <section class="lp-testi">
+    <div class="lp-section-badge lp-reveal">Depoimentos</div>
+    <h2 class="lp-section-h lp-reveal">O que dizem os <em>profissionais</em></h2>
+    <div class="lp-testi-grid">
+      <div class="lp-testi-card lp-reveal" style="transition-delay:0.05s">
+        <div class="lp-testi-stars">★★★★★</div>
+        <p class="lp-testi-text">"Transformou completamente meu consultório. Antes eu precisava de 3 apps diferentes — agora tudo está em um lugar só. Meus pacientes adoram o diário por foto."</p>
+        <div class="lp-testi-author">
+          <div class="lp-testi-av">AM</div>
+          <div><div class="lp-testi-name">Ana Martins</div><div class="lp-testi-role">Nutricionista Clínica — SP</div></div>
+        </div>
+      </div>
+      <div class="lp-testi-card lp-reveal" style="transition-delay:0.1s">
+        <div class="lp-testi-stars">★★★★★</div>
+        <p class="lp-testi-text">"A câmera IA é incrível! Meus pacientes finalmente conseguem registrar as refeições sem complicação. A adesão ao tratamento aumentou muito."</p>
+        <div class="lp-testi-author">
+          <div class="lp-testi-av">RC</div>
+          <div><div class="lp-testi-name">Ricardo Costa</div><div class="lp-testi-role">Endocrinologista — RJ</div></div>
+        </div>
+      </div>
+      <div class="lp-testi-card lp-reveal" style="transition-delay:0.15s">
+        <div class="lp-testi-stars">★★★★★</div>
+        <p class="lp-testi-text">"O painel em tempo real me permite intervir antes que o problema vire uma crise. Já indiquei para todos os colegas do consultório."</p>
+        <div class="lp-testi-author">
+          <div class="lp-testi-av">FS</div>
+          <div><div class="lp-testi-name">Fernanda Souza</div><div class="lp-testi-role">Nutricionista Esportiva — MG</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="lp-faq-section" id="lp-faq">
+    <div class="lp-section-badge lp-reveal">FAQ</div>
+    <h2 class="lp-section-h lp-reveal">Perguntas <em>frequentes</em></h2>
+    <div class="lp-faq-list">
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          O plano gratuito tem limite de uso?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">O plano gratuito inclui o diário alimentar, busca de alimentos e calculadora calórica sem limite de dias. Funcionalidades avançadas como câmera IA ilimitada e dieta personalizada requerem upgrade.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Como funciona o acesso dos meus pacientes?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Você convida o paciente por e-mail ou cria a conta diretamente pelo painel. Ele recebe acesso Pro automaticamente enquanto estiver vinculado a você, sem custo adicional para o paciente.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Meus dados e os dos pacientes são seguros?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Sim. Todos os dados são armazenados com criptografia e a plataforma é 100% compatível com a LGPD (Lei 13.709/2018). Não compartilhamos informações com terceiros.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Posso cancelar a qualquer momento?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Sim. Não há fidelidade. Você pode cancelar ou fazer downgrade a qualquer momento pelo próprio painel de configurações.</div></div>
+      </div>
+      <div class="lp-faq-item">
+        <button class="lp-faq-btn" onclick="toggleFaq(this)">
+          Funciona em celular?
+          <span class="lp-faq-arrow">▼</span>
+        </button>
+        <div class="lp-faq-ans"><div class="lp-faq-ans-inner">Sim! A plataforma é 100% responsiva e funciona perfeitamente em qualquer dispositivo — smartphone, tablet ou computador. Você pode até instalar como app no seu celular (PWA).</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="lp-cta-final">
+    <div class="lp-cta-final-bg"></div>
+    <div class="lp-cta-final-deco"></div>
+    <div class="lp-cta-final-tag lp-reveal">🚀 Começar é gratuito</div>
+    <h2 class="lp-cta-final-h lp-reveal">Leve sua prática profissional para o <em>próximo nível</em></h2>
+    <p class="lp-cta-final-sub lp-reveal">Junte-se a mais de 120 profissionais que já transformaram seus consultórios com a NutrIA.</p>
+    <div class="lp-cta-final-actions lp-reveal">
+      <button class="lp-btn-primary" onclick="openAuthOverlay()">Criar conta grátis ↗</button>
+      <button class="lp-btn-ghost" onclick="openAuthOverlay()">Já tenho conta — Entrar</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="lp-footer">
+    <div class="lp-footer-logo" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;font-family:var(--font-title);font-style:normal;">
+      <img class="app-logo-img" src="" alt="NutrIA" style="height:28px;width:auto;display:block;">
+      <span class="lp-brand-calor" style="font-family:var(--font-title);font-style:normal;font-weight:700;transition:color 0.3s;">Nutr</span><span class="lp-brand-ia" style="font-family:var(--font-title);font-style:normal;font-weight:700;margin-left:-0.1rem;transition:color 0.3s;">IA</span>
+    </div>
+    <div class="lp-footer-links">
+      <a href="#lp-funcionalidades">Funcionalidades</a>
+      <a href="#lp-como-funciona">Como funciona</a>
+      <a href="#lp-planos">Planos</a>
+      <a href="#lp-faq">FAQ</a>
+    </div>
+    <div class="lp-footer-copy">© 2025 NutrIA · LGPD compliant · Todos os direitos reservados</div>
+  </footer>
+
+</div><!-- /landingPage -->
+
+<!-- ═══ AUTH OVERLAY ═══ -->
+<div id="authOverlay" class="hidden" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="auth-card">
-    <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:56px;width:auto;display:block;"><span>Calor<span class="logo-accent">IA</span></span></div>
+    <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:0.6rem;font-family:var(--font-title);font-style:normal;"><img class="app-logo-img" src="" alt="NutrIA" style="height:56px;width:auto;display:block;"><span style="font-family:var(--font-title);font-style:normal;">Nutr<span class="logo-accent" style="color:var(--teal-care);">IA</span></span></div>
     <p class="auth-tagline" data-i18n="auth_tagline">Nutrição inteligente para uma vida mais saudável <i class="fa-solid fa-leaf ic-leaf"></i></p>
     <div id="authError"></div>
     <div id="authLoading" data-i18n="auth_loading">Entrando...</div>
@@ -54,7 +465,7 @@
         <div class="form-field" style="text-align:center;margin-bottom:1.2rem;">
           <label class="form-label" style="display:block;margin-bottom:0.7rem;"><span data-i18n="auth_avatar_label">Foto de perfil</span> <span style="color:var(--text-muted);font-weight:400;" data-i18n="auth_avatar_optional">(opcional)</span></label>
           <!-- Preview circle -->
-          <div id="regAvatarPreview" onclick="document.getElementById('regAvatarFile').click()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:white;font-family:'Syne',sans-serif;margin:0 auto 0.9rem;overflow:hidden;cursor:pointer;border:3px solid var(--green-light);position:relative;">
+          <div id="regAvatarPreview" onclick="document.getElementById('regAvatarFile').click()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:white;font-family:var(--font-body);margin:0 auto 0.9rem;overflow:hidden;cursor:pointer;border:3px solid var(--green-light);position:relative;">
             <span id="regAvatarInitial">?</span>
           </div>
           <input type="file" id="regAvatarFile" accept="image/*" style="display:none;" onchange="handleRegAvatarUpload(event)">
@@ -96,7 +507,7 @@
 
     <!-- Step 2: Onboarding (first login) -->
     <div id="onboardingStep" style="display:none;">
-      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;"><span data-i18n="onb_title">Bem-vindo! Vamos começar</span> <i class="fa-solid fa-leaf ic-leaf"></i></h3>
+      <h3 style="font-family:var(--font-sub);font-size:1.4rem;font-weight:900;color:var(--green-deep);margin-bottom:0.4rem;"><span data-i18n="onb_title">Bem-vindo! Vamos começar</span> <i class="fa-solid fa-leaf ic-leaf"></i></h3>
       <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;" data-i18n="onb_desc">Preencha seus dados para personalizar sua experiência. Você pode atualizar isso depois.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
         <div class="form-field">
@@ -143,14 +554,14 @@
 <div id="appShell">
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo" style="display:flex;align-items:center;gap:0.5rem;"><img class="app-logo-img" src="" alt="CalorIA" style="height:40px;width:auto;display:block;"><span>Calor<span>IA</span></span></div>
+    <div class="sidebar-logo" style="display:flex;align-items:center;gap:0.5rem;font-family:var(--font-title);font-style:normal;"><img class="app-logo-img" src="" alt="NutrIA" style="height:40px;width:auto;display:block;"><span style="font-family:var(--font-title);font-style:normal;">Nutr<span style="color:var(--teal-care);">IA</span></span></div>
     <nav class="sidebar-nav">
       <div class="nav-group-label" data-i18n="nav_tools">Ferramentas</div>
       <button class="nav-item active" id="nav-home" onclick="showPanel('home',this)">
         <span class="nav-icon"><i class="fa-solid fa-house ic-home"></i></span><span data-i18n="nav_home">Início</span>
       </button>
       <button class="nav-item" id="nav-dietaia" onclick="showPanel('dietaia',this)">
-        <span class="nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i></span><span data-i18n="nav_dietaia" style="font-weight:700;color:var(--orange-hot);">Dieta IA</span>
+        <span class="nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--green-pale-hot)"></i></span><span data-i18n="nav_dietaia" style="font-weight:700;color:var(--green-pale-hot);">Dieta IA</span>
       </button>
       <button class="nav-item" id="nav-search" onclick="showPanel('search',this)">
         <span class="nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span><span data-i18n="nav_search">Pesquisar</span>
@@ -172,6 +583,12 @@
       </button>
       <button class="nav-item" id="nav-recipes" onclick="showPanel('recipes',this)">
         <span class="nav-icon"><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="nav_recipes">Receitas</span>
+      </button>
+      <button class="nav-item" id="nav-professionals" onclick="showPanel('professionals',this)">
+        <span class="nav-icon"><i class="fa-solid fa-user-doctor ic-stethoscope"></i></span><span>Profissionais</span>
+      </button>
+      <button class="nav-item" id="nav-subscription" onclick="showPanel('subscription',this)">
+        <span class="nav-icon"><i class="fa-solid fa-credit-card"></i></span><span>Assinatura</span>
       </button>
 
       <div class="nav-group-label" id="navGroupPro" style="display:none;" data-i18n="nav_professional">Profissional</div>
@@ -221,11 +638,14 @@
         <button class="dropdown-item" onclick="showPanel('profile',null);closeDropdown()">
           <span><i class="fa-solid fa-user ic-user"></i></span><span data-i18n="menu_profile">Meu Perfil</span>
         </button>
+        <button class="dropdown-item" id="dropdownSubscriptionBtn" onclick="showPanel('subscription',null);closeDropdown()">
+          <span><i class="fa-solid fa-credit-card"></i></span><span>Minha Assinatura</span>
+        </button>
         <button class="dropdown-item" id="dropdownUpgradeBtn" onclick="openUpgradeModal();closeDropdown()">
           <span><i class="fa-solid fa-star ic-star"></i></span><span data-i18n="menu_upgrade">Planos & Upgrade</span>
         </button>
         <button class="dropdown-item" id="dropdownBecomeNut" onclick="openNutritionistRequest();closeDropdown()">
-          <span><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="menu_become_nut">Ser Nutricionista</span>
+          <span><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="menu_become_nut">Ser Profissional</span>
         </button>
         <div class="dropdown-divider"></div>
         <button class="dropdown-item" onclick="forceRefreshProfile();closeDropdown()" title="Atualiza role e plano do banco de dados">
@@ -245,14 +665,14 @@
     <!-- ══ HOME PANEL ══ -->
     <div class="panel" id="panel-home">
       <!-- Welcome banner -->
-      <div class="card" style="background:linear-gradient(135deg,var(--green-deep) 0%,#1e5c23 100%);color:white;border:none;">
+      <div class="card home-resume-card" style="background:var(--green-deep);color: #ece1d4;border:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
           <div>
-            <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;"><span data-i18n="home_hello">Olá</span>, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
+            <div style="font-family:var(--font-sub);font-size:1.6rem;font-weight:900;"><span data-i18n="home_hello">Olá</span>, <span id="homeUserName">!</span> <i class="fa-solid fa-leaf ic-leaf"></i></div>
             <div data-i18n="home_summary" style="opacity:0.8;font-size:0.88rem;margin-top:0.25rem;">Aqui está o seu resumo de hoje</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:2rem;font-weight:900;font-family:'Playfair Display',serif;" id="homeKcalToday">0</div>
+            <div style="font-size:2rem;font-weight:900;font-family:var(--font-sub);" id="homeKcalToday">0</div>
             <div data-i18n="kcal_today" style="opacity:0.7;font-size:0.75rem;">kcal hoje</div>
           </div>
         </div>
@@ -268,28 +688,28 @@
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('search',document.getElementById('nav-search'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-magnifying-glass ic-search"></i></div>
-          <div data-i18n="search_food" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
+          <div data-i18n="search_food" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Buscar Alimento</div>
           <div data-i18n="search_food_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Tabela nutricional</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('diary',document.getElementById('nav-diary'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-book ic-diary"></i></div>
-          <div data-i18n="my_diary" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
+          <div data-i18n="my_diary" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Meu Diário</div>
           <div data-i18n="my_diary_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Registrar refeições</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('camera',document.getElementById('nav-camera'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-camera ic-camera"></i></div>
-          <div data-i18n="camera_ai" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
+          <div data-i18n="camera_ai" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Câmera IA</div>
           <div data-i18n="camera_ai_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Analisar foto do prato</div>
         </div>
         <div class="card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;" onclick="showPanel('water',document.getElementById('nav-water'))">
           <div style="font-size:2rem;"><i class="fa-solid fa-droplet ic-water"></i></div>
-          <div data-i18n="water" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
+          <div data-i18n="water" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Água</div>
           <div data-i18n="water_desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Acompanhar hidratação</div>
         </div>
         <!-- Diet Generator shortcut (desktop/sidebar — não aparece na barra fixa mobile) -->
-        <div class="card home-diet-card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:linear-gradient(135deg,var(--green-deep),#1a4a1f);border:none;color:white;" onclick="openDietGenModal()">
+        <div class="card home-diet-card" style="cursor:pointer;text-align:center;padding:1.2rem 1rem;margin-bottom:0;grid-column:1/-1;background:var(--green-deep);color: #ece1d4;border:none;" onclick="openDietGenModal()">
           <div style="font-size:2rem;"><i class="fa-solid fa-wand-magic-sparkles" style="color:#ffd54f!important;"></i></div>
-          <div data-i18n="generate_diet" style="font-family:'Syne',sans-serif;font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
+          <div data-i18n="generate_diet" style="font-family:var(--font-body);font-weight:700;margin-top:0.4rem;font-size:0.9rem;">Gerar Dieta com IA</div>
           <div data-i18n="generate_diet_desc" style="font-size:0.75rem;opacity:0.75;margin-top:0.2rem;">Plano alimentar personalizado baseado na sua anamnese</div>
         </div>
       </div>
@@ -349,7 +769,7 @@
     <!-- ══ DIETA IA PANEL ══ -->
     <div class="panel" id="panel-dietaia">
       <div class="card">
-        <div class="card-title"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i> <span data-i18n="nav_dietaia">Dieta IA</span></div>
+        <div class="card-title"><i class="fa-solid fa-robot ic-chat" style="color:var(--green-pale-hot)"></i> <span data-i18n="nav_dietaia">Dieta IA</span></div>
         <div class="card-sub" data-i18n="dietaia_sub">Gere um plano alimentar personalizado com Inteligência Artificial e acompanhe o seu consumo diário.</div>
         
         <div style="margin-top:1.5rem; text-align:center;">
@@ -476,7 +896,7 @@
 
             <!-- Score nutricional dinâmico -->
             <div id="nutriScoreBox" style="margin-top:1rem;background:rgba(255,255,255,0.08);border-radius:12px;padding:0.9rem;display:none;">
-              <div style="font-family:'Syne',sans-serif;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.65;margin-bottom:0.6rem;">Perfil Nutricional</div>
+              <div style="font-family:var(--font-body);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.65;margin-bottom:0.6rem;">Perfil Nutricional</div>
               <div id="nutriScoreContent" style="font-size:0.82rem;line-height:1.6;opacity:0.85;"></div>
             </div>
           </div>
@@ -502,6 +922,7 @@
         <div>
           <div class="nutritionist-label" data-i18n="linked_nutritionist">Nutricionista responsável</div>
           <div class="nutritionist-name" id="linkedNutritionistName">—</div>
+          <div class="nutritionist-specialties" id="linkedNutritionistSpecialties" style="display:none;"></div>
         </div>
       </div>
 
@@ -511,7 +932,7 @@
           <div class="diary-date-label" id="diaryDate">—</div>
           <button onclick="changeDiaryDate(1)">▶</button>
         </div>
-        <button onclick="clearDiary()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.4rem 1rem;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;font-size:0.82rem;color:var(--text-muted);transition:all var(--transition);" onmouseover="this.style.borderColor='#e53935';this.style.color='#e53935'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"><i class="fa-solid fa-trash ic-alert"></i> <span data-i18n="clear">Limpar</span></button>
+        <button onclick="clearDiary()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.4rem 1rem;font-family:var(--font-body);font-weight:600;cursor:pointer;font-size:0.82rem;color:var(--text-muted);transition:all var(--transition);" onmouseover="this.style.borderColor='#e53935';this.style.color='#e53935'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'"><i class="fa-solid fa-trash ic-alert"></i> <span data-i18n="clear">Limpar</span></button>
       </div>
 
       <div class="progress-mega">
@@ -697,16 +1118,16 @@
         </div>
         <button class="btn-primary" style="margin-top:1.2rem;" onclick="calcCalories()">Calcular minha meta <i class="fa-solid fa-bullseye ic-goal"></i></button>
         <div class="calc-result-card" id="calcResult">
-          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:0.2rem;">Metabolismo Basal (TMB)</p>
+          <p style="font-family:var(--font-body);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:0.2rem;">Metabolismo Basal (TMB)</p>
           <div class="tmb-big" id="calcTMB">0</div>
           <p class="tmb-label">kcal/dia em repouso</p>
-          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1rem;margin-bottom:0.2rem;">Necessidade Total</p>
-          <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1;" id="calcTDEE">0</div>
+          <p style="font-family:var(--font-body);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1rem;margin-bottom:0.2rem;">Necessidade Total</p>
+          <div style="font-family:var(--font-sub);font-size:3rem;font-weight:900;line-height:1;" id="calcTDEE">0</div>
           <p class="tmb-label">kcal/dia com atividade</p>
           <div style="background:rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:0.9rem 1rem;margin-top:1rem;">
-            <p style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;"><i class="fa-solid fa-bullseye ic-goal"></i> Sua meta: <span id="calcGoalVal">0</span> kcal/dia</p>
+            <p style="font-family:var(--font-body);font-weight:700;font-size:0.9rem;"><i class="fa-solid fa-bullseye ic-goal"></i> Sua meta: <span id="calcGoalVal">0</span> kcal/dia</p>
           </div>
-          <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1.2rem;margin-bottom:0.5rem;">Macros Recomendados</p>
+          <p style="font-family:var(--font-body);font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-top:1.2rem;margin-bottom:0.5rem;">Macros Recomendados</p>
           <div class="macros-rec">
             <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroCarbs">0g</div><div class="macro-rec-label">Carboidratos</div></div>
             <div class="macro-rec-item"><div class="macro-rec-val" id="calcMacroProt">0g</div><div class="macro-rec-label">Proteínas</div></div>
@@ -792,7 +1213,7 @@
         </div>
         <div class="loading-pulse" id="cmpLoading"><div class="pulse-ring"></div><p data-i18n="comparing">Comparando alimentos...</p></div>
         <div id="cmpMealSelectRow" style="display:none;margin-bottom:0.75rem;">
-          <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:0.4rem;">Adicionar à refeição:</label>
+          <label style="font-size:0.82rem;font-weight:600;color:var(--text-muted);font-family:var(--font-body);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:0.4rem;">Adicionar à refeição:</label>
           <select id="cmpDiaryMealSelect" class="qty-unit" style="width:100%;padding:0.7rem 1rem;border-radius:var(--radius-sm);font-size:0.9rem;">
             <option value="cafe">☕ Café da manhã</option>
             <option value="almoco">🍽️ Almoço</option>
@@ -839,20 +1260,33 @@
               <label class="form-label" data-i18n="recipe_name">Nome da Receita</label>
               <input type="text" id="newRecipeName" class="form-input" placeholder="Ex: Bowl de Quinoa">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.8rem;">
-              <div class="form-field">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:0.8rem;">
+              <div class="form-field" style="margin-bottom:0;">
                 <label class="form-label">Kcal</label>
                 <input type="number" id="newRecipeKcal" class="form-input" placeholder="380">
               </div>
-              <div class="form-field">
+              <div class="form-field" style="margin-bottom:0;">
                 <label class="form-label" data-i18n="protein">Proteína (g)</label>
                 <input type="number" id="newRecipeProt" class="form-input" placeholder="25">
               </div>
-              <div class="form-field">
+              <div class="form-field" style="margin-bottom:0;">
+                <label class="form-label">Carboidratos (g)</label>
+                <input type="number" id="newRecipeCarbs" class="form-input" placeholder="40">
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
+                <label class="form-label">Gorduras (g)</label>
+                <input type="number" id="newRecipeFat" class="form-input" placeholder="12">
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
+                <label class="form-label">Açúcar (g)</label>
+                <input type="number" id="newRecipeSugar" class="form-input" placeholder="0">
+              </div>
+              <div class="form-field" style="margin-bottom:0;">
                 <label class="form-label">Total (g/kg)</label>
                 <input type="number" id="newRecipeTotalGrams" class="form-input" placeholder="400">
               </div>
             </div>
+            
             <div class="form-field">
               <label class="form-label" data-i18n="category">Categoria</label>
               <select id="newRecipeCat" class="form-select">
@@ -863,8 +1297,13 @@
               </select>
             </div>
             <div class="form-field">
-              <label class="form-label" data-i18n="ingredients">Ingredientes (um por linha)</label>
-              <textarea id="newRecipeIngredients" class="form-input" rows="4" placeholder="200g frango&#10;100g quinoa&#10;..."></textarea>
+              <label class="form-label" data-i18n="ingredients" style="display:flex;justify-content:space-between;align-items:center;">
+                Ingredientes (um por linha)
+                <button type="button" onclick="estimateRecipeNutrients()" style="background:var(--orange-pale);color:var(--orange-hot);border:1px solid var(--orange-mid);border-radius:50px;padding:0.2rem 0.6rem;font-size:0.75rem;cursor:pointer;font-family:var(--font-body);font-weight:700;" title="Preencha os ingredientes primeiro">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Estimar Nutrientes com IA
+                </button>
+              </label>
+              <textarea id="newRecipeIngredients" class="form-input" rows="4" placeholder="200g frango&#10;100g batata doce..."></textarea>
             </div>
             <div class="form-field">
               <label class="form-label" data-i18n="steps">Modo de preparo (um passo por linha)</label>
@@ -890,7 +1329,7 @@
             </div>
             <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
               <button class="btn-primary" style="width:auto;padding:0.7rem 1.5rem;" onclick="submitRecipe()">Salvar Receita <i class="fa-solid fa-check ic-check"></i></button>
-              <button onclick="toggleRecipeForm()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.7rem 1.2rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Cancelar</button>
+              <button onclick="toggleRecipeForm()" style="background:none;border:2px solid var(--border);border-radius:50px;padding:0.7rem 1.2rem;cursor:pointer;font-family:var(--font-body);font-weight:600;color:var(--text-muted);">Cancelar</button>
             </div>
           </div>
         </div>
@@ -924,8 +1363,14 @@
           </button>
         </div>
 
+        <!-- Paciente Search Bar -->
+        <div style="position:relative;margin-bottom:1.5rem;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.9rem;"></i>
+          <input type="text" id="patientSearchInput" data-i18n-ph="patients_search_ph" placeholder="Buscar por nome ou e-mail..." style="width:100%;padding:0.75rem 1rem 0.75rem 2.5rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-body);color:var(--text-main);font-size:0.9rem;" oninput="filterPatientsList()">
+        </div>
+
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-          <p style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);"><span data-i18n="patients_list">Lista</span> (<span id="patientCount">0</span>)</p>
+          <p style="font-family:var(--font-body);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);"><span data-i18n="patients_list">Lista</span> (<span id="patientCount">0</span>)</p>
           <span id="patientLimitInfo" style="font-size:0.75rem;color:var(--text-muted);"></span>
         </div>
         <div id="patientsList"><p style="color:var(--text-muted);text-align:center;padding:2rem;" data-i18n="loading">Carregando...</p></div>
@@ -949,7 +1394,7 @@
           </label>
         </div>
 
-        <!-- Photo upload area (patient only) -->
+        <!-- Photo upload area -->
         <div id="chatPhotoArea" style="display:none;margin-bottom:0.75rem;padding:0.6rem;background:var(--bg-app);border-radius:var(--radius-sm);border:1px dashed var(--border);">
           <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.82rem;color:var(--text-muted);">
             <i class="fa-solid fa-image" style="color:#64b5f6;font-size:1.1rem;"></i>
@@ -963,9 +1408,8 @@
 
         <!-- Patient selector (nutritionist) -->
         <div id="chatPatientSelector" style="display:none;margin-bottom:0.5rem;">
-          <select id="chatPatientSelect" class="form-select" onchange="loadChatMessages()">
-            <option value="" data-i18n="chat_select_patient">Selecionar paciente...</option>
-          </select>
+          <div class="chat-patient-selector-title" data-i18n="chat_select_patient">Selecionar paciente...</div>
+          <div id="chatPatientList" class="chat-patient-list"></div>
         </div>
 
         <!-- Input -->
@@ -974,6 +1418,17 @@
           <button onclick="sendChatMessage()" style="background:var(--green-mid);color:white;border:none;border-radius:50%;width:44px;height:44px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
             <i class="fa-solid fa-paper-plane" style="color:white!important;"></i>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROFESSIONALS PANEL ══ -->
+    <div class="panel" id="panel-professionals">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> <span id="professionalsPanelTitle">Profissionais da NutrIA</span></div>
+        <div class="card-sub" id="professionalsPanelSub">Conheca profissionais disponiveis e escolha quem pode acompanhar sua rotina alimentar.</div>
+        <div id="professionalsPanelContent" class="professionals-grid" style="margin-top:1.25rem;">
+          <p style="color:var(--text-muted);font-size:0.88rem;">Carregando profissionais...</p>
         </div>
       </div>
     </div>
@@ -1107,9 +1562,31 @@
             <label class="form-label"><i class="fa-solid fa-percent ic-fire"></i> % Gordura Corporal</label>
             <div style="display:flex;gap:0.4rem;align-items:center;">
               <input type="number" id="profileBodyFat" class="form-input" placeholder="Ex: 22.5" step="0.1" style="flex:1;" oninput="profileUpdateFatClassification()">
-              <button type="button" onclick="profileCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 0.9rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-calculator"></i> Calcular</button>
+              <button type="button" onclick="profileCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 0.9rem;font-family:var(--font-body);font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-calculator"></i> Calcular</button>
             </div>
             <div id="profileFatClassification" style="display:none;margin-top:0.4rem;padding:0.4rem 0.75rem;border-radius:var(--radius-sm);font-size:0.78rem;font-weight:600;"></div>
+          </div>
+        </div>
+
+        <div id="professionalPublicProfileFields" class="professional-public-fields" style="display:none;">
+          <div class="professional-public-title"><i class="fa-solid fa-id-card-clip ic-stethoscope"></i> Perfil publico para pacientes</div>
+          <div class="profile-grid">
+            <div class="form-field">
+              <label class="form-label">CRN</label>
+              <input type="text" id="profileProfessionalCrn" class="form-input" placeholder="Ex: CRN-3 12345">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Instagram</label>
+              <input type="text" id="profileProfessionalInstagram" class="form-input" placeholder="@seuinstagram">
+            </div>
+            <div class="form-field" style="grid-column:1/-1;">
+              <label class="form-label">Especializacoes</label>
+              <input type="text" id="profileProfessionalSpecialties" class="form-input" placeholder="Ex: Nutricao clinica, diabetes, emagrecimento">
+            </div>
+            <div class="form-field" style="grid-column:1/-1;">
+              <label class="form-label">Descricao profissional</label>
+              <textarea id="profileProfessionalBio" class="form-input" rows="4" placeholder="Conte aos pacientes como voce trabalha e quais cuidados oferece." style="resize:vertical;"></textarea>
+            </div>
           </div>
         </div>
 
@@ -1117,14 +1594,18 @@
         <div id="profilePatientTypePanel" style="display:none;background:linear-gradient(135deg,var(--green-pale),var(--yellow-pale));border:1px solid var(--green-light);border-radius:var(--radius-mid);padding:1rem 1.2rem;margin-top:0.75rem;">
           <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
             <i class="fa-solid fa-robot ic-chat" style="font-size:1.1rem;"></i>
-            <span data-i18n="detected_profile" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
+            <span data-i18n="detected_profile" style="font-family:var(--font-body);font-weight:800;font-size:0.82rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Perfil Nutricional Detectado</span>
           </div>
           <div id="profilePatientTypeContent" style="font-size:0.85rem;color:var(--text-main);line-height:1.6;"></div>
         </div>
 
         <div class="form-field" style="display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem; margin-bottom:0.75rem;">
-          <input type="checkbox" id="profileDiabetes" onchange="localStorage.setItem('cv_is_diabetic', this.checked)">
+          <input type="checkbox" id="profileDiabetes">
           <label for="profileDiabetes" data-i18n="diabetes_label" style="font-size:0.85rem; cursor:pointer; user-select:none; font-weight:600; color:var(--orange-hot);">Tenho Diabetes ou Pré-Diabetes</label>
+        </div>
+        <div class="form-field" style="margin-bottom:0.75rem;">
+          <label class="form-label" style="font-size:0.85rem; font-weight:600; color:var(--orange-hot);">Outras Doenças/Restrições (Ex: Hipertensão)</label>
+          <input type="text" id="profileDiseases" class="form-input" placeholder="Separado por vírgulas...">
         </div>
 
         <div class="form-field" style="margin-top:0.75rem;">
@@ -1149,6 +1630,24 @@
       </div>
     </div>
 
+    <!-- ══ SUBSCRIPTION PANEL ══ -->
+    <div class="panel" id="panel-subscription">
+      <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Panel Header -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+          <span style="font-size: 1.75rem; color: var(--green-mid);"><i class="fa-solid fa-credit-card"></i></span>
+          <h2 style="font-family: var(--font-body); font-weight: 800; font-size: 1.5rem; margin: 0; color: var(--text-main);">Minha Assinatura</h2>
+        </div>
+
+        <!-- Status Card Container -->
+        <div id="subscription-status-card" class="card" style="padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 1.5rem; background: var(--bg-card);">
+          <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; margin: 0; padding: 2rem 0;">
+            <i class="fa-solid fa-spinner fa-spin" style="margin-right: 0.5rem; color: var(--green-mid);"></i> Carregando informações da sua assinatura...
+          </p>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- BOTTOM NAV (mobile) -->
@@ -1159,8 +1658,8 @@
         <span class="bottom-nav-label" data-i18n="nav_home">Início</span>
       </button>
       <button class="bottom-nav-item" id="bnav-dietaia" onclick="showPanel('dietaia',null);setBottomNav('dietaia')">
-        <span class="bottom-nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--orange-hot)"></i></span>
-        <span class="bottom-nav-label" data-i18n="nav_dietaia" style="color:var(--orange-hot)">Dieta IA</span>
+        <span class="bottom-nav-icon"><i class="fa-solid fa-robot ic-chat" style="color:var(--green-pale-hot)"></i></span>
+        <span class="bottom-nav-label" data-i18n="nav_dietaia" style="color:var(--green-pale-hot)">Dieta IA</span>
       </button>
       <button class="bottom-nav-item" id="bnav-search" onclick="showPanel('search',null);setBottomNav('search')">
         <span class="bottom-nav-icon"><i class="fa-solid fa-magnifying-glass ic-search"></i></span>
@@ -1206,7 +1705,7 @@
     <div style="font-size:4rem;color:var(--green-mid);margin-bottom:1rem;animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
       <i class="fa-solid fa-circle-check"></i>
     </div>
-    <h3 id="successAnimatedTitle" style="font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green-deep);margin-bottom:0.5rem;">Salvo!</h3>
+    <h3 id="successAnimatedTitle" style="font-family:var(--font-sub);font-size:1.6rem;color:var(--green-deep);margin-bottom:0.5rem;">Salvo!</h3>
     <p id="successAnimatedDesc" style="color:var(--text-muted);font-size:0.9rem;">As alterações foram salvas.</p>
   </div>
 </div>
@@ -1247,16 +1746,18 @@ function closeLgpdModal() {
 </script>
 
 <!-- Create Patient Modal -->
-<div class="modal-overlay" id="createPatientModal" onclick="if(event.target===this)closeCreatePatientModal()">
-  <div class="modal-box" style="max-width:620px;width:95vw;max-height:92vh;overflow-y:auto;">
-    <button class="modal-close" onclick="closeCreatePatientModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
-    <div class="modal-title"><i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_title">Cadastrar Paciente</span></div>
+<div class="modal-overlay" id="createPatientModal" onmousedown="if(event.target===this) safeCloseCreatePatientModal(true)">
+  <div class="modal-box" style="max-width:620px;width:95vw;max-height:92vh;overflow-y:auto;position:relative;">
+    <div style="position:sticky; top:0; z-index:100; background:var(--bg-card); display:flex; justify-content:space-between; align-items:center; padding:1.2rem 0; margin-top:-1.2rem; margin-bottom:1rem; border-bottom:1px solid var(--border);">
+      <div class="modal-title" style="margin:0;"><i class="fa-solid fa-plus ic-check"></i> <span data-i18n="create_patient_title">Cadastrar Paciente</span></div>
+      <button class="modal-close" style="position:static; margin:0;" onclick="safeCloseCreatePatientModal(false)" title="Fechar / Minimizar"><i class="fa-solid fa-xmark ic-alert"></i></button>
+    </div>
     <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.2rem;" data-i18n="create_patient_desc">Crie a conta do paciente diretamente. Na primeira entrada ele deverá trocar a senha.</p>
 
     <!-- Avatar -->
     <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.2rem;">
       <div id="cpAvatarPreview" onclick="document.getElementById('cpAvatarFile').click()" style="width:80px;height:80px;border-radius:50%;background:var(--green-pale);border:3px dashed var(--green-light);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;font-size:1.8rem;position:relative;">
-        <span id="cpAvatarInitial" style="font-family:'Syne',sans-serif;font-weight:700;color:var(--green-deep);">?</span>
+        <span id="cpAvatarInitial" style="font-family:var(--font-body);font-weight:700;color:var(--green-deep);">?</span>
         <div style="position:absolute;bottom:0;width:100%;background:rgba(0,0,0,0.4);color:white;font-size:0.6rem;text-align:center;padding:2px;"><i class="fa-solid fa-camera ic-camera"></i> Foto</div>
       </div>
       <input type="file" id="cpAvatarFile" accept="image/*" style="display:none;" onchange="handleCpAvatarUpload(event)">
@@ -1288,14 +1789,14 @@ function closeLgpdModal() {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.4rem;">
             <div style="display:flex;align-items:center;gap:0.5rem;">
               <i class="fa-solid fa-robot ic-chat" style="font-size:1rem;"></i>
-              <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Classificação do Paciente</span>
+              <span style="font-family:var(--font-body);font-weight:800;font-size:0.78rem;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;">Classificação do Paciente</span>
             </div>
-            <div id="cpPatientTypeBadge" style="font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:50px;background:var(--green-mid);color:white;font-family:'Syne',sans-serif;"></div>
+            <div id="cpPatientTypeBadge" style="font-size:0.72rem;font-weight:700;padding:2px 10px;border-radius:50px;background:var(--green-mid);color:white;font-family:var(--font-body);"></div>
           </div>
           <div id="cpPatientTypeContent" style="font-size:0.82rem;color:var(--text-main);line-height:1.6;"></div>
           <!-- Disease-specific form suggestions -->
           <div id="cpDiseaseFormSuggestions" style="display:none;margin-top:0.6rem;border-top:1px solid #c8e6c9;padding-top:0.6rem;">
-            <div style="font-size:0.75rem;font-weight:700;font-family:'Syne',sans-serif;color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Formulários Recomendados pela IA</div>
+            <div style="font-size:0.75rem;font-weight:700;font-family:var(--font-body);color:var(--green-deep);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.4rem;"><i class="fa-solid fa-file-medical ic-stethoscope"></i> Formulários Recomendados pela IA</div>
             <div id="cpDiseaseFormList" style="display:flex;flex-wrap:wrap;gap:0.4rem;"></div>
           </div>
         </div>
@@ -1410,7 +1911,7 @@ function closeLgpdModal() {
           <label class="form-label"><i class="fa-solid fa-bolt ic-fire"></i> Percentual de Gordura (%)</label>
           <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
             <input type="number" id="cpBodyFat" class="form-input" placeholder="Ex: 22.5" step="0.1" style="flex:1;min-width:100px;">
-            <button type="button" onclick="cpCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;"><i class="fa-solid fa-calculator"></i> Calcular</button>
+            <button type="button" onclick="cpCalcBodyFat()" style="background:var(--green-pale);color:var(--green-deep);border:1px solid var(--green-light);border-radius:50px;padding:0.6rem 1rem;font-family:var(--font-body);font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;"><i class="fa-solid fa-calculator"></i> Calcular</button>
           </div>
           <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;">Insira o valor do exame de bioimpedância ou clique em "Calcular" para estimativa pela fórmula de Deurenberg.</p>
         </div>
@@ -1828,7 +2329,7 @@ function closeLgpdModal() {
       </div>
       <!-- Gestação (aparece só se grávida) -->
       <div id="cpPregnancyFields" style="display:none;margin-top:0.75rem;border-top:1px solid var(--border);padding-top:0.75rem;">
-        <div style="font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.6rem;">Dados Gestacionais</div>
+        <div style="font-family:var(--font-body);font-size:0.72rem;font-weight:800;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.6rem;">Dados Gestacionais</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
           <div class="form-field">
             <label class="form-label">Semana gestacional</label>
@@ -1895,10 +2396,10 @@ function closeLgpdModal() {
     <div class="modal-title"><i class="fa-solid fa-star ic-star"></i> <span data-i18n="choose_plan">Escolha seu plano</span></div>
     <div class="modal-sub" data-i18n="choose_plan_sub">Desbloqueie mais funcionalidades</div>
 
-    <!-- Tabs: Usuário padrão / Nutricionista -->
+    <!-- Tabs: Usuário padrão / Profissional -->
     <div style="display:flex;gap:0.5rem;background:var(--green-pale);border-radius:50px;padding:4px;margin-bottom:1.2rem;">
-      <button id="upgradeTabUser" onclick="switchUpgradeTab('user')" style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;background:var(--green-deep);color:white;transition:all 0.2s;">👤 Usuário</button>
-      <button id="upgradeTabNut"  onclick="switchUpgradeTab('nut')"  style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;background:transparent;color:var(--text-muted);transition:all 0.2s;">🩺 Nutricionista</button>
+      <button id="upgradeTabUser" onclick="switchUpgradeTab('user')" style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:0.85rem;background:var(--green-deep);color:white;transition:all 0.2s;">👤 Usuário</button>
+      <button id="upgradeTabNut"  onclick="switchUpgradeTab('nut')"  style="flex:1;border:none;border-radius:50px;padding:0.5rem;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:0.85rem;background:transparent;color:var(--text-muted);transition:all 0.2s;">🩺 Profissional</button>
     </div>
 
     <!-- Planos de Usuário -->
@@ -1919,7 +2420,7 @@ function closeLgpdModal() {
         <div class="upgrade-plan-badge">RECOMENDADO</div>
         <div class="upgrade-plan-icon"><i class="fa-solid fa-star ic-star"></i></div>
         <div class="upgrade-plan-name">Standard Pro</div>
-        <div class="upgrade-plan-price">R$25<span>/mês</span></div>
+        <div class="upgrade-plan-price">R$30<span>/mês</span></div>
         <ul class="upgrade-plan-features">
           <li>Tudo do Gratuito</li>
           <li>Diário alimentar completo</li>
@@ -1938,36 +2439,33 @@ function closeLgpdModal() {
     <div id="upgradePlansNut" class="upgrade-plans-grid" style="display:none;">
       <div class="upgrade-plan-card">
         <div class="upgrade-plan-icon"><i class="fa-solid fa-user-doctor ic-stethoscope"></i></div>
-        <div class="upgrade-plan-name">Nutricionista Pro</div>
-        <div class="upgrade-plan-price">R$59<span>/mês</span></div>
+        <div class="upgrade-plan-name">Professional Basic</div>
+        <div class="upgrade-plan-price">R$100<span>/mês</span></div>
         <ul class="upgrade-plan-features">
           <li>Tudo do Standard Pro</li>
-          <li>Painel de pacientes (até 15)</li>
+          <li>Painel de pacientes</li>
           <li>Cadastrar pacientes diretamente</li>
-          <li>Enviar receitas aos pacientes</li>
-          <li>Chat com pacientes</li>
-          <li>Metas personalizadas por paciente</li>
+          <li>Enviar receitas manuais ao paciente</li>
+          <li>Dossiê do paciente</li>
           <li>Relatórios nutricionais em PDF</li>
-          <li>Biblioteca privada de receitas</li>
         </ul>
-        <button class="btn-upgrade-now" onclick="requestUpgrade('nutritionist_pro')">Assinar Nutricionista Pro</button>
+        <button class="btn-upgrade-now" onclick="requestUpgrade('professional_basic')">Assinar Professional Basic</button>
       </div>
       <div class="upgrade-plan-card featured">
-        <div class="upgrade-plan-badge">CLÍNICA</div>
+        <div class="upgrade-plan-badge">GOLD</div>
         <div class="upgrade-plan-icon"><i class="fa-solid fa-hospital ic-stethoscope"></i></div>
-        <div class="upgrade-plan-name">Nutricionista Clínica</div>
-        <div class="upgrade-plan-price">R$99<span>/mês</span></div>
+        <div class="upgrade-plan-name">Professional Gold</div>
+        <div class="upgrade-plan-price">R$197<span>/mês</span></div>
         <ul class="upgrade-plan-features">
-          <li>Tudo do Nutricionista Pro</li>
-          <li>Pacientes ilimitados</li>
-          <li>Prontuário clínico do paciente</li>
+          <li>Tudo do Professional Basic</li>
+          <li>Canal direto com pacientes</li>
+          <li>DietaIA personalizada</li>
+          <li>ReceitaIA para pacientes</li>
+          <li>Prontuário clínico completo</li>
           <li>Relatório de evolução clínica</li>
-          <li>Paciente vê dados avançados do app</li>
           <li>Planos alimentares personalizados</li>
-          <li>Assinatura de documentos</li>
-          <li>Perfil profissional público</li>
         </ul>
-        <button class="btn-upgrade-now featured" onclick="requestUpgrade('nutritionist_clinic')">Assinar Clínica</button>
+        <button class="btn-upgrade-now featured" onclick="requestUpgrade('professional_gold')">Assinar Professional Gold</button>
       </div>
     </div>
 
@@ -2005,8 +2503,13 @@ function closeLgpdModal() {
 <div class="modal-overlay" id="nutritionistModal" onclick="if(event.target===this)closeNutritionistModal()">
   <div class="modal-box">
     <button class="modal-close" onclick="closeNutritionistModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
-    <div class="modal-title"><i class="fa-solid fa-utensils ic-recipes"></i> Solicitação de Nutricionista</div>
-    <p class="modal-sub">Preencha os dados abaixo. Sua solicitação será enviada diretamente ao nosso time.</p>
+    <!-- Hidden field: tier this request is for. Set by openNutritionistRequest(tier) -->
+    <input type="hidden" id="nutRequestedTier" value="professional_basic">
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.3rem;">
+      <div class="modal-title" id="nutModalTitle" style="margin-bottom:0;"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitação Profissional</div>
+      <span id="nutTierBadge" style="font-size:0.7rem;font-weight:800;font-family:var(--font-body);text-transform:uppercase;letter-spacing:0.04em;padding:0.2rem 0.65rem;border-radius:50px;background:var(--green-deep);color:white;">Professional Basic</span>
+    </div>
+    <p class="modal-sub" id="nutModalSub">Preencha seus dados profissionais. Nossa equipe revisará a solicitação e, se aprovado, você poderá pagar e ativar o plano.</p>
     <div class="form-field">
       <label class="form-label">CRN (Registro Profissional)</label>
       <input type="text" id="nutCRN" class="form-input" placeholder="Ex: CRN-3 12345">
@@ -2035,6 +2538,7 @@ function closeLgpdModal() {
       <label class="form-label">Mensagem adicional</label>
       <textarea id="nutMessage" class="form-input" rows="3" placeholder="Conte um pouco sobre sua atuação..."></textarea>
     </div>
+    <div id="nutritionistRequestStatus" style="display:none;margin-bottom:0.75rem;padding:0.6rem 0.9rem;border-radius:var(--radius-sm);background:var(--green-pale);font-size:0.83rem;color:var(--green-deep);"></div>
     <button class="btn-primary" onclick="sendNutritionistRequest()"><i class="fa-solid fa-envelope ic-search"></i> Enviar Solicitação</button>
   </div>
 </div>
@@ -2099,7 +2603,7 @@ function closeLgpdModal() {
       <button class="btn-primary" onclick="sendAdminNotice()" style="flex:1;">
         <i class="fa-solid fa-paper-plane" style="color:white!important;margin-right:0.3rem;"></i> Enviar Aviso
       </button>
-      <button onclick="closeAdminNoticeModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Cancelar</button>
+      <button onclick="closeAdminNoticeModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:600;color:var(--text-muted);">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2289,91 +2793,106 @@ function closeLgpdModal() {
   <div class="modal-box" style="max-width:640px;width:96vw;max-height:92vh;overflow-y:auto;">
     <button class="modal-close" onclick="closeDietGenModal()"><i class="fa-solid fa-xmark ic-alert"></i></button>
     <div class="modal-title"><i class="fa-solid fa-wand-magic-sparkles ic-star"></i> <span data-i18n="generate_diet">Gerar Dieta com IA</span></div>
-    <p class="modal-sub" data-i18n="dietaia_modal_sub">A IA cria um plano alimentar completo baseado nos seus dados e anamnese.</p>
 
-    <div id="dietGenForm">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
-        <div class="form-field" style="margin-bottom:0;">
-          <label class="form-label">Objetivo</label>
-          <select id="dietGenGoal" class="form-select">
-            <option value="emagrecer">Emagrecimento</option>
-            <option value="manter" selected>Manutenção de peso</option>
-            <option value="hipertrofia">Ganho de massa muscular</option>
-            <option value="saude">Saúde geral</option>
-            <option value="diabetes">Controle do diabetes</option>
-            <option value="hipertensao">Controle da hipertensão</option>
-            <option value="colesterol">Controle do colesterol</option>
-          </select>
-        </div>
-        <div class="form-field" style="margin-bottom:0;grid-column:1/-1;">
-          <label class="form-label">Restrições alimentares <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">(selecione quantas quiser)</span></label>
-          <div class="restriction-pills" id="dietGenRestrictPills">
-            <button type="button" class="pill-btn active" data-value="nenhuma" onclick="toggleRestrictionPill(this)">Nenhuma</button>
-            <button type="button" class="pill-btn" data-value="vegetariano" onclick="toggleRestrictionPill(this)">Vegetariano</button>
-            <button type="button" class="pill-btn" data-value="vegano" onclick="toggleRestrictionPill(this)">Vegano</button>
-            <button type="button" class="pill-btn" data-value="sem gluten" onclick="toggleRestrictionPill(this)">Sem glúten</button>
-            <button type="button" class="pill-btn" data-value="sem lactose" onclick="toggleRestrictionPill(this)">Sem lactose</button>
-            <button type="button" class="pill-btn" data-value="low carb" onclick="toggleRestrictionPill(this)">Low carb</button>
-            <button type="button" class="pill-btn" data-value="sem acucar" onclick="toggleRestrictionPill(this)">Sem açúcar</button>
-            <button type="button" class="pill-btn" data-value="sem frutos do mar" onclick="toggleRestrictionPill(this)">Sem frutos do mar</button>
-            <button type="button" class="pill-btn" data-value="sem amendoim" onclick="toggleRestrictionPill(this)">Sem amendoim</button>
-            <button type="button" class="pill-btn" data-value="halal" onclick="toggleRestrictionPill(this)">Halal</button>
-            <button type="button" class="pill-btn" data-value="kosher" onclick="toggleRestrictionPill(this)">Kosher</button>
-            <button type="button" class="pill-btn pill-btn-custom" id="pillBtnCustom" onclick="toggleCustomRestrictionInput()">+ Outra restrição</button>
-          </div>
-          <div id="customRestrictionContainer" style="display:none;margin-top:0.5rem;gap:0.4rem;flex-wrap:wrap;">
-            <input type="text" id="dietGenRestrictCustomInput" class="form-input" style="margin:0;flex:1;min-width:140px;" placeholder="Ex: intolerância à frutose..." onkeydown="if(event.key==='Enter')addCustomRestrictionPill()">
-            <button type="button" class="btn-primary" style="width:auto;margin:0;padding:0.5rem 1rem;font-size:0.8rem;border-radius:50px;" onclick="addCustomRestrictionPill()">Adicionar</button>
-          </div>
-        </div>
-        <div class="form-field" style="margin-bottom:0;">
-          <label class="form-label">Número de refeições</label>
-          <select id="dietGenMeals" class="form-select">
-            <option value="3">3 refeições</option>
-            <option value="4">4 refeições</option>
-            <option value="5" selected>5 refeições</option>
-            <option value="6">6 refeições</option>
-          </select>
-        </div>
-        <div class="form-field" style="margin-bottom:0;">
-          <label class="form-label">Dias da semana</label>
-          <select id="dietGenDays" class="form-select">
-            <option value="1">Apenas hoje</option>
-            <option value="3">3 dias</option>
-            <option value="7" selected>7 dias (semana completa)</option>
-          </select>
-        </div>
+    <!-- Em Breve: visível para não-admins -->
+    <div id="dietGenComingSoon" style="display:none;text-align:center;padding:2rem 1rem;">
+      <div style="font-size:4rem;margin-bottom:1rem;">🚧</div>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:900;font-size:1.4rem;color:var(--text-main);margin:0 0 0.75rem;">Em Breve!</h2>
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;max-width:380px;margin:0 auto 1.5rem;">
+        Estamos trabalhando na <strong>DietaIA</strong> para torná-la ainda mais precisa e personalizada.<br><br>
+        Em breve você poderá gerar planos alimentares completos com inteligência artificial diretamente pela plataforma NutrIA.
+      </p>
+      <div style="display:inline-flex;align-items:center;gap:0.5rem;background:var(--green-pale);border:2px solid var(--green-light);border-radius:50px;padding:0.6rem 1.2rem;font-size:0.85rem;font-weight:700;color:var(--green-deep);">
+        <i class="fa-solid fa-circle-notch fa-spin" style="color:var(--green-mid);"></i>
+        Disponível em breve
       </div>
-      <div class="form-field">
-        <label class="form-label">Observações adicionais (alergia, preferências…)</label>
-        <textarea id="dietGenObs" class="form-input" rows="2" placeholder="Ex: não gosto de peixe, alergia a amendoim..."></textarea>
-      </div>
-      <div id="dietGenLoading" style="display:none;text-align:center;padding:1.5rem;">
-        <div class="pulse-ring" style="margin:0 auto 0.6rem;"></div>
-        <p style="color:var(--text-muted);font-size:0.88rem;">Gerando plano alimentar personalizado com IA…</p>
-      </div>
-      <button class="btn-primary" onclick="generateAIDiet()">
-        <i class="fa-solid fa-wand-magic-sparkles ic-star" style="color:white!important;margin-right:0.3rem;"></i> Gerar meu plano alimentar
-      </button>
     </div>
 
-    <div id="dietGenResult" style="display:none;">
-      <div id="dietGenContent"></div>
-      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem;">
-        <button class="btn-primary" style="flex:1;" onclick="applyDietToday()">
-          <i class="fa-solid fa-book ic-diary" style="color:white!important;margin-right:0.3rem;"></i> Aplicar hoje no diário
-        </button>
-        <button onclick="saveDietPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--orange-mid);border-radius:50px;background:var(--orange-pale);cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--orange-hot);">
-          <i class="fa-solid fa-thumbtack"></i> Salvar e Acompanhar Plano
-        </button>
-        <button onclick="printDiet()" style="flex:1;padding:0.9rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--text-muted);">
-          <i class="fa-solid fa-print ic-search"></i> Imprimir / PDF
-        </button>
-        <button onclick="dietGenNewPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--green-mid);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;color:var(--green-mid);">
-          <i class="fa-solid fa-arrows-rotate"></i> Gerar novo plano
+    <!-- Formulário real: visível apenas para admin -->
+    <div id="dietGenAdminForm" style="display:none;">
+      <p class="modal-sub" data-i18n="dietaia_modal_sub">A IA cria um plano alimentar completo baseado nos seus dados e anamnese.</p>
+      <div id="dietGenForm">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1rem;">
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label">Objetivo</label>
+            <select id="dietGenGoal" class="form-select">
+              <option value="emagrecer">Emagrecimento</option>
+              <option value="manter" selected>Manutenção de peso</option>
+              <option value="hipertrofia">Ganho de massa muscular</option>
+              <option value="saude">Saúde geral</option>
+              <option value="diabetes">Controle do diabetes</option>
+              <option value="hipertensao">Controle da hipertensão</option>
+            </select>
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label">Restrições alimentares</label>
+            <div style="display:flex;flex-direction:column;gap:0.4rem;">
+              <div class="restriction-pills" id="dietGenRestrictPills">
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;"><input type="checkbox" value="vegetariano"> Vegetariano</label>
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;"><input type="checkbox" value="vegano"> Vegano</label>
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;"><input type="checkbox" value="sem glúten"> Sem glúten</label>
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;"><input type="checkbox" value="sem lactose"> Sem lactose</label>
+                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.82rem;"><input type="checkbox" value="personalizado" onchange="document.getElementById('customRestrictionContainer').style.display=this.checked?'flex':'none'"> Personalizado</label>
+              </div>
+              <div id="customRestrictionContainer" style="display:none;margin-top:0.5rem;gap:0.4rem;flex-wrap:wrap;">
+                <input type="text" id="dietGenRestrictCustomInput" class="form-input" style="margin:0;flex:1;min-width:140px;" placeholder="Ex: intolerância à frutose..." onkeydown="if(event.key==='Enter')addCustomRestrictionPill()">
+                <button type="button" class="btn-primary" style="width:auto;margin:0;padding:0.5rem 1rem;font-size:0.8rem;border-radius:50px;" onclick="addCustomRestrictionPill()">Adicionar</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label">Número de refeições</label>
+            <select id="dietGenMeals" class="form-select">
+              <option value="3">3 refeições</option>
+              <option value="4">4 refeições</option>
+              <option value="5" selected>5 refeições</option>
+              <option value="6">6 refeições</option>
+            </select>
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <label class="form-label">Dias da semana</label>
+            <select id="dietGenDays" class="form-select">
+              <option value="1">Apenas hoje</option>
+              <option value="3">3 dias</option>
+              <option value="7" selected>7 dias (semana completa)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Observações adicionais (alergia, preferências…)</label>
+          <textarea id="dietGenObs" class="form-input" rows="2" placeholder="Ex: não gosto de peixe, alergia a amendoim..."></textarea>
+        </div>
+        <div id="dietGenLoading" style="display:none;text-align:center;padding:1.5rem;">
+          <div class="pulse-ring" style="margin:0 auto 0.6rem;"></div>
+          <p style="color:var(--text-muted);font-size:0.88rem;">Gerando plano alimentar personalizado com IA…</p>
+        </div>
+        <button class="btn-primary" onclick="generateAIDiet()">
+          <i class="fa-solid fa-wand-magic-sparkles ic-star" style="color:white!important;margin-right:0.3rem;"></i> Gerar meu plano alimentar
         </button>
       </div>
+
+      <div id="dietGenResult" style="display:none;">
+        <div id="dietGenContent"></div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1rem;">
+          <button class="btn-primary" style="flex:1;" onclick="applyDietToday()" id="dietGenApplyBtn">
+            <i class="fa-solid fa-book ic-diary" style="color:white!important;margin-right:0.3rem;"></i> Aplicar hoje no diário
+          </button>
+          <button onclick="saveDietPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--orange-mid);border-radius:50px;background:var(--orange-pale);cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--orange-hot);">
+            <i class="fa-solid fa-thumbtack"></i> Salvar e Acompanhar Plano
+          </button>
+          <button id="dietGenSendToPatientBtn" onclick="sendGeneratedDietToPatient()" style="display:none;flex:1;padding:0.9rem;border:2px solid #5c6bc0;border-radius:50px;background:#e8eaf6;cursor:pointer;font-family:var(--font-body);font-weight:700;color:#3949ab;">
+            <i class="fa-solid fa-paper-plane" style="color:#3949ab;margin-right:0.3rem;"></i> Enviar ao Paciente
+          </button>
+          <button onclick="printDiet()" style="flex:1;padding:0.9rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--text-muted);">
+            <i class="fa-solid fa-print ic-search"></i> Imprimir / PDF
+          </button>
+          <button onclick="dietGenNewPlan()" style="flex:1;padding:0.9rem;border:2px solid var(--green-mid);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--green-mid);">
+            <i class="fa-solid fa-arrows-rotate"></i> Gerar novo plano
+          </button>
+        </div>
+      </div>
     </div>
+
   </div>
 </div>
 
@@ -2384,7 +2903,8 @@ function closeLgpdModal() {
     <div class="modal-title"><i class="fa-solid fa-user-doctor ic-stethoscope"></i> Minha Especialidade</div>
     <p class="modal-sub">Selecionar sua área principal personaliza os formulários de anamnese e as métricas de acompanhamento.</p>
     <style>
-      .spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1.5rem; }
+      .spec-group-title { font-family:var(--font-body); font-weight:800; font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin: 1rem 0 0.5rem; letter-spacing:0.5px; }
+      .spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1rem; }
       .spec-card {
         background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius-mid);
         padding: 1rem; text-align: left; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2393,37 +2913,60 @@ function closeLgpdModal() {
       .spec-card:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.06); border-color: var(--green-mid); }
       .spec-card.active { border-color: var(--green-deep); background: var(--green-pale); box-shadow: 0 0 0 3px rgba(42,92,48,0.1); }
       .spec-icon { font-size: 1.6rem; }
-      .spec-title { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--text-main); font-size: 0.95rem; }
+      .spec-title { font-family: var(--font-body); font-weight: 800; color: var(--text-main); font-size: 0.95rem; }
       .spec-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.3; }
       @media(max-width: 400px) { .spec-grid { grid-template-columns: 1fr; } }
     </style>
-    <div class="spec-grid">
-      <button class="spec-card nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
-        <span class="spec-icon">🏥</span><span class="spec-title">Nutrição Clínica</span><span class="spec-desc">Doenças crônicas, internação</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
-        <span class="spec-icon">🏋️</span><span class="spec-title">Nutrição Esportiva</span><span class="spec-desc">Performance, hipertrofia</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
-        <span class="spec-icon">👶</span><span class="spec-title">Pediatria</span><span class="spec-desc">Crianças, de 0 a 18 anos</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="gestante" onclick="selectNutType(this)">
-        <span class="spec-icon">🤰</span><span class="spec-title">Gestação & Lactação</span><span class="spec-desc">Pré-natal, amamentação</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="oncologia" onclick="selectNutType(this)">
-        <span class="spec-icon">🎗️</span><span class="spec-title">Oncologia</span><span class="spec-desc">Pacientes oncológicos</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="renal" onclick="selectNutType(this)">
-        <span class="spec-icon">🫘</span><span class="spec-title">Nefrologia</span><span class="spec-desc">Doenças renais e crônicas</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="cardio" onclick="selectNutType(this)">
-        <span class="spec-icon">❤️</span><span class="spec-title">Cardiologia</span><span class="spec-desc">Risco e saúde cardiovascular</span>
-      </button>
-      <button class="spec-card nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
-        <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Educação e reeducação alimentar</span>
+    
+    <div class="spec-group-title">Cargo Principal</div>
+    <div class="spec-grid" style="grid-template-columns: 1fr;">
+      <button class="spec-card nut-type-select-btn" data-type="nutricionistas" onclick="selectNutType(this);toggleNutSubfields(this.classList.contains('active'))" style="flex-direction:row;align-items:center;gap:1rem;">
+        <span class="spec-icon">🥦</span>
+        <div style="flex:1;">
+          <span class="spec-title">Nutricionista</span>
+          <span class="spec-desc">Alimentação, dietas e acompanhamento nutricional</span>
+        </div>
       </button>
     </div>
-    <button class="btn-primary" onclick="saveNutType()">Salvar especialidade</button>
+
+    <!-- Sub-especialidades de Nutricionista -->
+    <div id="nutSubfieldsContainer" style="display:none;background:var(--bg-card);border:2px dashed var(--border);border-radius:var(--radius-mid);padding:1rem;margin-bottom:1rem;">
+      <div class="spec-group-title" style="margin-top:0;">Áreas de Atuação (Nutrição)</div>
+      <div class="spec-grid">
+        <button class="spec-card nut-type-select-btn" data-type="clinica" onclick="selectNutType(this)">
+          <span class="spec-icon">🏥</span><span class="spec-title">Clínica</span><span class="spec-desc">Patologias e exames laboratoriais</span>
+        </button>
+        <button class="spec-card nut-type-select-btn" data-type="esportiva" onclick="selectNutType(this)">
+          <span class="spec-icon">🚴</span><span class="spec-title">Esportiva</span><span class="spec-desc">Hipertrofia, metas e rendimento</span>
+        </button>
+        <button class="spec-card nut-type-select-btn" data-type="pediatria" onclick="selectNutType(this)">
+          <span class="spec-icon">👶</span><span class="spec-title">Pediatria</span><span class="spec-desc">Acompanhamento infantil</span>
+        </button>
+        <button class="spec-card nut-type-select-btn" data-type="geral" onclick="selectNutType(this)">
+          <span class="spec-icon">🌿</span><span class="spec-title">Geral / Preventiva</span><span class="spec-desc">Qualidade de vida básica</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="spec-group-title">Outras Especialidades</div>
+    <div class="spec-grid">
+      <button class="spec-card nut-type-select-btn" data-type="bariatrica" onclick="selectNutType(this)">
+        <span class="spec-icon">🩺</span><span class="spec-title">Bariátrica</span><span class="spec-desc">Acompanhamento pré e pós cirúrgico</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="esporte" onclick="selectNutType(this)">
+        <span class="spec-icon">🏋️</span><span class="spec-title">Esporte / Atletas</span><span class="spec-desc">Performance e preparação</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="personal_trainer" onclick="selectNutType(this)">
+        <span class="spec-icon">👟</span><span class="spec-title">Personal Trainer</span><span class="spec-desc">Treinamento físico e antropometria</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="fisioterapeuta" onclick="selectNutType(this)">
+        <span class="spec-icon">🧬</span><span class="spec-title">Fisioterapeutas</span><span class="spec-desc">Reabilitação física e metabólica</span>
+      </button>
+      <button class="spec-card nut-type-select-btn" data-type="estetica" onclick="selectNutType(this)">
+        <span class="spec-icon">✨</span><span class="spec-title">Estética</span><span class="spec-desc">Tratamentos corporais e beleza</span>
+      </button>
+    </div>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="saveNutType()">Salvar especialidade</button>
   </div>
 </div>
 
@@ -2445,7 +2988,7 @@ function closeLgpdModal() {
         <span id="foodDetailKcal" style="font-weight:700; color:var(--orange-hot);">0 kcal</span>
       </div>
       <div style="margin-top:1rem;">
-        <h4 style="font-family:'Syne',sans-serif; font-size:0.9rem; margin-bottom:0.8rem; color:var(--text-muted);">Macronutrientes</h4>
+        <h4 style="font-family:var(--font-body); font-size:0.9rem; margin-bottom:0.8rem; color:var(--text-muted);">Macronutrientes</h4>
         <div style="display:flex; gap:0.5rem; flex-direction:column;">
           <!-- Carbs -->
           <div>
@@ -2500,7 +3043,7 @@ function closeLgpdModal() {
       <button class="btn-primary" style="flex:1;min-width:140px;" onclick="saveDiseaseFormData()">
         <i class="fa-solid fa-floppy-disk" style="color:white!important;margin-right:0.3rem;"></i> Salvar Dados
       </button>
-      <button onclick="closeDiseaseFormModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:600;color:var(--text-muted);">Fechar</button>
+      <button onclick="closeDiseaseFormModal()" style="padding:0.9rem 1.2rem;border:2px solid var(--border);border-radius:50px;background:none;cursor:pointer;font-family:var(--font-body);font-weight:600;color:var(--text-muted);">Fechar</button>
     </div>
   </div>
 </div>
@@ -2508,6 +3051,11 @@ function closeLgpdModal() {
 
 
 <script src="/globals.js"></script>
+<!-- Floating Badge for Minimized Patient Registration Form -->
+<button id="cpMinimizedBadge" style="display:none; position:fixed; bottom:80px; right:20px; background:var(--orange-hot); color:white; border:none; border-radius:50px; padding:0.8rem 1.2rem; font-family:var(--font-body); font-weight:700; font-size:0.9rem; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:9999; cursor:pointer;" onclick="restoreCreatePatientModal()">
+  <i class="fa-solid fa-pen-to-square"></i> Cadastro Minimizado
+</button>
+
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

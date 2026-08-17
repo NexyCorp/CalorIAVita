@@ -101,6 +101,7 @@ function toggleRecipeForm(defaultPatientId = null) {
   const form = document.getElementById('recipeAddForm');
   form.classList.toggle('open');
   if (form.classList.contains('open')) {
+    showPanel('recipes', document.getElementById('nav-recipes'));
     // Set default visibility based on role
     if (isProfessional()) {
       loadPatientsForRecipe().then(() => {
@@ -173,7 +174,7 @@ async function generateAiRecipe() {
   document.getElementById('aiRecipeLoading').style.display = 'block';
   document.getElementById('aiRecipeResult').style.display = 'none';
 
-  // Build user profile + body fat context
+  // Build user profile context
   let p = currentProfile || {};
   if (_targetAiRecipePatientId) {
     try {
@@ -183,20 +184,65 @@ async function generateAiRecipe() {
   }
 
   const userCtx = [
-    p.age ? `idade: ${p.age} anos` : '',
-    p.sex ? `sexo: ${p.sex === 'm' ? 'masculino' : 'feminino'}` : '',
-    p.weight ? `peso: ${p.weight}kg` : '',
-    p.height ? `altura: ${p.height}cm` : '',
-    p.body_fat_pct ? `percentual de gordura corporal: ${p.body_fat_pct}%` : ''
-  ].filter(Boolean).join(', ');
+    p.age    ? `${p.age}a` : '',
+    p.sex    ? (p.sex === 'm' ? 'M' : 'F') : '',
+    p.weight ? `${p.weight}kg` : '',
+    p.height ? `${p.height}cm` : '',
+    p.body_fat_pct ? `${p.body_fat_pct}%gord` : '',
+    p.is_diabetic ? `diabetes` : '',
+    p.diseases ? `doenças:${p.diseases}` : ''
+  ].filter(Boolean).join('/');
 
-  const prompt = `Crie uma receita saudável com base nessa vontade: "${food}". A receita deve ter no máximo ${maxKcal} kcal e pelo menos ${minProt}g de proteína.
-DADOS DO USUÁRIO: ${userCtx || 'Não informados'}.
-Considere o perfil e o percentual de gordura do usuário ao selecionar porções e ingredientes (ex: se o percentual de gordura for alto, prefira menos carboidratos simples e gorduras saturadas; se for baixo/hipertrofia, equilibre carboidratos complexos e proteínas).
-Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, category (cafe/almoco/lanche/jantar), ingredients (array of strings ou objects), steps (array of strings) }`;
+  // Prompt compacto para evitar truncamento
+  const prompt = `Receita saudável para: "${food}". Máx ${maxKcal}kcal, mín ${minProt}g proteína. Usuário: ${userCtx || 'não informado'}.
+IMPORTANTE: Respeite rigorosamente as doenças e restrições alimentares do usuário (se houver).
+Retorne APENAS este JSON (sem mais nada):
+{"title":"Nome","kcal":N,"prot":N,"carbs":N,"fat":N,"totalGrams":N,"time":"15min","category":"almoco","ingredients":["100g frango","sal a gosto"],"steps":["Passo 1","Passo 2"]}`;
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   try {
-    const data = await askClaude(prompt, 'Retorne SOMENTE JSON válido sem texto adicional. Certifique-se de que "steps" contém as instruções de preparo passo a passo.');
+    let data = null;
+    let lastErr = null;
+
+    // Retry up to 3x com backoff para 429, usando modelo 8B (30k TPM)
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const res = await window._groqFetch(
+        window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
+        [
+          { role: 'system', content: 'Retorne SOMENTE JSON válido. Sem markdown, sem texto extra. ingredients e steps devem ser APENAS arrays de strings simples.' },
+          { role: 'user', content: prompt }
+        ],
+        2500
+      );
+
+      if (res.status === 429) {
+        window.rotateGroqKey?.();
+        if (attempt < 3) {
+          const waitSec = attempt * 10;
+          document.getElementById('aiRecipeLoading').innerHTML = `<div class="pulse-ring" style="margin:0 auto 0.6rem;"></div><p style="color:var(--text-muted);font-size:0.88rem;">⏳ Aguardando ${waitSec}s (limite atingido)…</p>`;
+          await sleep(waitSec * 1000);
+          document.getElementById('aiRecipeLoading').innerHTML = '<div class="pulse-ring" style="margin:0 auto 0.6rem;"></div><p style="color:var(--text-muted);font-size:0.88rem;">Gerando receita com IA…</p>';
+          continue;
+        }
+        throw new Error('⏳ Limite de requisições atingido. Aguarde 1 minuto e tente novamente.');
+      }
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        lastErr = new Error('Erro ' + res.status + ': ' + body.slice(0, 100));
+        if (attempt < 3) { await sleep(3000); continue; }
+        throw lastErr;
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Resposta vazia da IA');
+      data = window.extractJSON(content);
+      break;
+    }
+
+    if (!data) throw new Error('Não foi possível gerar a receita.');
 
     const el = document.getElementById('aiRecipeResult');
     el.style.display = 'block';
@@ -222,8 +268,10 @@ Retorne JSON estritamente: { title, kcal, prot, carbs, fat, totalGrams, time, ca
     showToast('Erro ao gerar receita: ' + e.message, 'error');
   } finally {
     document.getElementById('aiRecipeLoading').style.display = 'none';
+    document.getElementById('aiRecipeLoading').innerHTML = '<div class="pulse-ring" style="margin:0 auto 0.6rem;"></div><p style="color:var(--text-muted);font-size:0.88rem;">Gerando receita personalizada com IA…</p>';
   }
 }
+
 
 function saveAiRecipe(data) {
   // Use global lastAiRecipeData if no data passed (called from onclick with no args)
@@ -246,6 +294,90 @@ function saveAiRecipe(data) {
   }, 200);
 }
 
+async function estimateRecipeNutrients() {
+  const ingredients = document.getElementById('newRecipeIngredients').value.trim();
+  if (!ingredients) {
+    showToast('Preencha os ingredientes primeiro para a IA estimar!', 'error');
+    return;
+  }
+  
+  const btn = event.currentTarget;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Estimando...';
+  btn.disabled = true;
+  
+  const prompt = `Analise os seguintes ingredientes e estime os macronutrientes TOTAIS aproximados da receita inteira.
+Ingredientes:
+${ingredients}
+
+Retorne APENAS um JSON estrito (sem formatação markdown) com estes campos numéricos exatos:
+{"kcal":N,"prot":N,"carbs":N,"fat":N,"sugar":N,"totalGrams":N}`;
+
+  try {
+    let data = null;
+    let lastErr = null;
+    
+    // Tenta até 2 vezes com modelo rápido
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const res = await window._groqFetch(
+        window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
+        [
+          { role: 'system', content: 'Você é um nutricionista. Retorne SOMENTE JSON válido. Responda apenas com os campos numéricos especificados.' },
+          { role: 'user', content: prompt }
+        ],
+        1000
+      );
+
+      if (res.status === 429) {
+        window.rotateGroqKey?.();
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        throw new Error('Limite de requisições atingido. Tente novamente mais tarde.');
+      }
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        lastErr = new Error('Erro ' + res.status);
+        if (attempt < 2) { await new Promise(r => setTimeout(r, 2000)); continue; }
+        throw lastErr;
+      }
+
+      const json = await res.json();
+      const content = json.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Resposta vazia da IA');
+      data = window.extractJSON(content);
+      break;
+    }
+    
+    if (data) {
+      if (data.kcal != null) document.getElementById('newRecipeKcal').value = Math.round(data.kcal);
+      if (data.prot != null) document.getElementById('newRecipeProt').value = Math.round(data.prot);
+      if (data.carbs != null) {
+        const carbsEl = document.getElementById('newRecipeCarbs');
+        if (carbsEl) carbsEl.value = Math.round(data.carbs);
+      }
+      if (data.fat != null) {
+        const fatEl = document.getElementById('newRecipeFat');
+        if (fatEl) fatEl.value = Math.round(data.fat);
+      }
+      if (data.sugar != null) {
+        const sugarEl = document.getElementById('newRecipeSugar');
+        if (sugarEl) sugarEl.value = Math.round(data.sugar);
+      }
+      if (data.totalGrams != null) document.getElementById('newRecipeTotalGrams').value = Math.round(data.totalGrams);
+      
+      showToast('<i class="fa-solid fa-check"></i> Nutrientes estimados com sucesso!');
+    }
+  } catch(e) {
+    console.error("estimateRecipeNutrients error", e);
+    showToast('Não foi possível estimar: ' + e.message, 'error');
+  } finally {
+    btn.innerHTML = originalHtml;
+    btn.disabled = false;
+  }
+}
 async function openPatientGoalsModal(patientId, patientName) {
   document.getElementById('patientGoalsPatientId').value = patientId;
   document.getElementById('patientGoalsDesc').textContent = 'Definir metas nutricionais para ' + patientName;
@@ -397,6 +529,9 @@ async function submitRecipe() {
   const name = document.getElementById('newRecipeName').value.trim();
   const kcal = parseInt(document.getElementById('newRecipeKcal').value) || 0;
   const prot = parseInt(document.getElementById('newRecipeProt').value) || 0;
+  const carbs = parseInt(document.getElementById('newRecipeCarbs')?.value) || 0;
+  const fat = parseInt(document.getElementById('newRecipeFat')?.value) || 0;
+  const sugar = parseInt(document.getElementById('newRecipeSugar')?.value) || 0;
   const totalGrams = parseInt(document.getElementById('newRecipeTotalGrams').value) || null;
   const cat = document.getElementById('newRecipeCat').value;
   const ingText = document.getElementById('newRecipeIngredients').value.trim();
@@ -444,7 +579,7 @@ async function submitRecipe() {
   // Objeto local (memória)
   const recipe = {
     id: Date.now(), icon: '<i class="fa-solid fa-utensils ic-recipes"></i>',
-    title: name, kcal, prot, totalGrams,
+    title: name, kcal, prot, carbs, fat, sugar, totalGrams,
     category: [cat, kcal < 250 ? 'lowcal' : null, prot > 25 ? 'highprot' : null].filter(Boolean),
     source: dbVisibility, ingredients, steps, photos: photoUrls,
     author: currentProfile?.name || 'Usuário',
@@ -454,7 +589,7 @@ async function submitRecipe() {
 
   // Payload completo (com TODOS os possíveis nomes de colunas)
   const fullPayload = {
-    title: name, kcal, prot, total_grams: totalGrams, category: cat,
+    title: name, kcal, prot, carbs, fat, sugar, total_grams: totalGrams, category: cat,
     ingredients: ingredients,
     steps: steps,
     photos: photoUrls.length ? JSON.stringify(photoUrls) : null,
@@ -542,7 +677,7 @@ async function submitRecipe() {
 }
 
 function getVisibleRecipes() {
-  const all = [...recipesData, ...userRecipes.filter(r => r.approved || r.source === 'mine' || r.source === 'private')];
+  const all = [...recipesData, ...userRecipes.filter(r => r.approved || r.source === 'mine' || r.source === 'private' || r.author_id === currentUser?.id)];
   if (!currentProfile) return [];
   // Patients see only recipes sent to them by their nutritionist
   if (currentProfile.role === 'patient') {
@@ -690,37 +825,20 @@ async function shareRecipeAsPdf(id) {
     }
   }
 
-  const logoB64 = LOGO_LIGHT_B64;
-  const logoSvg = `<img src="${logoB64}" width="48" height="48" style="border-radius:8px;">`;
-
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${r.title} — CalorIA</title>
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${r.title} — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body { margin: 0; } .no-print { display: none !important; } }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 32px 28px; color: #1a2e1b; background: #fff; }
-    .header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #2a5c30; padding-bottom: 16px; margin-bottom: 22px; }
-    .brand { font-size: 1.5rem; font-weight: 900; color: #2a5c30; letter-spacing: -0.5px; }
-    .brand span { color: #f5a623; }
-    h1 { font-size: 1.8rem; font-weight: 900; color: #1a4a1f; margin-bottom: 12px; }
     .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .chip { background: #e8f5e9; color: #1a4a1f; padding: 5px 14px; border-radius: 20px; font-size: 0.88rem; font-weight: 700; border: 1px solid #a5d6a7; }
-    .chip.kcal { background: #fff3e0; border-color: #ffcc80; }
-    .chip.prot { background: #e8f5e9; border-color: #a5d6a7; }
-    h3 { font-size: 1.05rem; font-weight: 800; color: #2a5c30; margin: 22px 0 10px; padding-bottom: 4px; border-bottom: 1px solid #e0f2e0; text-transform: uppercase; letter-spacing: 0.5px; }
-    ul, ol { padding-left: 1.4rem; line-height: 2; color: #2e3d2f; font-size: 0.95rem; }
-    li { margin-bottom: 2px; }
-    .footer { margin-top: 32px; font-size: 0.72rem; color: #888; border-top: 1px solid #ddd; padding-top: 14px; }
-    .lgpd-note { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
-    .btn-print { display: block; margin: 20px auto 28px; padding: 12px 32px; background: #2a5c30; color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-print:hover { background: #1a4a1f; }
+    .chip { background: var(--pdf-accent-bg); color: var(--pdf-brown); padding: 6px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
+    .chip.kcal { background: rgba(20, 184, 166, 0.15); border-color: var(--pdf-primary); color: var(--pdf-dark); }
+    .chip.prot { background: rgba(91, 33, 182, 0.1); border-color: var(--pdf-purple); color: var(--pdf-dark); }
+    h3 { font-size: 1.1rem; font-weight: 800; color: var(--pdf-primary); margin: 24px 0 12px; padding-bottom: 4px; border-bottom: 1.5px solid var(--pdf-accent-bg); text-transform: uppercase; letter-spacing: 0.5px; }
+    ul, ol { padding-left: 1.4rem; line-height: 2; color: var(--pdf-dark); font-size: 1rem; }
+    li { margin-bottom: 4px; }
   </style>
   </head><body>
-  <div class="header">
-    ${logoSvg}
-    <div class="brand">Calor<span>IA</span></div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
-  <h1>${r.title}</h1>
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader(r.title) : ''}
+  
   <div class="chips">
     <span class="chip kcal">🔥 ${r.kcal} kcal</span>
     ${r.time ? `<span class="chip">⏱ ${r.time}</span>` : ''}
@@ -731,11 +849,10 @@ async function shareRecipeAsPdf(id) {
   <ul>${r.ingredients.map(i=>`<li>${typeof i === 'object' && i !== null ? (i.name || i.title || JSON.stringify(i)) + (i.qty ? ` (${i.qty})` : '') : i}</li>`).join('')}</ul>
   <h3>📋 Modo de preparo</h3>
   <ol>${r.steps.map(s=>`<li>${typeof s === 'object' && s !== null ? (s.step || s.text || s.description || JSON.stringify(s)) : s}</li>`).join('')}</ol>
-  <div class="footer">
-    <span>Gerado pelo CalorIA — ${new Date().toLocaleDateString('pt-BR')}</span>
+  
+  <div class="footer-pdf">
+    <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
   </div>
-  <p class="lgpd-note">🔒 Seus dados são protegidos conforme a LGPD (Lei 13.709/2018). Esta receita é para uso pessoal.</p>
-  <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 
   const blob = new Blob([html], { type: 'text/html' });
@@ -796,4 +913,5 @@ window.submitRecipe = submitRecipe;
 window.setVisibility = setVisibility;
 window.previewRecipePhotos = previewRecipePhotos;
 window.closeModal = closeModal;
-window.shareRecipeAsPdf = shareRecipeAsPdf; 
+window.shareRecipeAsPdf = shareRecipeAsPdf;
+window.estimateRecipeNutrients = estimateRecipeNutrients;

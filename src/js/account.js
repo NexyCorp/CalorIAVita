@@ -1,3 +1,35 @@
+// ── Subscription helpers ──────────────────────────────────────────────────────
+// loadSubscriptionDashboard is defined in utils.js (window.loadSubscriptionDashboard)
+async function cancelSubscription(subscriptionId) {
+  if (!confirm('Deseja realmente cancelar sua assinatura? O acesso premium será revogado.')) return;
+  
+  showToast('<i class="fa-solid fa-spinner fa-spin ic-water"></i> Cancelando assinatura...');
+  try {
+    const session = await supabase.auth.getSession();
+    const token = session.data?.session?.access_token;
+
+    const res = await fetch(`/api/cancel-subscription`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ subscriptionId })
+    });
+    
+    if (res.ok) {
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Assinatura cancelada com sucesso.');
+      loadSubscriptionDashboard();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Falha no cancelamento');
+    }
+  } catch (err) {
+    console.error('[cancelSubscription]', err);
+    showToast('<i class="fa-solid fa-circle-xmark ic-recipes"></i> Erro: ' + err.message, 'error');
+  }
+}
+
 // ═══════════════════════════════════════
 async function loadMyNutritionistRequestStatus() {
   if (!currentUser) return;
@@ -32,23 +64,43 @@ async function loadMyNutritionistRequestStatus() {
     btn.innerHTML = data.status === 'rejected' ? 'Enviar Nova Solicitação' : 'Ver Solicitação';
   }
 }
-function openNutritionistRequest() {
+// tier: 'professional_basic' | 'professional_gold' | null (legacy sidebar button)
+function openNutritionistRequest(tier) {
+  // Determine tier — default to professional_basic if not specified
+  const resolvedTier = tier || 'professional_basic';
+  const isGold = resolvedTier === 'professional_gold';
+
+  // Update hidden tier field
+  const tierInput = document.getElementById('nutRequestedTier');
+  if (tierInput) tierInput.value = resolvedTier;
+
+  // Update modal visuals
+  const badge = document.getElementById('nutTierBadge');
+  if (badge) {
+    badge.textContent = isGold ? 'Professional Gold' : 'Professional Basic';
+    badge.style.background = isGold ? 'var(--yellow-hot)' : 'var(--green-deep)';
+    badge.style.color = isGold ? '#1a1a1a' : 'white';
+  }
+  const titleEl = document.getElementById('nutModalTitle');
+  if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-user-doctor ic-stethoscope"></i> Solicitação – ' + (isGold ? 'Professional Gold' : 'Professional Basic');
+  const subEl = document.getElementById('nutModalSub');
+  if (subEl) subEl.textContent = 'Preencha seus dados profissionais. Nossa equipe revisará e, se aprovado, você poderá pagar e ativar o plano ' + (isGold ? 'Professional Gold' : 'Professional Basic') + '.';
+
   document.getElementById('nutritionistModal').classList.add('show');
   const req = window._myNutReq;
   const isReadOnly = req && (req.status === 'pending' || req.status === 'approved');
-  
+
   if (req && req.status !== 'rejected') {
     document.getElementById('nutCRN').value = req.crn || '';
     document.getElementById('nutInstitution').value = req.institution || '';
     document.getElementById('nutMessage').value = req.message || '';
-    
+
     // Check specialties
     const specStr = req.specialty || '';
     document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => {
-      if (specStr.includes(cb.value)) cb.checked = true;
-      else cb.checked = false;
+      cb.checked = specStr.includes(cb.value);
     });
-    
+
     // Handle 'Outra'
     const predefined = ['Clínica', 'Esportiva', 'Pediatria', 'Gestante', 'Oncologia', 'Renal', 'Cardiologia', 'Outra'];
     const customSpecs = specStr.split(', ').filter(s => !predefined.includes(s));
@@ -66,7 +118,7 @@ function openNutritionistRequest() {
     if (el) el.disabled = isReadOnly;
   });
   document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.disabled = isReadOnly);
-  
+
   const submitBtn = document.querySelector('#nutritionistModal .btn-primary');
   if (submitBtn) submitBtn.style.display = isReadOnly ? 'none' : 'block';
 }
@@ -83,13 +135,17 @@ async function sendNutritionistRequest() {
   const specialty = specialtyList.join(', ');
   const institution = document.getElementById('nutInstitution').value.trim();
   const message = document.getElementById('nutMessage').value.trim();
+  // Read which professional tier was requested from the hidden field
+  const requested_tier = document.getElementById('nutRequestedTier')?.value || 'professional_basic';
   if (!crn) { showToast('Informe o CRN', 'error'); return; }
   closeNutritionistModal();
   showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Enviando solicitação...');
+  const tierLabel = requested_tier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
   const bodyText =
-    'Solicitação de Nutricionista\n\n' +
+    'Solicitação de Plano Profissional – ' + tierLabel + '\n\n' +
     'Nome: ' + (currentProfile?.name||'') + '\n' +
     'E-mail: ' + (currentUser?.email||'') + '\n' +
+    'Plano solicitado: ' + tierLabel + '\n' +
     'CRN: ' + crn + '\n' +
     'Especialidade: ' + specialty + '\n' +
     'Instituição: ' + institution + '\n\n' +
@@ -103,6 +159,7 @@ async function sendNutritionistRequest() {
       specialty,
       institution,
       message,
+      requested_tier,
       status: 'pending',
       rejection_reason: null,
       rejection_fields: null,
@@ -111,21 +168,21 @@ async function sendNutritionistRequest() {
     }, { onConflict: 'user_id' });
     if (dbError) throw dbError;
     try {
-      await sendEmailViaAPI('nexy.corporationn@gmail.com', 'Solicitacao de Nutricionista - CalorIA', bodyText);
+      await sendEmailViaAPI('nexy.corporationn@gmail.com', 'Solicitação Profissional – ' + tierLabel + ' – NutrIA', bodyText);
     } catch(emailError) {
-      console.warn('[CalorIA] Email notification failed:', emailError);
+      console.warn('[NutrIA] Email notification failed:', emailError);
     }
-    const crnInput = document.getElementById('nutCRN'); if (crnInput) crnInput.value = '';
-    const otherInput = document.getElementById('nutSpecialtyOther'); if (otherInput) otherInput.value = '';
-    const instInput = document.getElementById('nutInstitution'); if (instInput) instInput.value = '';
-    const msgInput = document.getElementById('nutMessage'); if (msgInput) msgInput.value = '';
+    document.getElementById('nutCRN').value = '';
+    document.getElementById('nutSpecialtyOther').value = '';
+    document.getElementById('nutInstitution').value = '';
+    document.getElementById('nutMessage').value = '';
     document.querySelectorAll('input[name="nutSpecialty"]').forEach(cb => cb.checked = false);
     const otherContainer = document.getElementById('nutSpecialtyOtherContainer');
     if (otherContainer) otherContainer.style.display = 'none';
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! O admin poderá aprovar pelo painel.');
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! Nossa equipe revisará em breve.');
   } catch(e) {
-    console.error('[CalorIA] nutritionist request error:', e);
-    showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitacao. Verifique a tabela nutritionist_requests no Supabase.', 'error');
+    console.error('[NutrIA] nutritionist request error:', e);
+    showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitação. Verifique a tabela nutritionist_requests no Supabase.', 'error');
   }
 }
 
@@ -158,7 +215,7 @@ async function sendEmailViaAPI(to, subject, bodyText) {
     to_email:   to,
     subject:    subject,
     message:    bodyText,
-    from_name:  currentProfile?.name || 'Usuário CalorIA',
+    from_name:  currentProfile?.name || 'Usuário NutrIA',
     from_email: currentUser?.email   || ''
   });
 }
@@ -220,6 +277,14 @@ function openCreatePatientModal() {
   if (imgEl) imgEl.remove();
   document.getElementById('cpError').style.display = 'none';
   // Reset patient type panel and disease form suggestions
+  if (window._diseaseFormState) {
+    window._diseaseFormState.formData = {};
+    window._diseaseFormState.disease = null;
+    window._diseaseFormState.patientId = null;
+    window._diseaseFormState._aiSections = null;
+  }
+  _diseaseFormCurrentPatientId = null;
+
   const typePanel = document.getElementById('cpPatientTypePanel');
   if (typePanel) typePanel.style.display = 'none';
   const suggDiv = document.getElementById('cpDiseaseFormSuggestions');
@@ -237,6 +302,8 @@ function openCreatePatientModal() {
 
 function closeCreatePatientModal() {
   document.getElementById('createPatientModal').classList.remove('show');
+  const badge = document.getElementById('cpMinimizedBadge');
+  if (badge) badge.style.display = 'none';
 }
 
 function updateCpInitial() {
@@ -267,8 +334,13 @@ function handleCpAvatarUpload(event) {
 function toggleCpPasswordVisibility() {
   const inp = document.getElementById('cpPassword');
   const eye = document.getElementById('cpPasswordEye');
-  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
-  else { inp.type = 'password'; eye.textContent = '👁'; }
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    eye.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+  } else {
+    inp.type = 'password';
+    eye.innerHTML = '<i class="fa-solid fa-eye"></i>';
+  }
 }
 
 function showCpError(msg) {
@@ -345,7 +417,7 @@ async function _createPatientDirectBase() {
     name,
     email,
     role: 'patient',
-    plan: isNutritionistClinic() ? 'patient_clinic' : 'patient_pro',
+    plan: isProfessionalGold() ? 'patient_gold' : 'patient_basic',
     sex,
     age,
     weight,
@@ -643,7 +715,18 @@ function collectPatientAnamneseData() {
     // Histórico clínico
     diseases_general:        diseasesGeneral,
     diseases_chronic_auto:   diseasesChronicAuto,
-    diseases_other:          document.getElementById('cpDiseasesOther')?.value.trim() || null,
+    diseases_other:          (() => {
+      let other = document.getElementById('cpDiseasesOther')?.value.trim() || '';
+      if (window._diseaseFormState && window._diseaseFormState.formData) {
+        Object.entries(window._diseaseFormState.formData).forEach(([disKey, disData]) => {
+          const tag = '[' + disKey.toUpperCase() + ' FORM]';
+          if (!other.includes(tag)) {
+            other += '\n\n' + tag + '\n' + JSON.stringify(disData, null, 2);
+          }
+        });
+      }
+      return other.trim() || null;
+    })(),
     family_history:          familyHistory,
     surgeries:               document.getElementById('cpSurgeries')?.value.trim() || null,
     hospitalizations:        document.getElementById('cpHospitalizations')?.value.trim() || null,
@@ -772,7 +855,7 @@ async function createPatientDirect() {
 
   // Salva perfil básico
   const { error: profErr } = await supabase.from('profiles').upsert({
-    id: patientId, name, email, role:'patient', plan: isNutritionistClinic() ? 'patient_clinic' : 'patient_pro',
+    id: patientId, name, email, role:'patient', plan: isProfessionalGold() ? 'patient_gold' : 'patient_basic',
     sex, age, weight, height, avatar_url: avatarUrl,
     nutritionist_id: currentUser.id,
     updated_at: new Date().toISOString()
@@ -814,7 +897,7 @@ async function createPatientDirect() {
     if (anamneseErr) {
       // Tabela pode não existir ainda — log SQL de criação
       if (anamneseErr.code === '42P01' || anamneseErr.message?.includes('patient_anamnese')) {
-        console.warn('[CalorIA] Crie a tabela patient_anamnese:\n\nCREATE TABLE patient_anamnese (\n  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,\n  patient_id uuid REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,\n  nutritionist_id uuid REFERENCES profiles(id),\n  -- dados demográficos\n  dob date, race text, phone text, profession text, sus_card text,\n  education text, income text, household int, address text, religion text,\n  -- antropometria\n  weight_usual numeric, weight_desired numeric, waist_cm numeric,\n  hip_cm numeric, arm_circ_cm numeric, calf_circ_cm numeric,\n  body_fat_pct numeric, muscle_mass_kg numeric, bone_mass_kg numeric,\n  body_water_pct numeric, bmr_measured numeric,\n  -- atividade física\n  activity_type text, activity_freq int, activity_duration int,\n  -- histórico clínico\n  diseases_general jsonb DEFAULT \'[]\',\n  diseases_chronic_auto jsonb DEFAULT \'[]\',\n  diseases_other text, family_history jsonb DEFAULT \'[]\',\n  surgeries text, hospitalizations text,\n  -- medicamentos\n  medications text, supplements text, sweetener text, sweetener_type text,\n  smoking text, alcohol text,\n  -- hábitos\n  water_intake text, eating_time_min int, bowel_habit text, meal_location text,\n  eating_company text, dysphagia text, heartburn text, prev_diets text,\n  food_aversions text, food_preferences text, allergies jsonb DEFAULT \'[]\',\n  oil_month_ml numeric, sugar_month_g numeric, salt_month_g numeric,\n  food_meaning text, psychological text,\n  -- exames\n  lab_glucose numeric, lab_hba1c numeric, lab_chol_total numeric,\n  lab_ldl numeric, lab_hdl numeric, lab_tg numeric, lab_creatinine numeric,\n  lab_urea numeric, lab_tsh numeric, lab_vit_d numeric,\n  lab_ferritin numeric, lab_hemoglobin numeric, lab_crp numeric,\n  lab_insulin numeric, lab_other text, lab_date date,\n  -- dados femininos\n  menstrual_status text, cycle_duration int, period_duration int,\n  last_period date, menstrual_symptoms text, contraceptive text,\n  pregnant text, breastfeeding text, gest_week int, dpp date,\n  prev_pregnancies int, prev_birth_type text, gest_weight_gain numeric,\n  gest_complications text,\n  updated_at timestamptz DEFAULT now()\n);\nALTER TABLE patient_anamnese ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Anamnese access" ON patient_anamnese FOR ALL\n  USING (auth.uid() = patient_id OR auth.uid() = nutritionist_id\n    OR EXISTS (SELECT 1 FROM professional_patients WHERE professional_id = auth.uid() AND patient_id = patient_anamnese.patient_id));');
+        console.warn('[NutrIA] Crie a tabela patient_anamnese:\n\nCREATE TABLE patient_anamnese (\n  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,\n  patient_id uuid REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,\n  nutritionist_id uuid REFERENCES profiles(id),\n  -- dados demográficos\n  dob date, race text, phone text, profession text, sus_card text,\n  education text, income text, household int, address text, religion text,\n  -- antropometria\n  weight_usual numeric, weight_desired numeric, waist_cm numeric,\n  hip_cm numeric, arm_circ_cm numeric, calf_circ_cm numeric,\n  body_fat_pct numeric, muscle_mass_kg numeric, bone_mass_kg numeric,\n  body_water_pct numeric, bmr_measured numeric,\n  -- atividade física\n  activity_type text, activity_freq int, activity_duration int,\n  -- histórico clínico\n  diseases_general jsonb DEFAULT \'[]\',\n  diseases_chronic_auto jsonb DEFAULT \'[]\',\n  diseases_other text, family_history jsonb DEFAULT \'[]\',\n  surgeries text, hospitalizations text,\n  -- medicamentos\n  medications text, supplements text, sweetener text, sweetener_type text,\n  smoking text, alcohol text,\n  -- hábitos\n  water_intake text, eating_time_min int, bowel_habit text, meal_location text,\n  eating_company text, dysphagia text, heartburn text, prev_diets text,\n  food_aversions text, food_preferences text, allergies jsonb DEFAULT \'[]\',\n  oil_month_ml numeric, sugar_month_g numeric, salt_month_g numeric,\n  food_meaning text, psychological text,\n  -- exames\n  lab_glucose numeric, lab_hba1c numeric, lab_chol_total numeric,\n  lab_ldl numeric, lab_hdl numeric, lab_tg numeric, lab_creatinine numeric,\n  lab_urea numeric, lab_tsh numeric, lab_vit_d numeric,\n  lab_ferritin numeric, lab_hemoglobin numeric, lab_crp numeric,\n  lab_insulin numeric, lab_other text, lab_date date,\n  -- dados femininos\n  menstrual_status text, cycle_duration int, period_duration int,\n  last_period date, menstrual_symptoms text, contraceptive text,\n  pregnant text, breastfeeding text, gest_week int, dpp date,\n  prev_pregnancies int, prev_birth_type text, gest_weight_gain numeric,\n  gest_complications text,\n  updated_at timestamptz DEFAULT now()\n);\nALTER TABLE patient_anamnese ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "Anamnese access" ON patient_anamnese FOR ALL\n  USING (auth.uid() = patient_id OR auth.uid() = nutritionist_id\n    OR EXISTS (SELECT 1 FROM professional_patients WHERE professional_id = auth.uid() AND patient_id = patient_anamnese.patient_id));');
       } else {
         console.warn('[createPatientDirect] anamnese save error:', anamneseErr);
       }
@@ -863,44 +946,34 @@ async function printPatientAnamnese(patientId, patientName) {
 
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
   <title>Anamnese Nutricional — ${name}</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body{margin:0} .no-print{display:none!important} section{page-break-inside:avoid} }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',Arial,sans-serif;max-width:820px;margin:0 auto;padding:28px 24px;color:#1a2e1b;background:#fff;font-size:13px}
-    .header{display:flex;align-items:center;gap:12px;border-bottom:3px solid #2a5c30;padding-bottom:14px;margin-bottom:20px}
-    .brand{font-size:1.4rem;font-weight:900;color:#2a5c30;letter-spacing:-0.5px}
-    .brand span{color:#f5a623}
-    h1{font-size:1.4rem;font-weight:900;color:#1a4a1f;margin-bottom:2px}
-    .subtitle{font-size:0.78rem;color:#888;margin-bottom:16px}
-    section{margin-bottom:18px}
-    h3{font-size:0.85rem;font-weight:800;color:#2a5c30;text-transform:uppercase;letter-spacing:0.8px;border-bottom:1.5px solid #e8f5e9;padding-bottom:4px;margin-bottom:10px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 12px}
-    .field{padding:5px 0;border-bottom:1px dotted #ddd}
-    .label{font-size:0.7rem;color:#888;text-transform:uppercase;letter-spacing:0.4px;font-weight:700;display:block;margin-bottom:1px}
-    .val{font-size:0.88rem;color:#1a2e1b;font-weight:500}
-    .val.empty{color:#ccc}
-    .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
-    .tag{background:#e8f5e9;color:#1a4a1f;padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:600;border:1px solid #c8e6c9}
-    .tag.red{background:#fdecea;color:#c62828;border-color:#f5c6c6}
-    .tag.yellow{background:#fff8e1;color:#7a5200;border-color:#ffe082}
-    .text-block{font-size:0.88rem;color:#1a2e1b;line-height:1.5;background:#f5f7f5;padding:6px 10px;border-radius:6px;white-space:pre-wrap;border:1px solid #e0e0e0}
-    .btn-print{display:block;margin:14px auto 22px;padding:10px 28px;background:#2a5c30;color:white;border:none;border-radius:50px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit}
-    .write-line{border:none;border-bottom:1px solid #ccc;width:100%;margin-bottom:2px;height:20px;display:block}
-    .write-block{border:1px solid #ccc;border-radius:4px;width:100%;min-height:48px;display:block;margin-top:2px}
-    .footer{margin-top:24px;font-size:0.68rem;color:#aaa;border-top:1px solid #ddd;padding-top:10px;display:flex;justify-content:space-between}
-    table{width:100%;border-collapse:collapse;font-size:0.82rem}
-    th{background:#e8f5e9;color:#1a4a1f;padding:5px 8px;text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.4px}
-    td{padding:5px 8px;border-bottom:1px solid #f0f0f0}
-    tr:nth-child(even) td{background:#fafbfa}
+    section { margin-bottom: 24px; }
+    h3 { 
+      font-size: 0.95rem; font-weight: 800; color: var(--pdf-primary); 
+      text-transform: uppercase; letter-spacing: 0.8px; 
+      border-bottom: 1.5px solid var(--pdf-accent-bg); 
+      padding-bottom: 4px; margin-bottom: 12px; 
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 12px; }
+    .field { padding: 5px 0; border-bottom: 1px dotted rgba(0,0,0,0.1); }
+    .label { font-size: 0.7rem; color: var(--pdf-brown); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; display: block; margin-bottom: 1px; opacity: 0.7; }
+    .val { font-size: 0.95rem; color: var(--pdf-dark); font-weight: 500; font-family: 'Fredoka', sans-serif; }
+    .val.empty { color: #ccc; }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+    .tag { background: var(--pdf-accent-bg); color: var(--pdf-brown); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
+    .tag.red { background: #fdecea; color: #c62828; border-color: #f5c6c6; }
+    .tag.yellow { background: #fff8e1; color: #7a5200; border-color: #ffe082; }
+    .text-block { font-size: 0.9rem; color: var(--pdf-dark); line-height: 1.5; background: var(--pdf-bg); padding: 8px 12px; border-radius: 6px; white-space: pre-wrap; border: 1px solid var(--pdf-accent-bg); }
+    .write-line { border: none; border-bottom: 1px solid #ccc; width: 100%; margin-bottom: 2px; height: 20px; display: block; }
+    .write-block { border: 1px solid #ccc; border-radius: 4px; width: 100%; min-height: 48px; display: block; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+    th { background: var(--pdf-accent-bg); color: var(--pdf-brown); padding: 6px 10px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; }
+    td { padding: 6px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
   </style>
   </head><body>
-  <div class="header">
-    ${logoSvg}
-    <div><div class="brand">Calor<span>IA</span></div><div style="font-size:0.72rem;color:#888;">Plataforma de Nutrição Inteligente</div></div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-  <h1>Anamnese Nutricional</h1>
-  <p class="subtitle">Paciente: <strong>${name}</strong> • Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p>
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Anamnese Nutricional', `Paciente: <strong>${name}</strong> &bull; Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`) : ''}
 
   <section>
     <h3>1. Identificação</h3>
@@ -1059,11 +1132,10 @@ async function printPatientAnamnese(patientId, patientName) {
     <div style="margin-top:8px"><span class="label">Relatório / Observações</span><span class="write-block"></span></div>
   </section>
 
-  <div class="footer">
-    <span>Gerado pelo CalorIA — ${new Date().toLocaleDateString('pt-BR')}</span>
-    <span>🔒 Documento protegido pela LGPD (Lei 13.709/2018)</span>
+  <div class="footer-pdf">
+    <span>Gerado pelo NutrIA — ${new Date().toLocaleDateString('pt-BR')}</span>
+    &nbsp;&nbsp;🔒 Documento protegido pela LGPD (Lei 13.709/2018)
   </div>
-  <script>window.onload=function(){window.print();}<\/script>
   </body></html>`;
 
   const blob = new Blob([html], { type: 'text/html' });
@@ -1306,7 +1378,44 @@ function cpDetectPatientType() {
 // MELHORIA 5: FORMULÁRIOS ESPECÍFICOS POR DOENÇA (IA)
 // ═══════════════════════════════════════
 
-const _diseaseFormState = { disease: null, patientId: null, patientName: null, formData: {} };
+const _diseaseFormState = window._diseaseFormState = { disease: null, patientId: null, patientName: null, formData: {} };
+
+const DISEASE_FORM_MAP = {
+    'diabetes_t2':    { label: '📋 Diabetes T2',        key: 'diabetes_t2',     name: 'Diabetes Tipo 2' },
+    'diabetes_t1':    { label: '📋 Diabetes T1',        key: 'diabetes_t1',     name: 'Diabetes Tipo 1' },
+    'prediabetes':    { label: '📋 Pré-Diabetes',       key: 'prediabetes',     name: 'Pré-Diabetes' },
+    'hipertensao':    { label: '📋 Hipertensão',        key: 'hipertensao',     name: 'Hipertensão Arterial' },
+    'obesidade':      { label: '📋 Obesidade',          key: 'obesidade',       name: 'Obesidade' },
+    'sobrepeso':      { label: '📋 Sobrepeso',          key: 'sobrepeso',       name: 'Sobrepeso' },
+    'dislipidemia':   { label: '📋 Dislipidemia',       key: 'dislipidemia',    name: 'Dislipidemia' },
+    'insuf_renal':    { label: '📋 Doença Renal',       key: 'insuf_renal',     name: 'Insuficiência Renal' },
+    'celiaquia':      { label: '📋 Doença Celíaca',     key: 'celiaquia',       name: 'Doença Celíaca' },
+    'crohn':          { label: '📋 Doença de Crohn',    key: 'crohn',           name: 'Doença de Crohn' },
+    'retocolite':     { label: '📋 Retocolite Ulc.',    key: 'retocolite',      name: 'Retocolite Ulcerativa' },
+    'sop':            { label: '📋 SOP',                key: 'sop',             name: 'Síndrome do Ovário Policístico' },
+    'cancer':         { label: '📋 Oncologia',          key: 'cancer',          name: 'Oncologia Nutricional' },
+    'steatose':       { label: '📋 Esteatose Hepática', key: 'steatose',        name: 'Esteatose Hepática' },
+    'hipotireoidismo':{ label: '📋 Hipotireoidismo',    key: 'hipotireoidismo', name: 'Hipotireoidismo' },
+    'hipertireoidismo':{ label: '📋 Hipertireoidismo',   key: 'hipertireoidismo',name: 'Hipertireoidismo' },
+    'sarcopenia':     { label: '📋 Sarcopenia',         key: 'sarcopenia',      name: 'Sarcopenia' },
+    'anemia':         { label: '📋 Anemia',             key: 'anemia',          name: 'Anemia' },
+    'osteoporose':    { label: '📋 Osteoporose',        key: 'osteoporose',     name: 'Osteoporose' },
+    'gota':           { label: '📋 Gota',               key: 'gota',            name: 'Gota' },
+    'insuf_cardiaca': { label: '📋 Insuf. Cardíaca',    key: 'insuf_cardiaca',  name: 'Insuficiência Cardíaca' },
+    'gastrite_ulcera':{ label: '📋 Gastrite/Úlcera',    key: 'gastrite_ulcera', name: 'Gastrite / Úlcera' },
+    'refluxo':        { label: '📋 Refluxo/DRGE',       key: 'refluxo',         name: 'Refluxo / DRGE' },
+    'constipacao':    { label: '📋 Constipação',        key: 'constipacao',     name: 'Constipação Crônica' },
+    'sii':            { label: '📋 SII/Cólon Irrit.',    key: 'sii',             name: 'Síndrome do Cólon Irritável' },
+    'desnutricao':    { label: '📋 Desnutrição',        key: 'desnutricao',     name: 'Desnutrição' },
+    'endometriose':   { label: '📋 Endometriose',       key: 'endometriose',    name: 'Endometriose' },
+    'artrite_reumatoide': { label: '📋 Artrite Reum.',  key: 'artrite_reumatoide', name: 'Artrite Reumatoide' },
+    'lupus':          { label: '📋 Lúpus',              key: 'lupus',           name: 'Lúpus' },
+    'esclerose_multipla': { label: '📋 Escl. Múltipla', key: 'esclerose_multipla', name: 'Esclerose Múltipla' },
+    'hashimoto':      { label: '📋 Hashimoto',          key: 'hashimoto',       name: 'Tireoidite de Hashimoto' },
+    'psorase':        { label: '📋 Psoríase',           key: 'psorase',         name: 'Psoríase' },
+    'sindrome_metabolica': { label: '📋 Sindr. Metabólica', key: 'sindrome_metabolica', name: 'Síndrome Metabólica' },
+    'fibromialgia':   { label: '📋 Fibromialgia',       key: 'fibromialgia',    name: 'Fibromialgia' }
+  };
 
 // Called when diseases are checked in the create patient form
 function cpCheckDiseaseFormSuggestions() {
@@ -1315,32 +1424,14 @@ function cpCheckDiseaseFormSuggestions() {
   const listDiv = document.getElementById('cpDiseaseFormList');
   if (!suggDiv || !listDiv) return;
 
-  const diseaseFormMap = {
-    'diabetes_t2':    { label: '📋 Diabetes T2',        key: 'diabetes_t2',     name: 'Diabetes Tipo 2' },
-    'diabetes_t1':    { label: '📋 Diabetes T1',        key: 'diabetes_t1',     name: 'Diabetes Tipo 1' },
-    'hipertensao':    { label: '📋 Hipertensão',        key: 'hipertensao',     name: 'Hipertensão Arterial' },
-    'obesidade':      { label: '📋 Obesidade',          key: 'obesidade',       name: 'Obesidade' },
-    'dislipidemia':   { label: '📋 Dislipidemia',       key: 'dislipidemia',    name: 'Dislipidemia' },
-    'insuf_renal':    { label: '📋 Doença Renal',       key: 'insuf_renal',     name: 'Insuficiência Renal' },
-    'celiaquia':      { label: '📋 Doença Celíaca',     key: 'celiaquia',       name: 'Doença Celíaca' },
-    'crohn':          { label: '📋 Crohn/Retocolite',   key: 'crohn',           name: 'Doença de Crohn / Retocolite' },
-    'retocolite':     { label: '📋 Crohn/Retocolite',   key: 'crohn',           name: 'Doença de Crohn / Retocolite' },
-    'sop':            { label: '📋 SOP',                key: 'sop',             name: 'Síndrome do Ovário Policístico' },
-    'cancer':         { label: '📋 Oncologia',          key: 'cancer',          name: 'Oncologia Nutricional' },
-    'steatose':       { label: '📋 Esteatose Hepática', key: 'steatose',        name: 'Esteatose Hepática' },
-    'hipotireoidismo':{ label: '📋 Hipotireoidismo',    key: 'hipotireoidismo', name: 'Hipotireoidismo' },
-    'sarcopenia':     { label: '📋 Sarcopenia',         key: 'sarcopenia',      name: 'Sarcopenia' },
-    'anemia':         { label: '📋 Anemia',             key: 'anemia',          name: 'Anemia' },
-  };
-
-  const relevant = checked.filter(d => diseaseFormMap[d]);
+  const relevant = checked.filter(d => DISEASE_FORM_MAP[d]);
   if (!relevant.length) { suggDiv.style.display = 'none'; return; }
 
   // Deduplicate (crohn/retocolite → same form)
   const seen = new Set();
   listDiv.innerHTML = '';
   relevant.forEach(d => {
-    const entry = diseaseFormMap[d];
+    const entry = DISEASE_FORM_MAP[d];
     if (seen.has(entry.key)) return;
     seen.add(entry.key);
     const btn = document.createElement('button');
@@ -1620,31 +1711,188 @@ const _diseaseQuestionBanks = {
 
 let _diseaseFormCurrentPatientId = null;
 
-function openDiseaseForm(diseaseKey, diseaseName) {
-  const questions = _diseaseQuestionBanks[diseaseKey];
-  if (!questions) { showToast('Formulário não disponível para esta condição.', 'error'); return; }
+function hasDiseaseAnswer(anamnese, field) {
+  if (!anamnese || !field) return false;
+  const value = anamnese[field];
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== null && value !== undefined && String(value).trim() !== '';
+}
 
+function getAnsweredFieldForDiseaseQuestion(questionId) {
+  const map = {
+    dm_glicemia_jejum_atual: 'lab_glucose',
+    dm_hba1c_atual: 'lab_hba1c',
+    dm_medicamentos_dm: 'medications',
+    dm_refeicoes_dia: 'eating_time_min',
+    has_sal_dia: 'salt_month_g',
+    has_alcool_semana: 'alcohol',
+    ob_peso_maximo: 'weight_usual',
+    ob_tentativas: 'prev_diets',
+    ob_tratamentos: 'prev_diets',
+    dis_ldl: 'lab_ldl',
+    dis_hdl: 'lab_hdl',
+    dis_tg: 'lab_tg',
+    dis_chol_total: 'lab_chol_total',
+    ren_creatinina: 'lab_creatinine',
+    ren_ureia: 'lab_urea',
+    sop_insulina: 'lab_insulin',
+    onco_perda_peso: 'weight_usual',
+    hep_alcool: 'alcohol',
+    sarc_proteina_dia: 'food_preferences',
+    sarc_exercicio_resistencia: 'activity_type',
+    hipo_tsh: 'lab_tsh',
+    anemia_hb: 'lab_hemoglobin',
+    anemia_ferritina: 'lab_ferritin',
+    anemia_vit_b12: 'lab_vit_d',
+    dii_cirurgias: 'surgeries',
+    dii_alimentos_gatilho: 'food_aversions'
+  };
+  return map[questionId] || null;
+}
+
+function filterAnsweredDiseaseQuestions(questionSet, anamnese) {
+  if (!questionSet?.sections || !anamnese) return { questionSet, skipped: [] };
+  const skipped = [];
+  const sections = questionSet.sections.map(section => {
+    const questions = (section.questions || []).filter(q => {
+      const answeredField = getAnsweredFieldForDiseaseQuestion(q.id);
+      const shouldSkip = hasDiseaseAnswer(anamnese, answeredField);
+      if (shouldSkip) skipped.push(q.label || q.id);
+      return !shouldSkip;
+    });
+    return { ...section, questions };
+  }).filter(section => section.questions.length);
+  return { questionSet: { ...questionSet, sections }, skipped };
+}
+
+async function openPatientDiseaseFormChooser(patientId, patientName, diseases) {
+  const normalized = Array.isArray(diseases) ? diseases : [diseases].filter(Boolean);
+  const entries = [];
+  const seen = new Set();
+  normalized.forEach(d => {
+    const key = String(d || '').trim();
+    const entry = DISEASE_FORM_MAP[key] || { key, name: key, label: '📋 ' + key };
+    if (!entry.key || seen.has(entry.key)) return;
+    seen.add(entry.key);
+    entries.push(entry);
+  });
+
+  const titleEl = document.getElementById('diseaseFormTitle');
+  const subtitleEl = document.getElementById('diseaseFormSubtitle');
+  const content = document.getElementById('diseaseFormContent');
+  const loadingEl = document.getElementById('diseaseFormLoading');
+  const actionsEl = document.getElementById('diseaseFormActions');
+  if (!titleEl || !content) return;
+
+  _diseaseFormCurrentPatientId = patientId;
+  _diseaseFormState.patientId = patientId;
+  _diseaseFormState.patientName = patientName;
+
+  if (loadingEl) loadingEl.style.display = 'none';
+  if (actionsEl) actionsEl.style.display = 'none';
+  content.style.display = 'block';
+  titleEl.innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> Doença IA — ${window.escapeHtml(patientName || 'Paciente')}`;
+  subtitleEl.textContent = 'Selecione qual formulário específico deseja ver para este paciente.';
+
+  if (!entries.length) {
+    content.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Este paciente não possui doenças cadastradas para formulário específico.</p>';
+  } else {
+    content.innerHTML = `
+      <div style="display:grid;gap:0.65rem;">
+        ${entries.map(entry => `
+          <button type="button" class="btn-disease-choice" data-disease-key="${window.escapeHtml(entry.key)}" data-disease-name="${window.escapeHtml(entry.name)}">
+            <span>${window.escapeHtml(entry.name)}</span>
+            <small>Abrir formulario desta doenca</small>
+          </button>
+        `).join('')}
+      </div>`;
+    content.querySelectorAll('.btn-disease-choice').forEach(btn => {
+      btn.addEventListener('click', () => openDiseaseForm(btn.dataset.diseaseKey, btn.dataset.diseaseName, patientId));
+    });
+  }
+
+  document.getElementById('diseaseFormModal').classList.add('show');
+}
+
+async function openDiseaseForm(diseaseKey, diseaseName, patientId = null) {
+  const content = document.getElementById('diseaseFormContent');
+  const titleEl = document.getElementById('diseaseFormTitle');
+  const subtitleEl = document.getElementById('diseaseFormSubtitle');
+  const loadingEl = document.getElementById('diseaseFormLoading');
+  const actionsEl = document.getElementById('diseaseFormActions');
+
+  if (patientId) _diseaseFormCurrentPatientId = patientId;
   _diseaseFormState.disease = diseaseKey;
   _diseaseFormState.patientId = _diseaseFormCurrentPatientId;
 
-  document.getElementById('diseaseFormTitle').innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> ${questions.title}`;
-  document.getElementById('diseaseFormSubtitle').textContent = 'Perguntas específicas para ' + diseaseName + ' — recomendadas para um prontuário completo';
-  document.getElementById('diseaseFormLoading').style.display = 'none';
-  document.getElementById('diseaseFormContent').style.display = 'block';
-  document.getElementById('diseaseFormActions').style.display = 'flex';
+  titleEl.innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> ${diseaseName} — Avaliação Específica`;
+  subtitleEl.textContent = 'Carregando formulário...';
+
+  let questions = _diseaseQuestionBanks[diseaseKey];
+  let currentAnamnese = null;
+  if (_diseaseFormCurrentPatientId) {
+    try {
+      const { data } = await supabase.from('patient_anamnese').select('*').eq('patient_id', _diseaseFormCurrentPatientId).maybeSingle();
+      currentAnamnese = data || null;
+    } catch(e) {
+      console.warn('[openDiseaseForm] anamnese lookup failed:', e);
+    }
+  }
+
+  if (!questions) {
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (content) content.style.display = 'none';
+    if (actionsEl) actionsEl.style.display = 'none';
+    document.getElementById('diseaseFormModal').classList.add('show');
+
+    try {
+      showToast('<i class="fa-solid fa-robot ic-chat"></i> Gerando formulário com IA...', 'success');
+      const data = await askClaude(
+        `Como nutricionista clínica, liste as perguntas específicas mais importantes para a anamnese de um paciente com: ${diseaseName}. Retorne JSON: { "title": "string", "sections": [{ "name": "string", "questions": [{ "id": "q1", "label": "string", "type": "text|select|number|textarea", "options": ["opt1"] }] }] }. Máximo 12 perguntas distribuídas em até 3 seções.`,
+        'Você é especialista em nutrição clínica. Retorne SOMENTE JSON válido sem markdown.'
+      );
+
+      if (!data || !data.sections) throw new Error('Resposta inválida da IA');
+
+      questions = {
+        title: data.title || `${diseaseName} — Avaliação Específica`,
+        sections: data.sections
+      };
+      _diseaseFormState._aiSections = data.sections;
+    } catch (e) {
+      showToast('Erro ao gerar formulário via IA: ' + e.message, 'error');
+      if (loadingEl) loadingEl.style.display = 'none';
+      closeDiseaseFormModal();
+      return;
+    }
+  } else {
+    _diseaseFormState._aiSections = null;
+  }
+
+  const filtered = filterAnsweredDiseaseQuestions(questions, currentAnamnese);
+  questions = filtered.questionSet;
+
+  if (loadingEl) loadingEl.style.display = 'none';
+  if (content) content.style.display = 'block';
+  if (actionsEl) actionsEl.style.display = 'flex';
+
+  titleEl.innerHTML = `<i class="fa-solid fa-file-medical ic-stethoscope"></i> ${questions.title}`;
+  subtitleEl.textContent = 'Perguntas específicas para ' + diseaseName + ' — recomendadas para um prontuário completo';
 
   // Build form HTML
-  const content = document.getElementById('diseaseFormContent');
-  content.innerHTML = questions.sections.map(section => `
+  const skippedHtml = filtered.skipped.length
+    ? `<div class="disease-skipped-note"><strong>Ja respondido no cadastro:</strong> ${filtered.skipped.map(window.escapeHtml).join(', ')}</div>`
+    : '';
+  content.innerHTML = skippedHtml + (questions.sections.length ? questions.sections.map(section => `
     <div class="patient-form-section" style="margin-bottom:0.75rem;">
-      <div class="patient-form-section-title"><i class="fa-solid fa-circle-dot ic-goal"></i> ${section.title}</div>
+      <div class="patient-form-section-title"><i class="fa-solid fa-circle-dot ic-goal"></i> ${section.title || section.name}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;">
         ${section.questions.map(q => {
           let input = '';
-          if (q.type === 'select') {
+          if (q.type === 'select' && q.options) {
             input = `<select id="${q.id}" class="form-select">${q.options.map(o => `<option>${o}</option>`).join('')}</select>`;
           } else if (q.type === 'textarea') {
-            input = `<textarea id="${q.id}" class="form-input" rows="2" placeholder="${q.ph||''}"></textarea>`;
+            input = `<textarea id="${q.id}" class="form-input" rows="2" style="grid-column: 1 / -1;" placeholder="${q.ph||''}"></textarea>`;
           } else {
             input = `<input type="${q.type||'text'}" id="${q.id}" class="form-input" placeholder="${q.ph||''}" ${q.step?`step="${q.step}"`:''}${q.min?` min="${q.min}"`:''}${q.max?` max="${q.max}"`:''}>`; 
           }
@@ -1653,7 +1901,57 @@ function openDiseaseForm(diseaseKey, diseaseName) {
         }).join('')}
       </div>
     </div>
-  `).join('');
+  `).join('') : '<p style="color:var(--text-muted);font-size:0.88rem;">As perguntas deste formulário já foram respondidas no cadastro/anamnese do paciente.</p>');
+
+  // Pre-populate values if they exist
+  let preExistingData = {};
+  if (_diseaseFormCurrentPatientId) {
+    const { data: anamnese } = await supabase.from('patient_anamnese').select('diseases_other').eq('patient_id', _diseaseFormCurrentPatientId).maybeSingle();
+    if (anamnese?.diseases_other) {
+      const searchTag = '[' + diseaseKey.toUpperCase() + ' FORM]';
+      const tagIdx = anamnese.diseases_other.indexOf(searchTag);
+      if (tagIdx !== -1) {
+        const jsonStartIdx = anamnese.diseases_other.indexOf('{', tagIdx);
+        if (jsonStartIdx !== -1) {
+          let braceCount = 0;
+          let jsonEndIdx = -1;
+          for (let i = jsonStartIdx; i < anamnese.diseases_other.length; i++) {
+            if (anamnese.diseases_other[i] === '{') braceCount++;
+            else if (anamnese.diseases_other[i] === '}') {
+              braceCount--;
+              if (braceCount === 0) {
+                jsonEndIdx = i + 1;
+                break;
+              }
+            }
+          }
+          if (jsonEndIdx !== -1) {
+            try {
+              preExistingData = JSON.parse(anamnese.diseases_other.slice(jsonStartIdx, jsonEndIdx));
+            } catch(e) {
+              console.warn('Failed to parse pre-existing form data', e);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (_diseaseFormState.formData && _diseaseFormState.formData[diseaseKey]) {
+    preExistingData = { ...preExistingData, ..._diseaseFormState.formData[diseaseKey] };
+  }
+
+  // Set input values
+  questions.sections.forEach(section => {
+    section.questions.forEach(q => {
+      const el = document.getElementById(q.id);
+      if (el && preExistingData[q.id]) {
+        const valObj = preExistingData[q.id];
+        const val = typeof valObj === 'object' && valObj !== null ? valObj.value : valObj;
+        el.value = val;
+      }
+    });
+  });
 
   document.getElementById('diseaseFormModal').classList.add('show');
 }
@@ -1665,29 +1963,74 @@ function closeDiseaseFormModal() {
 async function saveDiseaseFormData() {
   const disease = _diseaseFormState.disease;
   const patientId = _diseaseFormState.patientId;
-  const questions = _diseaseQuestionBanks[disease];
-  if (!questions) return;
+  let questions = _diseaseFormState._aiSections ? { sections: _diseaseFormState._aiSections } : _diseaseQuestionBanks[disease];
+  if (!questions) {
+    showToast('Estrutura de perguntas não encontrada.', 'error');
+    return;
+  }
 
   // Collect all form data
   const data = {};
   questions.sections.forEach(section => {
     section.questions.forEach(q => {
       const el = document.getElementById(q.id);
-      if (el) data[q.id] = el.value;
+      if (el) {
+        data[q.id] = { label: q.label || q.id, value: el.value };
+      }
     });
   });
+
+  // Keep in session state
+  if (!_diseaseFormState.formData) _diseaseFormState.formData = {};
+  _diseaseFormState.formData[disease] = data;
 
   showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Salvando dados específicos...');
 
   if (patientId) {
-    // Save to patient_anamnese as a JSON blob in a special field
+    // 1. Fetch current anamnese to get existing diseases_other
+    const { data: existing } = await supabase.from('patient_anamnese').select('diseases_other').eq('patient_id', patientId).maybeSingle();
+    let currentDiseasesOther = existing?.diseases_other || '';
+
+    // Remove existing form block of the same disease if it exists
+    const searchTag = '[' + disease.toUpperCase() + ' FORM]';
+    const tagIdx = currentDiseasesOther.indexOf(searchTag);
+    if (tagIdx !== -1) {
+      const jsonStartIdx = currentDiseasesOther.indexOf('{', tagIdx);
+      if (jsonStartIdx !== -1) {
+        let braceCount = 0;
+        let jsonEndIdx = -1;
+        for (let i = jsonStartIdx; i < currentDiseasesOther.length; i++) {
+          if (currentDiseasesOther[i] === '{') braceCount++;
+          else if (currentDiseasesOther[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              jsonEndIdx = i + 1;
+              break;
+            }
+          }
+        }
+        if (jsonEndIdx !== -1) {
+          currentDiseasesOther = currentDiseasesOther.slice(0, tagIdx) + currentDiseasesOther.slice(jsonEndIdx);
+        }
+      }
+    }
+
+    currentDiseasesOther = currentDiseasesOther.trim();
+    const newBlock = `\n\n[${disease.toUpperCase()} FORM]\n${JSON.stringify(data, null, 2)}`;
+    const finalDiseasesOther = (currentDiseasesOther + newBlock).trim();
+
     const { error } = await supabase.from('patient_anamnese').upsert({
       patient_id: patientId,
       nutritionist_id: currentUser?.id,
-      diseases_other: (document.getElementById('cpDiseasesOther')?.value || '') + '\n\n[' + disease.toUpperCase() + ' FORM]\n' + JSON.stringify(data, null, 2),
+      diseases_other: finalDiseasesOther,
       updated_at: new Date().toISOString()
     }, { onConflict: 'patient_id' });
-    if (error) console.warn('[saveDiseaseFormData]', error);
+
+    if (error) {
+      console.warn('[saveDiseaseFormData]', error);
+      showToast('Erro ao salvar formulário de doenças: ' + (error.message || error.code), 'error');
+      return;
+    }
   }
 
   closeDiseaseFormModal();
@@ -1707,27 +2050,93 @@ window.saveProfile = async function() {
   const height = parseFloat(document.getElementById('profileHeight')?.value) || null;
   const body_fat_pct = parseFloat(document.getElementById('profileBodyFat')?.value) || null;
   const dob = document.getElementById('profileDob')?.value || null;
+  const is_diabetic = document.getElementById('profileDiabetes')?.checked || false;
+  const diseases = document.getElementById('profileDiseases')?.value.trim() || '';
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
+  const isProfProfile = typeof isProfessional === 'function' ? (isProfessional() || isAdmin()) : ['professional','nutritionist','admin'].includes(currentProfile?.role);
+  const professional_crn = document.getElementById('profileProfessionalCrn')?.value.trim() || null;
+  const professional_instagram = document.getElementById('profileProfessionalInstagram')?.value.trim() || null;
+  const professional_specialties = document.getElementById('profileProfessionalSpecialties')?.value.trim() || null;
+  const professional_bio = document.getElementById('profileProfessionalBio')?.value.trim() || null;
 
   const payload = { name, username: username || null, sex, age, weight, height, body_fat_pct, dob };
+  if (isProfProfile) {
+    payload.professional_crn = professional_crn;
+    payload.professional_instagram = professional_instagram;
+    payload.professional_specialties = professional_specialties;
+    payload.professional_bio = professional_bio;
+  }
   let { error } = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
   if (error && error.code === '42703') {
     if (error.message?.includes('dob')) delete payload.dob;
     if (error.message?.includes('body_fat_pct')) delete payload.body_fat_pct;
+    delete payload.professional_crn;
+    delete payload.professional_instagram;
+    delete payload.professional_specialties;
+    delete payload.professional_bio;
     const retry = await (window.getSupabase?.() || window._db).from('profiles').update(payload).eq('id', currentUser.id);
     error = retry.error;
   }
   if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
 
   try {
-    await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name } });
-    if (currentUser?.user_metadata) { currentUser.user_metadata.name = name; currentUser.user_metadata.full_name = name; }
-  } catch(e) { console.warn('[CalorIA] Não foi possível atualizar user_metadata:', e); }
+    await (window.getSupabase?.() || window._db).auth.updateUser({ data: { name, full_name: name, body_fat_pct, dob, is_diabetic, diseases } });
+    if (currentUser?.user_metadata) { 
+      currentUser.user_metadata.name = name; 
+      currentUser.user_metadata.full_name = name; 
+      currentUser.user_metadata.body_fat_pct = body_fat_pct;
+      currentUser.user_metadata.dob = dob;
+      currentUser.user_metadata.is_diabetic = is_diabetic;
+      currentUser.user_metadata.diseases = diseases;
+    }
+  } catch(e) { console.warn('[NutrIA] Não foi possível atualizar user_metadata:', e); }
 
-  currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob };
+  currentProfile = { ...currentProfile, name, sex, age, weight, height, body_fat_pct, dob, is_diabetic, diseases };
+  if (isProfProfile) {
+    currentProfile = { ...currentProfile, professional_crn, professional_instagram, professional_specialties, professional_bio };
+  }
+  localStorage.setItem('cv_is_diabetic', is_diabetic);
   renderSidebarUser();
   updateHomePanel();
   profileUpdateFatClassification();
+  
+  // ── AI Diagnosis ──
+  if (weight && height) {
+    showToast('🤖 IA analisando seu perfil nutricional...', 'info');
+    
+    const bmi = (weight / ((height/100)**2)).toFixed(1);
+    const userCtx = `Idade: ${age||'?'}, Sexo: ${sex==='m'?'M':'F'}, Peso: ${weight}kg, Altura: ${height}cm, IMC: ${bmi}, Gordura: ${body_fat_pct||'?'}%, Doenças: ${diseases||'nenhuma'}, Diabetes: ${is_diabetic?'sim':'não'}`;
+    const prompt = `Analise o perfil e retorne um diagnóstico nutricional preliminar focado no peso (ex: Eutrofia, Sobrepeso, Obesidade grau I/II/III, Baixo peso) usando nomenclatura profissional e amigável.
+Perfil: ${userCtx}.
+Retorne APENAS um JSON: {"classification":"Nome do diagnóstico", "message":"Uma frase curta e encorajadora sobre o estado atual e o que focar."}`;
+    
+    try {
+      // Use fire-and-forget or await depending on UX. Let's do it inline without blocking the UI fully, but showing the final result.
+      const res = await window._groqFetch(
+        window.GROQ_MODEL_FAST || 'llama-3.1-8b-instant',
+        [
+          { role: 'system', content: 'Você é um nutricionista. Retorne SOMENTE JSON válido. Seja empático.' },
+          { role: 'user', content: prompt }
+        ],
+        1000
+      );
+      if (res.ok) {
+        const json = await res.json();
+        const content = json.choices?.[0]?.message?.content;
+        const data = window.extractJSON(content);
+        if (data && data.classification) {
+          showSuccessAnimated(
+            `Perfil Salvo! Diagnóstico: ${data.classification}`, 
+            `IMC: ${bmi}. ${data.message}`
+          );
+          return;
+        }
+      }
+    } catch(e) {
+      console.warn("Erro no diagnóstico IA:", e);
+    }
+  }
+
   showSuccessAnimated('Perfil Salvo!', 'Suas informações foram atualizadas com sucesso.');
 };
 
@@ -1735,21 +2144,30 @@ window.saveProfile = async function() {
 const _origRenderSidebarUser = window.renderSidebarUser;
 window.renderSidebarUser = function() {
   _origRenderSidebarUser();
-  if (currentProfile?.dob) {
+  const meta = currentUser?.user_metadata || {};
+  const dobVal = currentProfile?.dob || meta.dob;
+  const bfVal = currentProfile?.body_fat_pct || meta.body_fat_pct;
+  const isDiab = currentProfile?.is_diabetic || meta.is_diabetic || localStorage.getItem('cv_is_diabetic') === 'true';
+  const disVal = currentProfile?.diseases || meta.diseases || '';
+
+  if (dobVal) {
     const dobEl = document.getElementById('profileDob');
-    if (dobEl) dobEl.value = currentProfile.dob;
+    if (dobEl) dobEl.value = dobVal;
     profileUpdateAgeFromDob();
     profileDetectLifeStage();
   }
-  if (currentProfile?.body_fat_pct) {
+  if (bfVal) {
     const bfEl = document.getElementById('profileBodyFat');
-    if (bfEl) { bfEl.value = currentProfile.body_fat_pct; profileUpdateFatClassification(); }
+    if (bfEl) { bfEl.value = bfVal; profileUpdateFatClassification(); }
   }
-  const isDiabetic = localStorage.getItem('cv_is_diabetic') === 'true';
+  
   const profileDiabEl = document.getElementById('profileDiabetes');
-  if (profileDiabEl) profileDiabEl.checked = isDiabetic;
+  if (profileDiabEl) profileDiabEl.checked = !!isDiab;
   const calcDiabEl = document.getElementById('calcDiabetes');
-  if (calcDiabEl) calcDiabEl.checked = isDiabetic;
+  if (calcDiabEl) calcDiabEl.checked = !!isDiab;
+  
+  const disEl = document.getElementById('profileDiseases');
+  if (disEl) disEl.value = disVal;
 };
 
 // Expor funções para o escopo global
@@ -1780,6 +2198,7 @@ window.cpDetectPatientType = cpDetectPatientType;
 window.cpCheckDiseaseFormSuggestions = cpCheckDiseaseFormSuggestions;
 window.attachDiseaseCheckboxListeners = attachDiseaseCheckboxListeners;
 window.openDiseaseForm = openDiseaseForm;
+window.openPatientDiseaseFormChooser = openPatientDiseaseFormChooser;
 window.closeDiseaseFormModal = closeDiseaseFormModal;
 window.loadMyNutritionistRequestStatus = loadMyNutritionistRequestStatus;
 window.sendNutritionistRequest = sendNutritionistRequest;
@@ -1790,5 +2209,75 @@ window.sendPasswordReset = sendPasswordReset;
 window.resendConfirmEmail = resendConfirmEmail;
 window.printPatientAnamnese = printPatientAnamnese;
 window.saveDiseaseFormData = saveDiseaseFormData;
+window.loadSubscriptionDashboard = loadSubscriptionDashboard;
+window.cancelSubscription = cancelSubscription;
 // saveProfile and renderSidebarUser extended above — do not overwrite
+
+// Item 14: Safe close for patient registration modal (confirm discard or minimize)
+window.restoreCreatePatientModal = function() {
+  document.getElementById('createPatientModal')?.classList.add('show');
+  document.getElementById('cpMinimizedBadge').style.display = 'none';
+};
+
+// Item 14: Safe close for patient registration modal (confirm discard or minimize)
+window.safeCloseCreatePatientModal = function(forceMinimize) {
+  const modal = document.getElementById('createPatientModal');
+  const badge = document.getElementById('cpMinimizedBadge');
+  if (!modal) return;
+
+  if (forceMinimize) {
+    modal.classList.remove('show');
+    if (badge) badge.style.display = 'block';
+    return;
+  }
+
+  // Check if any fields have been filled
+  const nameVal = document.getElementById('cpName')?.value.trim();
+  const emailVal = document.getElementById('cpEmail')?.value.trim();
+  const hasData = nameVal || emailVal;
+
+  if (hasData) {
+    const choice = confirm('O que deseja fazer com o formulário?\n\nClique "OK" para descartar e fechar.\nClique "Cancelar" para minimizar (manter em segundo plano).');
+    if (choice) {
+      // Discard: close and clear
+      closeCreatePatientModal();
+      if (badge) badge.style.display = 'none';
+    } else {
+      // Minimize: just hide without clearing
+      modal.classList.remove('show');
+      if (badge) badge.style.display = 'block';
+    }
+  } else {
+    closeCreatePatientModal();
+    if (badge) badge.style.display = 'none';
+  }
+};
+
+// Item 17/18/19: Esconder itens de nav restritos para pacientes
+window._applyPatientUIRestrictions = function() {
+  if (!isPatient()) return;
+  
+  const hasNutri = !!currentProfile?.nutritionist_id;
+
+  // 17. Paciente não pode ver a tela de assinatura se estiver vinculado a um profissional
+  const navSub = document.getElementById('nav-subscription');
+  if (navSub) navSub.style.display = hasNutri ? 'none' : '';
+
+  // 19. Paciente não pode ver tela de Meta & Calculadora
+  const navGoal = document.getElementById('nav-goal');
+  if (navGoal) navGoal.style.display = 'none';
+
+  // 18. Paciente não pode gerar receita nem dieta com IA
+  const aiDietBtn = document.getElementById('generateAIDietBtn');
+  if (aiDietBtn) aiDietBtn.style.display = 'none';
+  const aiRecipeBtn = document.getElementById('aiRecipeBtn');
+  if (aiRecipeBtn) aiRecipeBtn.style.display = 'none';
+
+  // Esconder abas DietaIA
+  const navDieta = document.getElementById('nav-dietaia');
+  if (navDieta) navDieta.style.display = 'none';
+  const bnavDieta = document.getElementById('bnav-dietaia');
+  if (bnavDieta) bnavDieta.style.display = 'none';
+};
+
 

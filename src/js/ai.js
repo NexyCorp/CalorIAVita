@@ -23,8 +23,8 @@ const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_M
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
 const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
-const GROQ_MODEL_VISION    = 'meta-llama/llama-4-scout-17b-16e-instruct'; // visão principal
-const GROQ_MODEL_VISION_FB = 'meta-llama/llama-4-maverick-17b-128e-instruct'; // visão fallback
+const GROQ_MODEL_VISION    = 'llama-3.2-11b-vision-preview'; // visão principal
+const GROQ_MODEL_VISION_FB = 'llama-3.2-90b-vision-preview'; // visão fallback
 
 
 let currentGroqKeyIndex = 0;
@@ -64,10 +64,16 @@ function extractJSON(text) {
   let start = (a===-1)?b:(b===-1?a:Math.min(a,b));
   if (start===-1) throw new Error('JSON not found');
   let end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));
-  return JSON.parse(s.substring(start, end+1));
+  let jsonStr = s.substring(start, end+1);
+  try {
+    return JSON.parse(jsonStr);
+  } catch(e) {
+    console.error("Failed to parse JSON. Length:", jsonStr.length, "Ends with:", jsonStr.slice(-100));
+    throw e; // throw the original error so it's shown in the UI
+  }
 }
 
-async function _groqFetch(model, messages, maxTokens = 4096) {
+async function _groqFetch(model, messages, maxTokens = 1500) {
   const key = getGroqKey();
   if (!key || key.length < 10) throw new Error('401 — Chave Groq não configurada');
   let res;
@@ -83,7 +89,7 @@ async function _groqFetch(model, messages, maxTokens = 4096) {
   return res;
 }
 
-async function callGroq(messages, retries = 3, maxTokens = 4096) {
+async function callGroq(messages, retries = 3, maxTokens = 1500) {
   let lastErr;
   for (let attempt = 0; attempt < retries; attempt++) {
     // Na última tentativa, usa modelo menor como fallback
@@ -109,7 +115,10 @@ async function callGroq(messages, retries = 3, maxTokens = 4096) {
       throw lastErr;
     }
     const data = await res.json();
-    if (!data.choices?.[0]?.message?.content) throw new Error('Resposta vazia da API');
+    if (!data.choices?.[0]?.message?.content) {
+      console.error("Erro da API Groq - Resposta inesperada:", data);
+      throw new Error('Resposta vazia da API. (Consulte o console F12)');
+    }
     return extractJSON(data.choices[0].message.content);
   }
   throw lastErr || new Error('429 — Todas as chaves atingiram o limite (Rate Limit). Tente novamente em alguns minutos.');
@@ -117,7 +126,24 @@ async function callGroq(messages, retries = 3, maxTokens = 4096) {
 
 // Versão com mais tokens para prompts longos (como geração de dieta)
 async function callGroqLarge(messages) {
-  return callGroq(messages, 3, 8192);
+  // llama-3.3-70b-versatile: up to 6000 TPM in free tier.
+  // prompt for diet is ~1000 tokens; 3000 output = 4000 total, safely under 6000 TPM.
+  return _groqFetch(GROQ_MODEL, messages, 3000).then(async res => {
+    if (!res.ok) {
+      if (res.status === 429) {
+        rotateGroqKey();
+        throw new Error('429 — Todas as chaves atingiram o limite. Tente novamente.');
+      }
+      const body = await res.text().catch(()=>'');
+      throw new Error('Groq ' + res.status + ': ' + body.slice(0,200));
+    }
+    const data = await res.json();
+    if (!data.choices?.[0]?.message?.content) {
+      console.error('Groq empty response:', data);
+      throw new Error('Resposta vazia da API Groq.');
+    }
+    return extractJSON(data.choices[0].message.content);
+  });
 }
 
 async function askClaude(prompt, sys) {
@@ -398,7 +424,8 @@ function addToDiaryFromSearch() {
     kcal: Math.round(lastSearchResult.calories),
     carbs: lastSearchResult.carbs||0,
     prot: lastSearchResult.protein||0,
-    fat: lastSearchResult.fat||0
+    fat: lastSearchResult.fat||0,
+    sugar: lastSearchResult.sugar||0
   });
   showPanel('diary', null);
   setBottomNav('diary');
@@ -408,6 +435,9 @@ function addToDiaryFromSearch() {
 window.extractJSON = extractJSON;
 window.callGroq = callGroq;
 window.callGroqLarge = callGroqLarge;
+window._groqFetch = _groqFetch; // Added for recipe/diet AI
+window.rotateGroqKey = rotateGroqKey; // Added for rate limiting
+window.GROQ_MODEL_FAST = GROQ_MODEL_FAST; // Added for fast generation
 window.askClaude = askClaude;
 window.askGeminiWithImage = askGeminiWithImage;
 window.searchFood = searchFood;
@@ -415,7 +445,3 @@ window.toggleNutritionPanel = toggleNutritionPanel;
 window._showNutriScore = _showNutriScore;
 window.quickSearch = quickSearch;
 window.addToDiaryFromSearch = addToDiaryFromSearch;
-
-
-
-

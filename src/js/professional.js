@@ -24,9 +24,13 @@ async function viewPatientDiary(patientId, patientName) {
   pdSwitchTab('day', true);
 
   // Busca a meta calórica e água do paciente
-  const { data: goalData } = await supabase.from('user_goals').select('daily_kcal,daily_water').eq('user_id', patientId).maybeSingle();
+  const { data: goalData } = await supabase.from('user_goals').select('daily_kcal,daily_water,daily_prot,daily_carbs,daily_fat,daily_sugar').eq('user_id', patientId).maybeSingle();
   pdState.goal = goalData?.daily_kcal || 2000;
   pdState.waterGoal = goalData?.daily_water || 2000;
+  pdState.protGoal = goalData?.daily_prot || null;
+  pdState.carbsGoal = goalData?.daily_carbs || null;
+  pdState.fatGoal = goalData?.daily_fat || null;
+  pdState.sugarGoal = goalData?.daily_sugar || null;
 
   await pdRender();
 }
@@ -89,6 +93,11 @@ async function pdRenderDay() {
   }
 
   const totalKcal = entries.reduce((s,e) => s+e.kcal, 0);
+  const totalProt = Math.round(entries.reduce((s,e) => s + (e.protein || e.prot || 0), 0));
+  const totalCarbs = Math.round(entries.reduce((s,e) => s + (e.carbs || 0), 0));
+  const totalFat = Math.round(entries.reduce((s,e) => s + (e.fat || 0), 0));
+  const totalSugar = Math.round(entries.reduce((s,e) => s + (e.sugar || 0), 0));
+
   const meals = { cafe:[], almoco:[], lanche:[], jantar:[] };
   entries.forEach(e => { if (meals[e.meal]) meals[e.meal].push(e); });
   const mealLabels = { cafe:'🌅 Café', almoco:'<i class="fa-solid fa-sun ic-sun"></i> Almoço', lanche:'🍵 Lanche', jantar:'<i class="fa-solid fa-moon ic-moon"></i> Jantar' };
@@ -97,27 +106,59 @@ async function pdRenderDay() {
 
   if (content) {
     content.innerHTML = `
-      <div style="background:var(--green-pale);border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:center;display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <div style="background:var(--green-pale);border-radius:12px;padding:1rem;margin-bottom:0.75rem;text-align:center;display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:1rem;">
         <div>
           <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:${overGoal?'#ef5350':'var(--green-deep)'};">${totalKcal}</div>
-          <div style="font-size:0.8rem;color:var(--text-muted);">kcal • meta: ${pdState.goal} kcal (${goalPct}%)</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">kcal • meta: ${pdState.goal} kcal (${goalPct})</div>
         </div>
         <div style="border-left:1px solid var(--border-color);height:40px;opacity:0.3;"></div>
         <div>
           <div style="font-family:'Playfair Display',serif;font-size:2.3rem;font-weight:900;color:#29b6f6;">${waterMl}</div>
-          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água · meta: ${pdState.waterGoal || 2000} ml</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);">ml de água • meta: ${pdState.waterGoal || 2000} ml</div>
         </div>
       </div>
+
+      <!-- Macros Summary -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.4rem;margin-bottom:1.2rem;text-align:center;">
+        <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#2e7d32;">${totalCarbs}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Carboidratos</div>
+          ${pdState.carbsGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.carbsGoal}g</div>` : ''}
+        </div>
+        <div style="background:rgba(255,152,0,0.08);border:1px solid rgba(255,152,0,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#ef6c00;">${totalProt}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Proteínas</div>
+          ${pdState.protGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.protGoal}g</div>` : ''}
+        </div>
+        <div style="background:rgba(233,30,99,0.08);border:1px solid rgba(233,30,99,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#c2185b;">${totalFat}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Gorduras</div>
+          ${pdState.fatGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.fatGoal}g</div>` : ''}
+        </div>
+        <div style="background:rgba(121,85,72,0.08);border:1px solid rgba(121,85,72,0.15);border-radius:8px;padding:0.4rem;">
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#4e342e;">${totalSugar}g</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);font-weight:600;">Açúcares</div>
+          ${pdState.sugarGoal ? `<div style="font-size:0.6rem;color:var(--text-muted);opacity:0.85;">Meta: ${pdState.sugarGoal}g</div>` : ''}
+        </div>
+      </div>
+
       ${Object.entries(meals).map(([key, items]) => items.length===0?'':`
         <div style="margin-bottom:0.75rem;">
           <p style="font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--green-mid);margin-bottom:0.4rem;">${mealLabels[key]}</p>
           ${items.map(e=>`
-            <div class="pd-item-row">
-              ${e.photo_url
-                ? `<img src="${e.photo_url}" alt="${e.food_name}" class="pd-item-photo" onclick="openPhotoLightbox('${e.photo_url}')">`
-                : `<div class="pd-item-photo-placeholder"><i class="fa-solid fa-utensils ic-recipes"></i></div>`}
-              <span class="pd-item-name">${e.food_name}</span>
-              <span class="pd-item-kcal">${e.kcal} kcal</span>
+            <div class="pd-item-row" style="justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:0.6rem;flex:1;">
+                ${e.photo_url
+                  ? `<img src="${e.photo_url}" alt="${e.food_name}" class="pd-item-photo" onclick="openPhotoLightbox('${e.photo_url}')">`
+                  : `<div class="pd-item-photo-placeholder"><i class="fa-solid fa-utensils ic-recipes"></i></div>`}
+                <div>
+                  <div class="pd-item-name" style="font-weight:600;color:var(--text-main);">${e.food_name}</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);margin-top:1px;">
+                    C: ${Math.round(e.carbs||0)}g • P: ${Math.round(e.protein||e.prot||0)}g • G: ${Math.round(e.fat||0)}g • A: ${Math.round(e.sugar||0)}g
+                  </div>
+                </div>
+              </div>
+              <span class="pd-item-kcal" style="font-weight:700;color:var(--green-deep);">${e.kcal} kcal</span>
             </div>`).join('')}
         </div>`).join('')}
     `;
@@ -452,68 +493,49 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
       </div>`;
     }).join('') || '<p style="color:#888;">Nenhum registro no período.</p>'}` : '';
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — ${patientName} — CalorIA</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prontuário — ${patientName} — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
   <style>
-    @media print { body { margin: 0; } .no-print { display: none !important; } .rec-day-block { page-break-inside: avoid; } }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'DM Sans', Arial, sans-serif; max-width: 760px; margin: 0 auto; padding: 32px 28px; color: #1a2e1b; background: #fff; }
-    .header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #2a5c30; padding-bottom: 16px; margin-bottom: 20px; }
-    .brand { font-family:'Playfair Display',serif; font-size: 1.6rem; font-weight: 900; font-style:italic; color: #2a5c30; letter-spacing: -0.5px; }
-    .brand span { color: #ffb300; }
-    .header-sub { font-size: 0.78rem; color: #888; margin-top: 2px; }
-    h1 { font-family:'Playfair Display',serif; font-size: 1.7rem; font-weight: 900; color: #1a4a1f; margin-bottom: 4px; }
-    .h1-sub { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
-    h3 { font-family:'Syne',sans-serif; font-size: 1rem; font-weight: 800; color: #2a5c30; margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid #e8f5e9; text-transform: uppercase; letter-spacing: 0.5px; }
-    .btn-print { display: block; margin: 16px auto 24px; padding: 12px 32px; background: #2a5c30; color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit; }
-    .btn-print:hover { background: #1a4a1f; }
+    h1 { font-family:'Righteous',cursive; font-size: 1.7rem; color: var(--pdf-purple); margin-bottom: 4px; }
+    .h1-sub { font-size: 0.9rem; color: var(--pdf-brown); margin-bottom: 20px; font-family:'Fredoka',sans-serif; opacity: 0.8; }
+    h3 { font-family:'Fredoka',sans-serif; font-size: 1rem; font-weight: 800; color: var(--pdf-primary); margin: 24px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--pdf-accent-bg); text-transform: uppercase; letter-spacing: 0.5px; }
     .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 10px; }
-    .rec-stat { background: #f5f7f5; border-radius: 12px; padding: 10px 14px; border: 1px solid #e0e0e0; }
-    .rec-stat-label { display: block; font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; font-family:'Syne',sans-serif; margin-bottom: 2px; }
-    .rec-stat-value { font-size: 1.1rem; font-weight: 800; color: #1a2e1b; font-family:'Syne',sans-serif; }
-    .rec-goal-card { background: linear-gradient(135deg, #2a5c30 0%, #1a4a1f 100%); color: #fff; border-radius: 14px; padding: 16px; text-align: center; }
-    .rec-goal-value { font-family:'Playfair Display',serif; font-size: 1.8rem; font-weight: 900; }
-    .rec-chart-wrap { position: relative; height: 160px; border-bottom: 2px solid #ddd; margin-top: 8px; padding-top: 24px; }
+    .rec-stat { background: var(--pdf-bg); border-radius: 12px; padding: 10px 14px; border: 1px solid var(--pdf-accent-bg); }
+    .rec-stat-label { display: block; font-size: 0.7rem; color: var(--pdf-brown); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 2px; }
+    .rec-stat-value { font-size: 1.1rem; font-weight: 800; color: var(--pdf-dark); }
+    .rec-goal-card { background: linear-gradient(135deg, var(--pdf-purple) 0%, var(--pdf-primary) 100%); color: #fff; border-radius: 14px; padding: 16px; text-align: center; }
+    .rec-goal-value { font-family:'Righteous',cursive; font-size: 1.8rem; font-weight: 900; }
+    .rec-chart-wrap { position: relative; height: 160px; border-bottom: 2px solid var(--pdf-accent-bg); margin-top: 8px; padding-top: 24px; }
     .rec-chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 100%; }
     .rec-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
-    .rec-bar { width: 70%; background: #4caf50; border-radius: 4px 4px 0 0; min-height: 2px; }
+    .rec-bar { width: 70%; background: var(--pdf-primary); border-radius: 4px 4px 0 0; min-height: 2px; }
     .rec-bar.over { background: #ef5350; }
-    .rec-bar-label { font-size: 0.65rem; color: #888; margin-top: 4px; text-transform: capitalize; }
-    .rec-chart-goal-line { position: absolute; left: 0; right: 0; border-top: 2px dashed #ffb300; font-size: 0.65rem; color: #e65100; text-align: right; padding-right: 4px; font-weight: 700; }
+    .rec-bar-label { font-size: 0.65rem; color: var(--pdf-brown); margin-top: 4px; text-transform: capitalize; }
+    .rec-chart-goal-line { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--pdf-purple); font-size: 0.65rem; color: var(--pdf-purple); text-align: right; padding-right: 4px; font-weight: 700; }
     .rec-macro-bar { display: flex; height: 28px; border-radius: 14px; overflow: hidden; }
     .rec-macro-seg { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75rem; font-weight: 700; }
-    .rec-macro-seg.carbs { background: #4caf50; }
-    .rec-macro-seg.prot { background: #ff9800; }
+    .rec-macro-seg.carbs { background: var(--pdf-primary); }
+    .rec-macro-seg.prot { background: var(--pdf-purple); }
     .rec-macro-seg.fat { background: #ffb300; }
-    .rec-macro-legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 0.8rem; color: #555; }
+    .rec-macro-legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 0.8rem; color: var(--pdf-brown); }
     .rec-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
-    .rec-dot.carbs { background: #4caf50; } .rec-dot.prot { background: #ff9800; } .rec-dot.fat { background: #ffb300; }
-    .rec-day-block { margin-bottom: 14px; background: #fafbfa; border: 1px solid #eee; border-radius: 12px; padding: 12px 14px; }
-    .rec-day-header { font-family:'Syne',sans-serif; font-weight: 800; font-size: 0.88rem; color: #1a4a1f; text-transform: capitalize; display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .rec-day-total { color: #2a5c30; }
+    .rec-dot.carbs { background: var(--pdf-primary); } .rec-dot.prot { background: var(--pdf-purple); } .rec-dot.fat { background: #ffb300; }
+    .rec-day-block { margin-bottom: 14px; background: var(--pdf-bg); border: 1px solid var(--pdf-accent-bg); border-radius: 12px; padding: 12px 14px; }
+    .rec-day-header { font-family:'Fredoka',sans-serif; font-weight: 800; font-size: 0.88rem; color: var(--pdf-purple); text-transform: capitalize; display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .rec-day-total { color: var(--pdf-primary); }
     .rec-meal-block { margin-bottom: 6px; }
-    .rec-meal-name { font-size: 0.78rem; font-weight: 700; color: #2d7a35; margin-bottom: 2px; }
-    .rec-meal-block ul { padding-left: 1.2rem; font-size: 0.85rem; color: #444; line-height: 1.6; }
-    .rec-item-kcal { color: #888; font-size: 0.78rem; }
-    .record-ai-section { background: linear-gradient(135deg, #fff8e1 0%, #e8f5e9 100%); border-radius: 14px; padding: 16px 18px; margin-top: 24px; border: 1px solid #ffe082; }
-    .record-ai-section h3 { border: none; margin-top: 0; color: #2a5c30; }
-    .record-ai-label { font-weight: 800; font-family:'Syne',sans-serif; font-size: 0.85rem; margin: 10px 0 4px; }
-    .record-ai-section ul { padding-left: 1.3rem; font-size: 0.88rem; line-height: 1.7; color: #2e3d2f; }
-    .record-ai-disclaimer { font-size: 0.7rem; color: #999; margin-top: 12px; line-height: 1.5; }
-    .footer { margin-top: 32px; font-size: 0.72rem; color: #888; border-top: 1px solid #ddd; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
-    .lgpd-note { font-size: 0.68rem; color: #aaa; margin-top: 6px; }
+    .rec-meal-name { font-size: 0.78rem; font-weight: 700; color: var(--pdf-brown); margin-bottom: 2px; }
+    .rec-meal-block ul { padding-left: 1.2rem; font-size: 0.85rem; color: var(--pdf-dark); line-height: 1.6; }
+    .rec-item-kcal { color: var(--pdf-brown); font-size: 0.78rem; opacity: 0.8; }
+    .record-ai-section { background: var(--pdf-accent-bg); border-radius: 14px; padding: 16px 18px; margin-top: 24px; border: 1px solid rgba(0,0,0,0.05); }
+    .record-ai-section h3 { border: none; margin-top: 0; color: var(--pdf-primary); }
+    .record-ai-label { font-weight: 800; font-size: 0.85rem; margin: 10px 0 4px; }
+    .record-ai-section ul { padding-left: 1.3rem; font-size: 0.88rem; line-height: 1.7; color: var(--pdf-dark); }
+    .record-ai-disclaimer { font-size: 0.7rem; color: var(--pdf-brown); margin-top: 12px; line-height: 1.5; opacity: 0.8; }
   </style>
   </head><body>
-  <div class="header">
-    ${logoSvg}
-    <div>
-      <div class="brand">Calor<span>IA</span></div>
-      <div class="header-sub">Plataforma de Nutrição Inteligente</div>
-    </div>
-  </div>
-  <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
-  <h1>Prontuário Nutricional</h1>
-  <p class="h1-sub">Período: ${periodLabel} (${periodRange})</p>
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader('Prontuário Nutricional', `Período: ${periodLabel} (${periodRange})`) : ''}
+
   ${profileHtml}
   ${goalHtml}
   ${summaryHtml}
@@ -522,10 +544,10 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
   ${macrosHtml}
   ${mealsHtml}
   ${aiAnalysisHtml}
-  <div class="footer">
-    <span>Documento gerado automaticamente pela plataforma CalorIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+  <div class="footer-pdf">
+    <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+    <p style="margin-top:4px; opacity:0.8;">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </div>
-  <p class="lgpd-note">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
   </body></html>`;
 
   const win = window.open('', '_blank');
@@ -540,6 +562,10 @@ function buildRecordHtml({ profile, dailyGoal, dailyWaterGoal, days, totalsByDay
 async function loadPatients() {
   const listEl = document.getElementById('patientsList');
   if (!listEl) return;
+  
+  const searchInput = document.getElementById('patientSearchInput');
+  if (searchInput) searchInput.value = '';
+  
   listEl.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Carregando...</p>';
 
   if (!currentUser) return;
@@ -586,7 +612,15 @@ async function loadPatients() {
           ...(a.diseases_chronic_auto || [])
         ];
         if (a.diseases_other) {
-          anamneseMap[a.patient_id].push(a.diseases_other);
+          let cleanedOther = a.diseases_other;
+          const formIdx = cleanedOther.indexOf('[');
+          if (formIdx !== -1) {
+            cleanedOther = cleanedOther.slice(0, formIdx);
+          }
+          cleanedOther = cleanedOther.trim();
+          if (cleanedOther) {
+            anamneseMap[a.patient_id].push(cleanedOther);
+          }
         }
       });
     }
@@ -658,9 +692,14 @@ async function openPatientDossier(patientId, patientName) {
     modal.innerHTML = `
       <div class="modal-box" style="max-width:680px;width:95vw;max-height:90vh;overflow-y:auto;text-align:left;">
         <button class="modal-close" onclick="document.getElementById('patientDossierModal').classList.remove('show')">✕</button>
-        <div class="modal-title" style="border-bottom:2px solid var(--border);padding-bottom:1rem;margin-bottom:1.2rem;">
-          <i class="fa-solid fa-folder-open" style="color:#3949ab;"></i>
-          <span id="dossierPatientTitle">Dossiê do Paciente</span>
+        <div class="modal-title" style="border-bottom:2px solid var(--border);padding-bottom:1rem;margin-bottom:1.2rem;display:flex;justify-content:space-between;align-items:center;padding-right:2rem;">
+          <span style="display:flex;align-items:center;gap:0.5rem;">
+            <i class="fa-solid fa-folder-open" style="color:#3949ab;"></i>
+            <span id="dossierPatientTitle">Dossiê do Paciente</span>
+          </span>
+          <button class="btn-print no-print" onclick="printDossierPDF()" style="margin:0;padding:0.4rem 1rem;font-size:0.75rem;border-radius:50px;background:var(--green-deep);color:white;border:none;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">
+            <i class="fa-solid fa-file-pdf" style="color:white!important;margin-right:0.3rem;"></i> Exportar PDF
+          </button>
         </div>
         <div id="dossierContent" style="font-size:0.88rem;line-height:1.7;color:var(--text-main);">Carregando...</div>
       </div>
@@ -683,9 +722,120 @@ async function openPatientDossier(patientId, patientName) {
     const p = profile || {};
     const a = anamnese || {};
 
+    function formatHabitValue(val) {
+      if (!val && val !== 0) return '—';
+      const s = String(val).trim().toLowerCase();
+      if (s === 'nao') return 'Não';
+      if (s === 'sim') return 'Sim';
+      if (s === 'yes') return 'Sim';
+      if (s === 'no') return 'Não';
+      if (s === 'ex') return 'Ex-fumante';
+      if (s === 'social') return 'Socialmente';
+      return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+    }
+
+    function formatDiseasesOther(val) {
+      if (!val) return null;
+      
+      let html = '';
+      let currentIndex = 0;
+      
+      while (true) {
+        const tagIndex = val.indexOf('[', currentIndex);
+        if (tagIndex === -1) {
+          break;
+        }
+        
+        const closeTagIndex = val.indexOf(' FORM]', tagIndex);
+        if (closeTagIndex === -1 || closeTagIndex > val.indexOf('\n', tagIndex)) {
+          html += val.slice(currentIndex, tagIndex + 1).replace(/\n/g, '<br>');
+          currentIndex = tagIndex + 1;
+          continue;
+        }
+        
+        const textBefore = val.slice(currentIndex, tagIndex).trim();
+        if (textBefore) {
+          html += `<div>${textBefore.replace(/\n/g, '<br>')}</div>`;
+        }
+        
+        const formName = val.slice(tagIndex + 1, closeTagIndex).trim();
+        const jsonStartIndex = val.indexOf('{', closeTagIndex);
+        if (jsonStartIndex === -1) {
+          currentIndex = closeTagIndex + 6;
+          continue;
+        }
+        
+        let braceCount = 0;
+        let jsonEndIndex = -1;
+        for (let i = jsonStartIndex; i < val.length; i++) {
+          if (val[i] === '{') {
+            braceCount++;
+          } else if (val[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              jsonEndIndex = i + 1;
+              break;
+            }
+          }
+        }
+        
+        if (jsonEndIndex === -1) {
+          const jsonStr = val.slice(jsonStartIndex);
+          html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-card);padding:0.4rem;border-radius:4px;overflow-x:auto;color:var(--text-main);border:1px solid var(--border);">${jsonStr}</pre></div>`;
+          currentIndex = val.length;
+          break;
+        }
+        
+        const jsonStr = val.slice(jsonStartIndex, jsonEndIndex);
+        try {
+          const data = JSON.parse(jsonStr);
+          html += `
+            <div style="margin: 0.8rem 0; width: 100%;">
+              <div style="font-weight: 800; color: var(--green-deep); font-size: 0.82rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                📋 Formulário — ${formName}
+              </div>
+              <table style="width: 100%; border-collapse: collapse; border: 1px solid var(--border); font-size: 0.82rem; background: var(--bg-card, #ffffff);">
+                <thead>
+                  <tr style="background: var(--bg-body, #f4f6f9); border-bottom: 1px solid var(--border);">
+                    <th style="padding: 6px 10px; text-align: left; font-weight: 700; color: var(--text-main); border-right: 1px solid var(--border); width: 60%;">Pergunta</th>
+                    <th style="padding: 6px 10px; text-align: left; font-weight: 700; color: var(--text-main);">Resposta</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${Object.entries(data).map(([qId, qObj]) => {
+                    const label = typeof qObj === 'object' && qObj !== null ? qObj.label : qId;
+                    const rawVal = typeof qObj === 'object' && qObj !== null ? qObj.value : qObj;
+                    return `
+                      <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 6px 10px; color: var(--text-muted); border-right: 1px solid var(--border); vertical-align: middle; line-height: 1.4;">${label}</td>
+                        <td style="padding: 6px 10px; font-weight: 600; color: var(--text-main); vertical-align: middle;">${formatHabitValue(rawVal)}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } catch(e) {
+          html += `<div><strong>${formName} FORM:</strong><pre style="margin:0.2rem 0;font-size:0.78rem;background:var(--bg-card);padding:0.4rem;border-radius:4px;overflow-x:auto;color:var(--text-main);border:1px solid var(--border);">${jsonStr}</pre></div>`;
+        }
+        
+        currentIndex = jsonEndIndex;
+      }
+      
+      if (currentIndex < val.length) {
+        const remainingText = val.slice(currentIndex).trim();
+        if (remainingText) {
+          html += `<div>${remainingText.replace(/\n/g, '<br>')}</div>`;
+        }
+      }
+      
+      return html;
+    }
+
     function row(label, value) {
       if (!value && value !== 0) return '';
-      return `<tr><td style="padding:4px 12px 4px 0;color:var(--text-muted);white-space:nowrap;font-weight:600;">${label}</td><td style="padding:4px 0;">${value}</td></tr>`;
+      return `<tr><td style="padding:4px 12px 4px 0;color:var(--text-muted);white-space:nowrap;font-weight:600;vertical-align:top;">${label}</td><td style="padding:4px 0;vertical-align:top;">${value}</td></tr>`;
     }
     function section(title, rows) {
       const content = rows.filter(Boolean).join('');
@@ -743,7 +893,7 @@ async function openPatientDossier(patientId, patientName) {
       section('🏥 Histórico Clínico', [
         row('Doenças gerais', arr(a.diseases_general)),
         row('Doenças crônicas/auto', arr(a.diseases_chronic_auto)),
-        row('Outras doenças', a.diseases_other || null),
+        row('Outras doenças', formatDiseasesOther(a.diseases_other)),
         row('Histórico familiar', arr(a.family_history)),
         row('Cirurgias', a.surgeries || null),
         row('Hospitalizações', a.hospitalizations || null),
@@ -751,17 +901,17 @@ async function openPatientDossier(patientId, patientName) {
       section('💊 Medicamentos e Hábitos', [
         row('Medicamentos', a.medications || null),
         row('Suplementos', a.supplements || null),
-        row('Adoçante', a.sweetener === 'yes' ? `Sim (${a.sweetener_type || '?'})` : a.sweetener === 'no' ? 'Não' : null),
-        row('Tabagismo', a.smoking || null),
-        row('Álcool', a.alcohol || null),
+        row('Adoçante', a.sweetener === 'yes' ? `Sim (${a.sweetener_type || '?'})` : a.sweetener === 'no' ? 'Não' : formatHabitValue(a.sweetener)),
+        row('Tabagismo', formatHabitValue(a.smoking)),
+        row('Álcool', formatHabitValue(a.alcohol)),
         row('Ingestão hídrica', a.water_intake || null),
         row('Tempo nas refeições', a.eating_time_min ? a.eating_time_min + ' min' : null),
-        row('Hábito intestinal', a.bowel_habit || null),
-        row('Local das refeições', a.meal_location || null),
-        row('Companhia nas refeições', a.eating_company || null),
-        row('Disfagia', a.dysphagia || null),
-        row('Azia/refluxo', a.heartburn || null),
-        row('Dietas anteriores', a.prev_diets || null),
+        row('Hábito intestinal', formatHabitValue(a.bowel_habit)),
+        row('Local das refeições', formatHabitValue(a.meal_location)),
+        row('Companhia nas refeições', formatHabitValue(a.eating_company)),
+        row('Disfagia', formatHabitValue(a.dysphagia)),
+        row('Azia/refluxo', formatHabitValue(a.heartburn)),
+        row('Dietas anteriores', formatHabitValue(a.prev_diets)),
         row('Aversões alimentares', a.food_aversions || null),
         row('Preferências alimentares', a.food_preferences || null),
         row('Alergias', arr(a.allergies)),
@@ -825,10 +975,133 @@ function closePhotoLightbox() {
 
 async function loadLinkedNutritionist() {
   if (!currentProfile?.nutritionist_id) return;
-  const { data } = await supabase.from('profiles').select('name').eq('id', currentProfile.nutritionist_id).single();
+  const { data } = await supabase.from('profiles').select('*').eq('id', currentProfile.nutritionist_id).single();
   if (data?.name) {
     document.getElementById('linkedNutritionistName').textContent = data.name;
+    const specEl = document.getElementById('linkedNutritionistSpecialties');
+    const specialties = getProfessionalSpecialties(data);
+    if (specEl && specialties) {
+      specEl.textContent = specialties;
+      specEl.style.display = 'block';
+    }
     document.getElementById('nutritionistCard').style.display = 'flex';
+  }
+}
+
+const NUTRIA_EXAMPLE_PROFESSIONAL = {
+  id: 'nutria-example-professional',
+  name: 'Dra. Helena Costa',
+  professional_crn: 'CRN-3 00000',
+  professional_instagram: '@dra.helenanutria',
+  professional_specialties: 'Nutricao clinica, emagrecimento, diabetes e educacao alimentar',
+  professional_bio: 'Atendimento humanizado com foco em rotina real, metas possiveis e acompanhamento de pacientes com condicoes metabolicas.'
+};
+
+function getProfessionalSpecialties(profile) {
+  return profile?.professional_specialties || profile?.nutritionist_type || profile?.specialty || 'Nutricao clinica';
+}
+
+function getProfessionalBio(profile) {
+  return profile?.professional_bio || profile?.bio || profile?.description || 'Profissional disponivel para acompanhamento nutricional personalizado pela NutrIA.';
+}
+
+function instagramHref(handle) {
+  if (!handle) return '';
+  const clean = String(handle).trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/\/$/, '');
+  return clean ? `https://instagram.com/${encodeURIComponent(clean)}` : '';
+}
+
+function renderProfessionalCard(profile, options = {}) {
+  const linked = !!options.linked;
+  const safeName = window.escapeHtml(profile?.name || 'Profissional NutrIA');
+  const crn = profile?.professional_crn || profile?.crn || '';
+  const instagram = profile?.professional_instagram || profile?.instagram || '';
+  const instaUrl = instagramHref(instagram);
+  const specialties = getProfessionalSpecialties(profile);
+  const bio = getProfessionalBio(profile);
+  const initials = (profile?.name || 'PN').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const action = linked
+    ? `<button class="btn-secondary professional-card-action" onclick="showPanel('chat',document.getElementById('nav-chat')); if(typeof initChatPanel==='function') initChatPanel();"><i class="fa-solid fa-comments"></i> Abrir canal</button>`
+    : `<button class="btn-primary professional-card-action" onclick="requestProfessionalHire('${profile.id}')"><i class="fa-solid fa-handshake"></i> Contratar</button>`;
+
+  return `
+    <article class="professional-card ${linked ? 'is-linked' : ''}">
+      <div class="professional-card-head">
+        <div class="professional-avatar">${window.escapeHtml(initials || 'PN')}</div>
+        <div>
+          <h3>${safeName}</h3>
+          <p>${window.escapeHtml(specialties)}</p>
+        </div>
+      </div>
+      <div class="professional-card-meta">
+        ${crn ? `<span><i class="fa-solid fa-id-card-clip"></i> ${window.escapeHtml(crn)}</span>` : ''}
+        ${instagram ? `<a href="${instaUrl}" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i> ${window.escapeHtml(instagram)}</a>` : ''}
+      </div>
+      <p class="professional-card-bio">${window.escapeHtml(bio)}</p>
+      ${action}
+    </article>`;
+}
+
+async function renderProfessionalsPanel() {
+  const title = document.getElementById('professionalsPanelTitle');
+  const sub = document.getElementById('professionalsPanelSub');
+  const content = document.getElementById('professionalsPanelContent');
+  if (!content) return;
+
+  content.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Carregando profissionais...</p>';
+
+  if (isPatient() && currentProfile?.nutritionist_id) {
+    if (title) title.textContent = 'Meu profissional';
+    if (sub) sub.textContent = 'Dados publicos do profissional vinculado ao seu acompanhamento.';
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', currentProfile.nutritionist_id).single();
+    if (error || !data) {
+      content.innerHTML = '<p style="color:var(--text-muted);font-size:0.88rem;">Nao foi possivel carregar o profissional vinculado agora.</p>';
+      return;
+    }
+    content.innerHTML = renderProfessionalCard(data, { linked: true });
+    return;
+  }
+
+  if (title) title.textContent = 'Profissionais da NutrIA';
+  if (sub) sub.textContent = 'Conheca profissionais disponiveis e escolha quem pode acompanhar sua rotina alimentar.';
+
+  let professionals = [];
+  try {
+    const { data, error } = await supabase.from('profiles').select('*').limit(50);
+    if (!error && Array.isArray(data)) {
+      professionals = data.filter(p => ['professional', 'nutritionist'].includes(p.role));
+    }
+  } catch(e) {
+    console.warn('[renderProfessionalsPanel] profiles lookup failed:', e);
+  }
+
+  const items = [NUTRIA_EXAMPLE_PROFESSIONAL, ...professionals.filter(p => p.id !== NUTRIA_EXAMPLE_PROFESSIONAL.id)];
+  content.innerHTML = items.length
+    ? items.map(p => renderProfessionalCard(p)).join('')
+    : renderProfessionalCard(NUTRIA_EXAMPLE_PROFESSIONAL);
+}
+
+async function requestProfessionalHire(professionalId) {
+  if (!currentUser) {
+    showToast('Entre na sua conta para contratar um profissional.', 'error');
+    return;
+  }
+  if (professionalId === NUTRIA_EXAMPLE_PROFESSIONAL.id) {
+    showToast('Profissional de exemplo selecionado. Em producao, aqui abre o fluxo de contratacao.');
+    return;
+  }
+  try {
+    const { error } = await supabase.from('professional_hire_requests').insert({
+      user_id: currentUser.id,
+      professional_id: professionalId,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    });
+    if (error) throw error;
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao enviada ao profissional.');
+  } catch(e) {
+    console.warn('[requestProfessionalHire]', e);
+    showToast('Profissional selecionado. Fluxo de contratacao sera finalizado pelo admin.');
   }
 }
 
@@ -872,21 +1145,39 @@ async function refreshAdminUsers() {
   const stTot = document.getElementById('statTotal'); if(stTot) stTot.textContent = allAdminUsers.length;
   const stProf = document.getElementById('statProf'); if(stProf) stProf.textContent = allAdminUsers.filter(u=>['nutritionist','personal_trainer'].includes(u.role)).length;
   const stPro = document.getElementById('statPro'); if(stPro) stPro.textContent = allAdminUsers.filter(u=>u.plan==='pro').length;
-  const stClinic = document.getElementById('statClinic'); if(stClinic) stClinic.textContent = allAdminUsers.filter(u=>u.plan==='clinic').length;
+  const stClinic = document.getElementById('statClinic'); if(stClinic) stClinic.textContent = allAdminUsers.filter(u=>u.role==='professional'&&u.plan==='gold').length;
   const stPat = document.getElementById('statPatients'); if(stPat) stPat.textContent = allAdminUsers.filter(u=>u.role==='patient').length;
   renderAdminTable(allAdminUsers);
 }
 
 function renderAdminTable(users) {
-  const roleLabels = { standard:'Padrão', patient:'Paciente', nutricionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
-  const planLabels = { 
-    free:'Gratuito', pro:'Pro', clinic:'Clínica', admin:'Admin',
-    patient_pro: 'Paciente+', patient_clinic: 'Paciente Clínica'
-  };
-  const planBadge = { 
-    free:'badge-free', pro:'badge-pro', clinic:'badge-clinic', admin:'badge-admin',
-     patient_pro:'badge-pro', patient_clinic:'badge-clinic'
-  };
+  const roleLabels = { standard:'Padrão', patient:'Paciente', professional:'Profissional', nutritionist:'Nutricionista', personal_trainer:'Personal', admin:'Admin' };
+
+  // Label depende de role + plan para distinguir Standard Pro de Prof. Basic (ambos usam plan='pro')
+  function getPlanLabel(role, plan) {
+    if (plan === 'admin')  return 'Admin';
+    if (plan === 'free')   return 'Gratuito';
+    if (plan === 'gold' || plan === 'clinic') return 'Prof. Gold';
+    if (plan === 'pro') {
+      return (role === 'professional' || role === 'nutritionist') ? 'Prof. Basic' : 'Standard Pro';
+    }
+    if (plan === 'patient_gold'  || plan === 'patient_clinic') return 'Paciente Gold';
+    if (plan === 'patient_basic' || plan === 'patient_pro')    return 'Paciente Basic';
+    if (plan === 'standard_pro') return 'Standard Pro';
+    if (plan === 'nutritionist_pro')    return 'Prof. Basic';
+    if (plan === 'nutritionist_clinic') return 'Prof. Gold';
+    return plan || 'Gratuito';
+  }
+  function getPlanBadge(role, plan) {
+    if (plan === 'admin') return 'badge-admin';
+    if (plan === 'gold' || plan === 'clinic') return 'badge-clinic';
+    if (plan === 'pro') return (role === 'professional' || role === 'nutritionist') ? 'badge-clinic' : 'badge-pro';
+    if (plan === 'patient_gold' || plan === 'patient_clinic') return 'badge-clinic';
+    if (plan === 'patient_basic' || plan === 'patient_pro')   return 'badge-pro';
+    if (plan === 'standard_pro' || plan === 'nutritionist_pro' || plan === 'nutritionist_clinic') return 'badge-pro';
+    return 'badge-free';
+  }
+
   const tbody = document.getElementById('adminTableBody');
   if (!tbody) return;
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">Nenhum usuário.</td></tr>'; return; }
@@ -896,6 +1187,9 @@ function renderAdminTable(users) {
     try { if (u.created_at) date = new Date(u.created_at).toLocaleDateString('pt-BR'); } catch(e){}
     if (date === 'Invalid Date' || date === 'Data Inválida') date = '—';
     const safePlan = u.plan || 'free';
+    const safeRole = u.role || 'standard';
+    const planLabel = getPlanLabel(safeRole, safePlan);
+    const planBadgeClass = getPlanBadge(safeRole, safePlan);
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:0.5rem;">
         <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green-mid),var(--green-deep));display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:white;flex-shrink:0;">${initials}</div>
@@ -903,27 +1197,28 @@ function renderAdminTable(users) {
       </div></td>
       <td style="color:var(--text-muted);font-size:0.8rem;">${u.email||'—'}</td>
       <td><select class="plan-select" id="roleSel-${u.id}" style="min-width:100px;">
-        <option value="standard" ${(u.role||'standard')==='standard'?'selected':''}>Padrão</option>
-        <option value="patient" ${u.role==='patient'?'selected':''}>Paciente</option>
-        <option value="nutritionist" ${u.role==='nutritionist'?'selected':''}>Nutricionista</option>
-        <option value="personal_trainer" ${u.role==='personal_trainer'?'selected':''}>Personal</option>
-        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+        <option value="standard" ${safeRole==='standard'?'selected':''}>Padrão</option>
+        <option value="patient" ${safeRole==='patient'?'selected':''}>Paciente</option>
+        <option value="professional" ${safeRole==='professional'?'selected':''}>Profissional</option>
+        <option value="personal_trainer" ${safeRole==='personal_trainer'?'selected':''}>Personal</option>
+        <option value="admin" ${safeRole==='admin'?'selected':''}>Admin</option>
       </select></td>
-      <td><span class="plan-badge-inline ${planBadge[safePlan] || 'badge-free'}">${planLabels[safePlan] || safePlan}</span></td>
+      <td><span class="plan-badge-inline ${planBadgeClass}">${planLabel}</span></td>
       <td style="color:var(--text-muted);font-size:0.78rem;">${date}</td>
       <td><div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;">
         <select class="plan-select" id="planSel-${u.id}">
-          <option value="free" ${safePlan==='free'?'selected':''}>Gratuito</option>
-          <option value="patient_pro" ${safePlan==='patient_pro'?'selected':''}>Paciente+</option>
-          <option value="patient_clinic" ${safePlan==='patient_clinic'?'selected':''}>Paciente Clínica</option>
-          <option value="pro" ${safePlan==='pro'?'selected':''}>Pro</option>
-          <option value="clinic" ${safePlan==='clinic'?'selected':''}>Clínica</option>
-          <option value="admin" ${safePlan==='admin'?'selected':''}>Admin</option>
+          <option value="free"          ${safePlan==='free'?'selected':''}>Gratuito</option>
+          <option value="pro"           ${safePlan==='pro'?'selected':''}>Standard Pro / Prof. Basic</option>
+          <option value="gold"          ${safePlan==='gold'?'selected':''}>Prof. Gold (R$197)</option>
+          <option value="patient_basic" ${safePlan==='patient_basic'||safePlan==='patient_pro'?'selected':''}>Paciente Basic</option>
+          <option value="patient_gold"  ${safePlan==='patient_gold'||safePlan==='patient_clinic'?'selected':''}>Paciente Gold</option>
+          <option value="admin"         ${safePlan==='admin'?'selected':''}>Admin</option>
         </select>
         <button class="btn-save-plan" onclick="savePlan('${u.id}')">Salvar</button>
       </div></td>
     </tr>`;
   }).join('');
+
 }
 
 function filterAdminTable() {
@@ -944,7 +1239,7 @@ async function savePlan(userId) {
   const { error } = await supabase.from('profiles').update(updateData).eq('id', userId);
   if (error) {
     showToast('Erro ao salvar: ' + error.message, 'error');
-    console.error('[CalorIA] savePlan error:', error);
+    console.error('[NutrIA] savePlan error:', error);
     return;
   }
 
@@ -990,7 +1285,7 @@ async function loadUpgradeRequests() {
     return;
   }
 
-  const planLabels = { pro:'Pro', clinic:'Clinica' };
+  const planLabels = { free:'Gratuito', pro:'Prof. Basic', gold:'Prof. Gold' };
   el.innerHTML = data.map(req => {
     let created = '—';
     try { if (req.created_at) created = new Date(req.created_at).toLocaleString('pt-BR'); } catch(e){}
@@ -1093,31 +1388,38 @@ async function loadNutritionistRequests() {
     if (created === 'Invalid Date' || created === 'Data Inválida') created = '—';
     const fieldsId = `nutRejectFields-${req.id}`;
     const reasonId = `nutRejectReason-${req.id}`;
+    const tierLabel = req.requested_tier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+    const tierBadgeStyle = req.requested_tier === 'professional_gold'
+      ? 'background:var(--yellow-hot);color:#1a1a1a;'
+      : 'background:var(--green-deep);color:white;';
     return `
       <div class="queue-item">
         <div class="queue-info">
-          <strong>${window.escapeHtml(req.user_name || 'Usuario sem nome')}</strong>
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;margin-bottom:0.35rem;">
+            <strong>${window.escapeHtml(req.user_name || 'Usuário sem nome')}</strong>
+            <span style="font-size:0.68rem;font-weight:800;font-family:'Syne',sans-serif;text-transform:uppercase;padding:0.15rem 0.55rem;border-radius:50px;${tierBadgeStyle}">${tierLabel}</span>
+          </div>
           <p>${window.escapeHtml(req.user_email || '')}</p>
           <p><strong>CRN:</strong> ${window.escapeHtml(req.crn || '—')} | <strong>Especialidade:</strong> ${window.escapeHtml(req.specialty || '—')}</p>
-          <p><strong>Instituicao:</strong> ${window.escapeHtml(req.institution || '—')}</p>
+          <p><strong>Instituição:</strong> ${window.escapeHtml(req.institution || '—')}</p>
           ${req.message ? `<p><strong>Mensagem:</strong> ${window.escapeHtml(req.message)}</p>` : ''}
           <p style="font-size:0.75rem;color:var(--text-muted);">Enviado em ${created}</p>
           <div style="margin-top:0.65rem;display:grid;gap:0.5rem;">
             <select id="${fieldsId}" class="form-select" multiple size="4" style="min-height:92px;">
               <option value="crn">CRN / registro profissional</option>
               <option value="specialty">Especialidade</option>
-              <option value="institution">Instituicao de formacao</option>
+              <option value="institution">Instituição de formação</option>
               <option value="message">Mensagem / dados adicionais</option>
             </select>
             <select id="${reasonId}" class="form-select">
-              <option value="dados_incorretos">Dados informados estao errados</option>
-              <option value="dados_inconsistentes">Dados informados nao condizem com outros dados</option>
-              <option value="documentacao_insuficiente">Documentacao ou informacoes insuficientes</option>
+              <option value="dados_incorretos">Dados informados estão errados</option>
+              <option value="dados_inconsistentes">Dados informados não condizem com outros dados</option>
+              <option value="documentacao_insuficiente">Documentação ou informações insuficientes</option>
             </select>
           </div>
         </div>
         <div class="queue-actions" style="align-self:flex-start;">
-          <button class="btn-approve" onclick="reviewNutritionistRequest('${req.id}','approve')"><i class="fa-solid fa-check ic-check"></i> Permitir</button>
+          <button class="btn-approve" onclick="reviewNutritionistRequest('${req.id}','approve')"><i class="fa-solid fa-check ic-check"></i> Aprovar &amp; Notificar</button>
           <button class="btn-reject" onclick="reviewNutritionistRequest('${req.id}','reject')"><i class="fa-solid fa-xmark ic-alert"></i> Negar</button>
         </div>
       </div>`;
@@ -1129,12 +1431,16 @@ async function reviewNutritionistRequest(requestId, action) {
   if (!req) return;
 
   if (action === 'approve') {
+    const requestedTier = req.requested_tier || 'professional_basic';
+
+    // Do NOT grant the plan yet — just mark profile as approved_pending_payment
+    // The plan/role will be granted by the webhook after they actually pay
     const { error: profileError } = await supabase.from('profiles').update({
-      role: 'nutritionist',
-      plan: 'pro'
+      subscription_status: 'approved_pending_payment',
+      professional_approved_tier: requestedTier
     }).eq('id', req.user_id);
     if (profileError) {
-      showToast('Erro ao aprovar usuario: ' + profileError.message, 'error');
+      showToast('Erro ao aprovar usuário: ' + profileError.message, 'error');
       return;
     }
 
@@ -1144,11 +1450,22 @@ async function reviewNutritionistRequest(requestId, action) {
       reviewed_at: new Date().toISOString()
     }).eq('id', requestId);
     if (reqError) {
-      showToast('Usuario aprovado, mas falhou ao atualizar a solicitacao: ' + reqError.message, 'error');
-      return;
+      showToast('Aprovado, mas falhou ao atualizar a solicitação: ' + reqError.message, 'error');
     }
 
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Usuario aprovado como nutricionista!');
+    // Notify user via admin notice popup so they know to go pay
+    const tierLabel = requestedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+    const noticeTitle = '✅ Documentação Aprovada!';
+    const noticeMsg = `Sua solicitação para o plano ${tierLabel} foi aprovada! Acesse o painel "Minha Assinatura" para concluir o pagamento e ativar suas funcionalidades profissionais.`;
+    const sb = _getSb();
+    await sb.from('admin_notices').insert({
+      admin_id: currentUser.id,
+      user_id: req.user_id,
+      title: noticeTitle,
+      message: noticeMsg
+    }).select(); // don't block on error
+
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação aprovada! Usuário foi notificado para realizar o pagamento.');
     await refreshAdminUsers();
     await loadNutritionistRequests();
     return;
@@ -1176,7 +1493,23 @@ async function reviewNutritionistRequest(requestId, action) {
     return;
   }
 
-  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao negada e motivo registrado.');
+  // Notificar o usuário que sua solicitação foi negada (Item 11)
+  const tierLabel = req.requested_tier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+  const rejReasonLabels = {
+    dados_incorretos: 'Dados informados estao errados',
+    dados_inconsistentes: 'Dados informados nao condizem com outros dados',
+    documentacao_insuficiente: 'Documentacao ou informacoes insuficientes'
+  };
+  const rejReasonText = rejReasonLabels[reason] || reason;
+  const rejFieldsText = selectedFields.join(', ');
+  await _getSb().from('admin_notices').insert({
+    admin_id: currentUser.id,
+    user_id: req.user_id,
+    title: `❌ Solicitação Negada — ${tierLabel}`,
+    message: `Sua solicitação para o plano ${tierLabel} foi negada. Motivo: ${rejReasonText}. Campos com problema: ${rejFieldsText}. Corrija as informações e envie uma nova solicitação.`
+  });
+
+  showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao negada e usuário notificado.');
   await loadNutritionistRequests();
 }
 
@@ -1224,7 +1557,27 @@ async function saveProfile() {
   const height = parseFloat(document.getElementById('profileHeight').value) || null;
 
   const username = (document.getElementById('profileUsername')?.value || '').trim().toLowerCase();
-  const { error } = await supabase.from('profiles').update({ name, username: username || null, sex, age, weight, height }).eq('id', currentUser.id);
+  const isProfProfile = isProfessional() || isAdmin();
+  const professional_crn = document.getElementById('profileProfessionalCrn')?.value.trim() || null;
+  const professional_instagram = document.getElementById('profileProfessionalInstagram')?.value.trim() || null;
+  const professional_specialties = document.getElementById('profileProfessionalSpecialties')?.value.trim() || null;
+  const professional_bio = document.getElementById('profileProfessionalBio')?.value.trim() || null;
+  const payload = { name, username: username || null, sex, age, weight, height };
+  if (isProfProfile) {
+    payload.professional_crn = professional_crn;
+    payload.professional_instagram = professional_instagram;
+    payload.professional_specialties = professional_specialties;
+    payload.professional_bio = professional_bio;
+  }
+  let { error } = await supabase.from('profiles').update(payload).eq('id', currentUser.id);
+  if (error && error.code === '42703') {
+    delete payload.professional_crn;
+    delete payload.professional_instagram;
+    delete payload.professional_specialties;
+    delete payload.professional_bio;
+    const retry = await supabase.from('profiles').update(payload).eq('id', currentUser.id);
+    error = retry.error;
+  }
   if (error) { showToast('Erro ao salvar: ' + error.message, 'error'); return; }
 
   // Sincroniza o nome também no auth.user_metadata para não reverter ao relogar
@@ -1236,10 +1589,13 @@ async function saveProfile() {
       currentUser.user_metadata.full_name = name;
     }
   } catch(e) {
-    console.warn('[CalorIA] Não foi possível atualizar user_metadata:', e);
+    console.warn('[NutrIA] Não foi possível atualizar user_metadata:', e);
   }
 
   currentProfile = { ...currentProfile, name, sex, age, weight, height };
+  if (isProfProfile) {
+    currentProfile = { ...currentProfile, professional_crn, professional_instagram, professional_specialties, professional_bio };
+  }
   renderSidebarUser();
   updateHomePanel();
   if (typeof showSuccessAnimated === 'function') {
@@ -1295,46 +1651,117 @@ function switchUpgradeTab(tab) {
 
 async function requestUpgrade(plan) {
   const planNames = {
-    pro: 'Standard Pro (R$25/mes)',
-    nutritionist_pro: 'Nutricionista Pro (R$59/mes)',
-    nutritionist_clinic: 'Nutricionista Clínica (R$99/mes)',
-    clinic: 'Nutricionista Clínica (R$99/mes)'
+    pro: 'Standard Pro (R$30/mês)',
+    professional_basic: 'Professional Basic (R$100/mês)',
+    professional_gold:  'Professional Gold (R$197/mês)',
+    nutritionist_pro: 'Professional Basic (R$100/mês)',
+    nutritionist_clinic: 'Professional Gold (R$197/mês)',
+    clinic: 'Professional Gold (R$197/mês)'
   };
-  const planFeatures = {
-    pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
-    nutritionist_pro: ['Tudo do Standard Pro','Painel de pacientes (até 15)','Cadastrar pacientes diretamente','Enviar receitas aos pacientes','Chat com pacientes','Metas personalizadas por paciente','Relatórios nutricionais em PDF'],
-    nutritionist_clinic: ['Tudo do Nutricionista Pro','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica','Paciente vê dados avançados','Planos alimentares personalizados','Assinatura de documentos','Perfil profissional público'],
-    clinic: ['Tudo do Nutricionista Pro','Pacientes ilimitados','Prontuário clínico do paciente','Relatório de evolução clínica','Paciente vê dados avançados','Planos alimentares personalizados','Perfil profissional público']
-  };
-  closeUpgradeModal();
-  showToast('<i class="fa-solid fa-hourglass-half ic-water"></i> Enviando solicitacao...');
-  const benefits = planFeatures[plan] || [];
-  const bodyText = `Solicitacao de Upgrade\n\nPlano: ${planNames[plan]||plan}\nNome: ${currentProfile?.name||''}\nE-mail: ${currentUser?.email}\n\nBeneficios solicitados:\n- ${benefits.join('\n- ')}\n\nAguardando aprovacao no painel admin.`;
-  try {
-    const { error: dbError } = await supabase.from('upgrade_requests').insert({
-      user_id: currentUser.id,
-      user_name: currentProfile?.name || '',
-      user_email: currentUser?.email || '',
-      requested_plan: plan,
-      current_plan: currentProfile?.plan || 'free',
-      benefits,
-      status: 'pending',
-      reviewed_by: null,
-      reviewed_at: null,
-      rejection_reason: null
-    });
-    if (dbError) throw dbError;
 
+  const tierMap = {
+    pro: 'pro',
+    professional_basic: 'professional_basic',
+    professional_gold: 'professional_gold',
+    nutritionist_pro: 'professional_basic',
+    nutritionist_clinic: 'professional_gold',
+    clinic: 'professional_gold'
+  };
+  const tier = tierMap[plan] || plan;
+
+  // ── Professional tiers: require documentation review first ────────────────────
+  // Always do a fresh DB lookup so cached currentProfile doesn't cause wrong routing.
+  // Exception: if the user is already in 'approved_pending_payment' state,
+  // they were already approved, so skip the form and go straight to checkout.
+  if (tier === 'professional_basic' || tier === 'professional_gold') {
+    let isPendingPayment = false;
     try {
-      await sendEmailViaAPI('nexy.corporationn@gmail.com', `Solicitacao de Upgrade - Plano ${planNames[plan]||plan}`, bodyText);
-    } catch(emailError) {
-      console.warn('[CalorIA] Upgrade email notification failed:', emailError);
+      const { data: liveProfile } = await supabase
+        .from('profiles')
+        .select('subscription_status, professional_approved_tier')
+        .eq('id', currentUser.id)
+        .single();
+      isPendingPayment = liveProfile?.subscription_status === 'approved_pending_payment';
+      // Also sync into local cache so subscription dashboard is accurate
+      if (liveProfile) {
+        currentProfile = { ...currentProfile, ...liveProfile };
+      }
+    } catch(e) {
+      console.warn('[NutrIA] requestUpgrade: profile lookup failed, defaulting to form flow', e);
     }
 
-    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitacao enviada! O admin podera aprovar pelo painel.');
-  } catch(e) {
-    console.error('[CalorIA] upgrade request error:', e);
-    showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao salvar solicitacao de upgrade. Verifique a tabela upgrade_requests no Supabase.', 'error');
+    if (!isPendingPayment) {
+      closeUpgradeModal();
+      await loadMyNutritionistRequestStatus();
+      openNutritionistRequest(tier);
+      return;
+    }
+  }
+
+  // ── Standard Pro or post-approval professional payment: go straight to MP ──
+  closeUpgradeModal();
+  showToast('<i class="fa-solid fa-spinner fa-spin ic-water"></i> Redirecionando para o pagamento...');
+
+  try {
+    const session = await supabase.auth.getSession();
+    const token = session.data?.session?.access_token;
+
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ tier })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.checkoutUrl) {
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Redirecionando para o Mercado Pago...');
+      setTimeout(() => { window.location.href = data.checkoutUrl; }, 900);
+      return;
+    }
+
+    console.warn('[NutrIA] Checkout API error or not configured, falling back to admin request.', data);
+    throw new Error(data.error || 'Checkout indisponível');
+
+  } catch (e) {
+    console.error('[NutrIA] requestUpgrade checkout error:', e);
+
+    const planFeatures = {
+      pro: ['Diário alimentar completo','Câmera IA ilimitada','Receitas por objetivo','Criar receitas próprias','Relatório pessoal em PDF','Alertas de meta e macros','Histórico avançado'],
+      professional_basic: ['Tudo do Standard Pro','Painel de pacientes','Cadastrar pacientes diretamente','Enviar receitas manuais aos pacientes','Dossiê do paciente','Relatórios nutricionais em PDF'],
+      professional_gold:  ['Tudo do Professional Basic','Canal direto com pacientes','DietaIA personalizada','ReceitaIA para pacientes','Prontuário clínico completo','Relatório de evolução clínica','Planos alimentares personalizados'],
+    };
+    const benefits = planFeatures[tier] || [];
+    const bodyText = `Solicitação de Upgrade\n\nPlano: ${planNames[plan]||plan}\nNome: ${currentProfile?.name||''}\nE-mail: ${currentUser?.email}\n\nBenefícios solicitados:\n- ${benefits.join('\n- ')}\n\nAguardando aprovação no painel admin.`;
+
+    try {
+      const { error: dbError } = await supabase.from('upgrade_requests').insert({
+        user_id: currentUser.id,
+        user_name: currentProfile?.name || '',
+        user_email: currentUser?.email || '',
+        requested_plan: plan,
+        current_plan: currentProfile?.plan || 'free',
+        benefits,
+        status: 'pending',
+        reviewed_by: null,
+        reviewed_at: null,
+        rejection_reason: null
+      });
+      if (dbError) throw dbError;
+
+      try {
+        await sendEmailViaAPI('nexy.corporationn@gmail.com', `Solicitação de Upgrade - Plano ${planNames[plan]||plan}`, bodyText);
+      } catch(emailError) {
+        console.warn('[NutrIA] Upgrade email notification failed:', emailError);
+      }
+      showToast('<i class="fa-solid fa-circle-check ic-check"></i> Solicitação enviada! O admin irá aprovar em breve.');
+    } catch(fallbackErr) {
+      console.error('[NutrIA] upgrade fallback error:', fallbackErr);
+      showToast('<i class="fa-solid fa-triangle-exclamation ic-alert"></i> Erro ao processar upgrade. Tente novamente mais tarde.', 'error');
+    }
   }
 }
 
@@ -1344,6 +1771,40 @@ async function requestUpgrade(plan) {
 let _chatChannel = null;
 let _chatPatientId = null;
 let _chatInitialized = false;
+let _chatPatients = [];
+
+function getInitials(nameOrEmail) {
+  return (nameOrEmail || 'P').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'P';
+}
+
+function renderChatPatientList(patients) {
+  const list = document.getElementById('chatPatientList');
+  if (!list) return;
+  if (!patients.length) {
+    list.innerHTML = `<p class="chat-patient-empty">${t('chat_select_patient_prompt')}</p>`;
+    return;
+  }
+  list.innerHTML = patients.map(p => {
+    const label = p.name || p.email || 'Paciente';
+    const avatar = p.avatar_url
+      ? `<img src="${window.escapeHtml(p.avatar_url)}" alt="${window.escapeHtml(label)}">`
+      : window.escapeHtml(getInitials(label));
+    return `
+      <button type="button" class="chat-patient-option ${p.id === _chatPatientId ? 'active' : ''}" onclick="selectChatPatient('${p.id}')">
+        <span class="chat-patient-avatar">${avatar}</span>
+        <span class="chat-patient-text">
+          <strong>${window.escapeHtml(label)}</strong>
+          ${p.email ? `<small>${window.escapeHtml(p.email)}</small>` : ''}
+        </span>
+      </button>`;
+  }).join('');
+}
+
+async function selectChatPatient(patientId) {
+  _chatPatientId = patientId;
+  renderChatPatientList(_chatPatients);
+  await loadChatMessages();
+}
 
 async function initChatPanel() {
   if (_chatInitialized) { await loadChatMessages(); return; }
@@ -1351,34 +1812,37 @@ async function initChatPanel() {
   const isProf = isProfessional();
 
   document.getElementById('chatPdfArea').style.display = isProf ? 'flex' : 'none';
+  const photoArea = document.getElementById('chatPhotoArea');
+  if (photoArea) photoArea.style.display = (isProf || (currentProfile?.role === 'patient' && currentProfile?.nutritionist_id)) ? 'flex' : 'none';
 
   if (isProf) {
     document.getElementById('chatPatientSelector').style.display = 'block';
     document.getElementById('chatSubtitle').textContent = t('chat_subtitle_prof');
     const nutBadge = document.getElementById('chatNutBadge');
     if (nutBadge) {
-      if (isNutritionistClinic()) { nutBadge.innerHTML = t('chat_clinic_badge'); nutBadge.style.cssText += 'display:inline-block;background:#1de9b6;color:#004d40;'; }
+      if (isProfessionalGold()) { nutBadge.innerHTML = t('chat_clinic_badge'); nutBadge.style.cssText += 'display:inline-block;background:#1de9b6;color:#004d40;'; }
       else { nutBadge.innerHTML = t('chat_pro_badge'); nutBadge.style.cssText += 'display:inline-block;background:#ffd54f;color:#333;'; }
     }
     const { data: links } = await supabase.from('professional_patients').select('patient_id').eq('professional_id', currentUser.id);
     if (links && links.length) {
       const ids = links.map(l => l.patient_id);
-      const { data: pts } = await supabase.from('profiles').select('id,name,email').in('id', ids);
-      const sel = document.getElementById('chatPatientSelect');
-      sel.innerHTML = `<option value="">${t('chat_select_patient')}</option>` +
-        (pts || []).map(p => `<option value="${p.id}">${p.name || p.email}</option>`).join('');
+      const { data: pts } = await supabase.from('profiles').select('id,name,email,avatar_url').in('id', ids);
+      _chatPatients = pts || [];
+      renderChatPatientList(_chatPatients);
+    } else {
+      _chatPatients = [];
+      renderChatPatientList(_chatPatients);
     }
   } else if (currentProfile?.role === 'patient' && currentProfile?.nutritionist_id) {
     _chatPatientId = currentUser.id;
-    const { data: nut } = await supabase.from('profiles').select('name,plan').eq('id', currentProfile.nutritionist_id).single();
+    const { data: nut } = await supabase.from('profiles').select('name,plan,professional_specialties,nutritionist_type,specialty').eq('id', currentProfile.nutritionist_id).single();
     document.getElementById('chatPartnerName').textContent = nut?.name || t('chat_default_partner');
-    if (nut?.plan === 'clinic' || nut?.plan === 'nutritionist_clinic') {
+    const specialties = getProfessionalSpecialties(nut);
+    if (specialties) document.getElementById('chatSubtitle').textContent = `${t('chat_subtitle_patient')} · ${specialties}`;
+    if (nut?.plan === 'gold') {
       const b = document.getElementById('chatNutBadge');
       if (b) { b.innerHTML = t('chat_clinic_badge'); b.style.cssText+='display:inline-block;background:#1de9b6;color:#004d40;'; }
     }
-    document.getElementById('chatSubtitle').textContent = t('chat_subtitle_patient');
-    const photoArea = document.getElementById('chatPhotoArea');
-    if (photoArea) photoArea.style.display = 'flex';
     await loadChatMessages();
     subscribeChat(currentProfile.nutritionist_id, currentUser.id);
   }
@@ -1388,12 +1852,12 @@ async function loadChatMessages() {
   const isProf = isProfessional();
   let nutId, patId;
   if (isProf) {
-    const sel = document.getElementById('chatPatientSelect');
-    patId = sel?.value;
+    patId = _chatPatientId;
     nutId = currentUser.id;
     if (!patId) { document.getElementById('chatMessages').innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:2rem;font-size:0.85rem;">${t('chat_select_patient_prompt')}</p>`; return; }
     _chatPatientId = patId;
-    document.getElementById('chatPartnerName').textContent = sel.options[sel.selectedIndex]?.text || t('chat_default_patient_name');
+    const selectedPatient = _chatPatients.find(p => p.id === patId);
+    document.getElementById('chatPartnerName').textContent = selectedPatient?.name || selectedPatient?.email || t('chat_default_patient_name');
   } else {
     patId = currentUser.id;
     nutId = currentProfile?.nutritionist_id;
@@ -1547,6 +2011,8 @@ window.setRecordPeriod = setRecordPeriod;
 window.generatePatientRecordPdf = generatePatientRecordPdf;
 window.buildRecordHtml = buildRecordHtml;
 window.loadLinkedNutritionist = loadLinkedNutritionist;
+window.renderProfessionalsPanel = renderProfessionalsPanel;
+window.requestProfessionalHire = requestProfessionalHire;
 window.checkPatientNotifications = checkPatientNotifications;
 window.loadAdminPanel = loadAdminPanel;
 window.refreshAdminUsers = refreshAdminUsers;
@@ -1569,11 +2035,91 @@ window.requestUpgrade = requestUpgrade;
 window.initChatPanel = initChatPanel;
 window.loadChatMessages = loadChatMessages;
 window.renderChatMessages = renderChatMessages;
+window.selectChatPatient = selectChatPatient;
 window.sendChatMessage = sendChatMessage;
 window.uploadChatPdf = uploadChatPdf;
 window.uploadChatPhoto = uploadChatPhoto;
 window.subscribeChat = subscribeChat;
 window.loadPatients = loadPatients;
 window.openPatientDossier = openPatientDossier;
+
+function filterPatientsList() {
+  const q = (document.getElementById('patientSearchInput')?.value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#patientsList .patient-row');
+  let matchCount = 0;
+
+  // Remove existing empty state message if any
+  const oldEmpty = document.getElementById('patientsSearchEmptyMsg');
+  if (oldEmpty) oldEmpty.remove();
+
+  rows.forEach(row => {
+    // Info inside the row contains name and email
+    const name = (row.getAttribute('data-patient-name') || '').toLowerCase();
+    const infoText = row.querySelector('.patient-info')?.textContent?.toLowerCase() || '';
+    
+    if (name.includes(q) || infoText.includes(q)) {
+      row.style.display = 'flex';
+      matchCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const countEl = document.getElementById('patientCount');
+  if (countEl) countEl.textContent = matchCount;
+
+  if (matchCount === 0 && rows.length > 0) {
+    const listEl = document.getElementById('patientsList');
+    if (listEl) {
+      const msg = document.createElement('p');
+      msg.id = 'patientsSearchEmptyMsg';
+      msg.style.cssText = 'color:var(--text-muted);text-align:center;padding:2rem;margin:0;width:100%;';
+      msg.innerHTML = typeof t === 'function' ? t('patients_no_results') : 'Nenhum paciente encontrado.';
+      listEl.appendChild(msg);
+    }
+  }
+}
+window.filterPatientsList = filterPatientsList;
+
+window.printDossierPDF = function() {
+  const content = document.getElementById('dossierContent')?.innerHTML;
+  const title = document.getElementById('dossierPatientTitle')?.textContent || 'Dossiê do Paciente';
+  if (!content || content.includes('Carregando')) {
+    showToast('Carregue os dados do dossiê primeiro', 'error');
+    return;
+  }
+  
+  const logoSrc = typeof getLogoSrc === 'function' ? getLogoSrc() : LOGO_LIGHT_B64;
+  const logoHtml = `<img src="${logoSrc}" width="52" height="52" style="border-radius:8px;">`;
+  
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title} — NutrIA</title>
+  ${window.getNutriaPdfStyle ? window.getNutriaPdfStyle() : ''}
+  <style>
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    td { padding: 6px 12px 6px 0; vertical-align: top; border-bottom: 1px solid rgba(0,0,0,0.05); color: var(--pdf-dark); }
+    tr:last-child td { border-bottom: none; }
+    /* Custom layouts styles */
+    table th { padding: 6px 10px; text-align: left; font-weight: 700; background: var(--pdf-accent-bg); border-bottom: 1px solid rgba(0,0,0,0.1); color: var(--pdf-primary); }
+  </style>
+  </head><body>
+  ${window.getNutriaPdfHeader ? window.getNutriaPdfHeader(title) : ''}
+  
+  <div class="dossier-print-content">
+    ${content}
+  </div>
+  <div class="footer-pdf">
+    <span>Documento gerado automaticamente pela plataforma NutrIA em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</span>
+    <p style="margin-top:4px; opacity:0.8;">🔒 Este documento contém dados pessoais e de saúde protegidos pela LGPD (Lei 13.709/2018). Uso restrito ao acompanhamento nutricional do paciente.</p>
+  </div>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+  } else {
+    showToast('Habilite os popups para visualizar a exportação de PDF.', 'error');
+  }
+};
 
 

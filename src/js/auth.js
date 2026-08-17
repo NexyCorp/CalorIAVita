@@ -20,6 +20,16 @@ function setAuthLoading(on) {
 }
 
 let _loginInProgress = false;
+const LOADING_ANIMATION_MIN_MS = 3000;
+const _loadingStartedAt = Date.now();
+
+function hideLoadingOverlayWhenReady() {
+  const lo = document.getElementById('loadingOverlay');
+  if (!lo || lo.classList.contains('hidden')) return;
+  const elapsed = Date.now() - _loadingStartedAt;
+  const wait = Math.max(0, LOADING_ANIMATION_MIN_MS - elapsed);
+  setTimeout(() => lo.classList.add('hidden'), wait);
+}
 
 function withTimeout(promise, ms, label) {
   return Promise.race([
@@ -53,7 +63,7 @@ async function doLogin() {
     if (data?.user) await initApp(data.user);
     else showAuthError('Erro ao entrar. Tente novamente.');
   } catch(e) {
-    console.error('[CalorIA] doLogin:', e);
+    console.error('[NutrIA] doLogin:', e);
     showAuthError(e.message?.includes('timeout')
       ? 'Servidor demorou para responder. Verifique sua conexão e tente novamente.'
       : 'Erro ao entrar. Tente novamente.');
@@ -333,7 +343,7 @@ async function fetchUserProfile(user) {
         );
       }
     }
-  } catch(e) { console.warn('[CalorIA] fetchUserProfile:', e); }
+  } catch(e) { console.warn('[NutrIA] fetchUserProfile:', e); }
   if (window._pendingFreshProfile) {
     const fresh = window._pendingFreshProfile;
     window._pendingFreshProfile = null;
@@ -426,7 +436,12 @@ async function initApp(user) {
     applyPlanRestrictions();
     renderSidebarUser();
     initDiaryDate();
-    showPanel('home', document.getElementById('nav-home'));
+
+    // Restaurar tela da sessão anterior (Item 9)
+    const lastPanel = localStorage.getItem('nutria_last_panel') || 'home';
+    const panelToRestore = typeof getAccessiblePanelOrHome === 'function' ? getAccessiblePanelOrHome(lastPanel) : 'home';
+    showPanel(panelToRestore, document.getElementById('nav-' + panelToRestore));
+
     applyLanguage();
     _appInitialized = true;
     setAuthLoading(false);
@@ -439,7 +454,7 @@ async function initApp(user) {
 
     _loadAppDataInBackground();
   } catch(e) {
-    console.error('[CalorIA] initApp error:', e);
+    console.error('[NutrIA] initApp error:', e);
     currentUser = user;
     currentProfile = currentProfile || _profileFallback(user);
     showApp(user);
@@ -454,6 +469,8 @@ async function initApp(user) {
 
 function showApp(user) {
   document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('landingPage').classList.add('hidden');
+  hideLoadingOverlayWhenReady();
   document.getElementById('appShell').classList.add('visible');
   document.getElementById('appShell').style.display = 'flex';
   startProfileRealtime(user.id);
@@ -487,7 +504,7 @@ function startProfileRealtime(userId) {
         const changed = data.role !== currentProfile?.role || data.plan !== currentProfile?.plan;
         if (changed) {
           applyProfileUpdate(data);
-          console.log('[CalorIA] Perfil atualizado via polling:', data.role, data.plan);
+          console.log('[NutrIA] Perfil atualizado via polling:', data.role, data.plan);
         }
       }
     } catch(e) {}
@@ -514,12 +531,17 @@ function applyProfileUpdate(newData) {
   setupRoleUI();
   applyPlanRestrictions();
   renderSidebarUser();
-  // Se cargo ou plano mudou, volta para o painel inicial para evitar tela errada
-  if (oldRole !== newData.role || oldPlan !== newData.plan) {
-    showPanel('home', document.getElementById('nav-home'));
+  const activePanel = document.querySelector('.panel.active')?.id?.replace('panel-', '') || localStorage.getItem('nutria_last_panel') || 'home';
+  if (oldRole !== undefined && (oldRole !== newData.role || oldPlan !== newData.plan)) {
+    const panelToKeep = typeof getAccessiblePanelOrHome === 'function' ? getAccessiblePanelOrHome(activePanel) : 'home';
+    if (panelToKeep !== activePanel) showPanel(panelToKeep, document.getElementById('nav-' + panelToKeep));
     if (newData.role !== oldRole) {
       showToast('<i class="fa-solid fa-arrows-rotate ic-water"></i> Cargo atualizado: ' + (newData.role || 'padrão'));
     }
+  } else if (oldRole === undefined) {
+    const lastPanel = localStorage.getItem('nutria_last_panel') || activePanel;
+    const panelToRestore = typeof getAccessiblePanelOrHome === 'function' ? getAccessiblePanelOrHome(lastPanel) : activePanel;
+    if (panelToRestore !== activePanel) showPanel(panelToRestore, document.getElementById('nav-' + panelToRestore));
   }
 }
 
@@ -564,18 +586,22 @@ function applyProfileUpdate(newData) {
     _cookieDel(_CV_COOKIE);
     _appInitialized = false; _initAppRunning = false;
     currentUser = null; currentProfile = null;
-    document.getElementById('authOverlay').classList.remove('hidden');
+    hideLoadingOverlayWhenReady();
+    document.getElementById('landingPage').classList.remove('hidden');
+    document.getElementById('authOverlay').classList.add('hidden');
     document.getElementById('appShell').classList.remove('visible');
     document.getElementById('appShell').style.display = 'none';
+    // Init landing page JS
+    if (typeof initLandingPage === 'function') initLandingPage();
   }
 });
 
 // Fallback timeout to ensure the app doesn't stay black/stuck forever
 setTimeout(() => {
   if (!_appInitialized) {
-    console.warn('[CalorIA] App initialization fallback triggered.');
+    console.warn('[NutrIA] App initialization fallback triggered.');
     if (currentUser) {
-      console.warn('[CalorIA] Current user exists but app not initialized. Forcing initialization.');
+      console.warn('[NutrIA] Current user exists but app not initialized. Forcing initialization.');
       currentProfile = currentProfile || _profileFallback(currentUser);
       showApp(currentUser);
       setupRoleUI();
@@ -587,10 +613,20 @@ setTimeout(() => {
       setAuthLoading(false);
       _loadAppDataInBackground();
     } else {
+      // No user — show landing page
       setAuthLoading(false);
+      hideLoadingOverlayWhenReady();
+      document.getElementById('landingPage').classList.remove('hidden');
+      document.getElementById('authOverlay').classList.add('hidden');
+      if (typeof initLandingPage === 'function') initLandingPage();
     }
   }
 }, 8000);
+
+// ═══ GLOBAL HELPERS FOR LANDING PAGE ═══
+window.openAuthOverlay = function() {
+  document.getElementById('authOverlay').classList.remove('hidden');
+};
 
 // Expor funções e variáveis para o escopo global
 window.switchAuthTab = switchAuthTab;
@@ -609,3 +645,4 @@ window.completeOnboarding = completeOnboarding;
 window.doLogout = doLogout;
 window.initApp = initApp;
 window.forceRefreshProfile = forceRefreshProfile;
+window.showApp = showApp;

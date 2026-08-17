@@ -18,7 +18,7 @@ const i18n = {
     nav_home:'Início', nav_tools:'Ferramentas', nav_search:'Pesquisar', nav_diary:'Diário', nav_goal:'Meta & Calc.',
     nav_camera:'Câmera IA', nav_compare:'Comparar', nav_recipes:'Receitas',
     nav_professional:'Profissional', nav_patients:'Pacientes', nav_more:'Mais', nav_channel:'Canal', nav_admin:'Admin',
-    menu_profile:'Meu Perfil', menu_upgrade:'Planos & Upgrade', menu_become_nut:'Ser Nutricionista', menu_update_profile:'Atualizar perfil', menu_logout:'Sair',
+    menu_profile:'Meu Perfil', menu_upgrade:'Planos & Upgrade', menu_become_nut:'Ser Profissional', menu_update_profile:'Atualizar perfil', menu_logout:'Sair',
     search_title:'Busca Nutricional', search_sub:'Pesquise qualquer alimento e veja informações nutricionais completas',
     search_ph:'Ex: arroz branco, banana, frango...', search_btn:'Buscar', qty_label:'Quantidade:',
     add_to_diary:'Adicionar ao Diário', nav_goal:'Meta & Calculadora',
@@ -41,8 +41,8 @@ const i18n = {
     patients_list:'Lista', loading:'Carregando...',
     choose_plan:'Escolha seu plano', choose_plan_sub:'Desbloqueie mais funcionalidades',
     profile_title:'Meu Perfil', full_name:'Nome completo', display_name:'Nome de Usuário', language:'Idioma',
-    become_nut_title:'Quero ser Nutricionista', become_nut_desc:'Envie suas credenciais profissionais para análise.',
-    linked_nutritionist:'Nutricionista responsável',
+    become_nut_title:'Quero ser Profissional', become_nut_desc:'Envie suas credenciais profissionais para análise.',
+    linked_nutritionist:'Profissional responsável',
     kcal_consumed:'kcal consumidas', goal_label:'meta:', breakfast:'Café da manhã',
     lunch:'Almoço', snack:'Lanche', dinner:'Jantar', carbs:'Carboidratos', protein:'Proteínas', fat:'Gorduras',
     no_food:'Nenhum alimento adicionado', add:'Adicionar', clear:'Limpar',
@@ -69,7 +69,7 @@ const i18n = {
     onb_body_fat:'Gordura Corporal (%)', onb_idk:'Não sei', onb_start_btn:'Começar agora',
     // Chat / Canal
     chat_subtitle_prof:'Converse com seus pacientes, envie receitas e PDFs',
-    chat_subtitle_patient:'Receba receitas, PDFs e mensagens da sua nutricionista',
+    chat_subtitle_patient:'Receba receitas, PDFs e mensagens do seu profissional',
     chat_select_patient:'Selecionar paciente...',
     chat_select_patient_prompt:'Selecione um paciente para ver o canal.',
     chat_loading:'Carregando...',
@@ -80,7 +80,7 @@ const i18n = {
     chat_sending_pdf:'Enviando PDF...',
     chat_pdf_sent:'PDF enviado!',
     chat_send_error:'Erro ao enviar: ',
-    chat_default_partner:'sua Nutricionista',
+    chat_default_partner:'seu Profissional',
     chat_default_patient_name:'Paciente',
     chat_doc_default:'Documento.pdf',
     chat_pdf_unavailable:'(link indisponivel)',
@@ -100,7 +100,7 @@ const i18n = {
     announcement_message_label:'Mensagem',
     announcement_message_ph:'Escreva o aviso...',
     announcement_send_btn:'Enviar Aviso',
-    announcement_popup_title:'Aviso da sua Nutricionista',
+    announcement_popup_title:'Aviso do seu Profissional',
     announcement_popup_ok:'Entendi',
     announcement_empty_error:'Escreva uma mensagem.',
     announcement_no_patients_error:'Nenhum paciente vinculado.',
@@ -173,12 +173,36 @@ const i18n = {
     admin_th_plan: 'Plano',
     admin_th_since: 'Desde',
     admin_th_action: 'Ação',
+    // Subscription panel
+    sub_admin_title: 'Acesso Administrador',
+    sub_admin_desc: 'Seu acesso é permanente e concedido por função de sistema. Assinaturas e cobranças não se aplicam à sua conta.',
+    sub_admin_badge: '♾️ Acesso Vitalício',
+    sub_active_plan: 'Plano Atual',
+    sub_active_badge: '✅ Ativo',
+    sub_active_renewal: 'Próxima renovação:',
+    sub_active_desc: 'Seu acesso premium está ativo. Você pode gerenciar ou cancelar sua assinatura recorrente a qualquer momento abaixo.',
+    sub_cancel_btn: 'Cancelar Assinatura',
+    sub_approved_title: 'Documentação Aprovada!',
+    sub_approved_desc: 'Suas credenciais profissionais foram verificadas. Conclua o pagamento para liberar seu painel.',
+    sub_approved_tier_label: 'Plano Liberado:',
+    sub_pay_btn: 'Pagar Agora – Ativar Plano',
+    sub_pay_note: 'A cobrança será mensal. Suporte a Pix, boleto e cartão de crédito.',
+    sub_free_plan: 'Plano Atual',
+    sub_free_badge: 'Gratuito',
+    sub_free_desc: 'Faça o upgrade agora para liberar a câmera IA ilimitada, diários completos de água e açúcar, planos alimentares personalizados e recursos profissionais de atendimento a pacientes.',
+    sub_upgrade_btn: 'Ver Planos & Fazer Upgrade',
+    sub_error_no_auth: 'Usuário não autenticado no NutrIA.',
+    sub_error_load: 'Erro ao carregar dados:',
+    sub_loading: 'Carregando dados da assinatura...',
+    // Patient search
+    patients_search_ph: 'Buscar por nome ou e-mail...',
+    patients_no_results: 'Nenhum paciente encontrado.',
   },
   en: {
     nav_home:'Home', nav_tools:'Tools', nav_search:'Search', nav_diary:'Diary', nav_goal:'Goal & Calc.',
     nav_camera:'AI Camera', nav_compare:'Compare', nav_recipes:'Recipes',
     nav_professional:'Professional', nav_patients:'Patients', nav_more:'More', nav_channel:'Channel', nav_admin:'Admin',
-    menu_profile:'My Profile', menu_upgrade:'Plans & Upgrade', menu_become_nut:'Become Nutritionist', menu_update_profile:'Update Profile', menu_logout:'Sign out',
+    menu_profile:'My Profile', menu_upgrade:'Plans & Upgrade', menu_become_nut:'Become Professional', menu_update_profile:'Update Profile', menu_logout:'Sign out',
     search_title:'Nutrition Search', search_sub:'Search any food and see full nutritional info',
     search_ph:'E.g.: white rice, banana, chicken...', search_btn:'Search', qty_label:'Quantity:',
     add_to_diary:'Add to Diary', nav_goal:'Goal & Calculator',
@@ -201,8 +225,8 @@ const i18n = {
     patients_list:'List', loading:'Loading...',
     choose_plan:'Choose your plan', choose_plan_sub:'Unlock more features',
     profile_title:'My Profile', full_name:'Full name', display_name:'Display Name', language:'Language',
-    become_nut_title:'Become a Nutritionist', become_nut_desc:'Send your professional credentials for review.',
-    linked_nutritionist:'Your nutritionist',
+    become_nut_title:'Become a Professional', become_nut_desc:'Send your professional credentials for review.',
+    linked_nutritionist:'Responsible professional',
     kcal_consumed:'kcal consumed', goal_label:'goal:', breakfast:'Breakfast',
     lunch:'Lunch', snack:'Snack', dinner:'Dinner', carbs:'Carbs', protein:'Protein', fat:'Fat',
     no_food:'No food added yet', add:'Add', clear:'Clear',
@@ -228,9 +252,9 @@ const i18n = {
     onb_title:'Welcome! Let\'s get started', onb_desc:'Fill in your details to customize your experience. You can update this later.',
     onb_body_fat:'Body Fat (%)', onb_idk:'I don\'t know', onb_start_btn:'Start now',
     // Extra UI strings for full EN support
-    upgrade_btn:'⬆ Upgrade Plan', become_nutritionist_btn:'🩺 Become Nutritionist',
+    upgrade_btn:'⬆ Upgrade Plan', become_nutritionist_btn:'🩺 Become Professional',
     ai_recipe_btn:'🤖 AI Recipe Suggestion', share_recipe:'Share Recipe (PDF)',
-    recipe_total_weight:'Total weight', notify_nutritionist:'Your nutritionist was notified!',
+    recipe_total_weight:'Total weight', notify_nutritionist:'Your professional was notified!',
     recipe_photos:'Recipe Photos', add_photos:'Add Photos',
     set_patient_goal:'Set Patient Goals', calorie_goal:'Calorie Goal (kcal)',
     protein_goal:'Protein Goal (g)', carbs_goal:'Carbs Goal (g)', fat_goal:'Fat Goal (g)',
@@ -242,7 +266,7 @@ const i18n = {
     recipe_private:'Private (only you)', recipe_visibility:'Who can see this recipe?',
     // Chat / Canal
     chat_subtitle_prof:'Chat with your patients, send recipes and PDFs',
-    chat_subtitle_patient:'Receive recipes, PDFs and messages from your nutritionist',
+    chat_subtitle_patient:'Receive recipes, PDFs and messages from your professional',
     chat_select_patient:'Select a patient...',
     chat_select_patient_prompt:'Select a patient to view the channel.',
     chat_loading:'Loading...',
@@ -253,7 +277,7 @@ const i18n = {
     chat_sending_pdf:'Sending PDF...',
     chat_pdf_sent:'PDF sent!',
     chat_send_error:'Error sending: ',
-    chat_default_partner:'your Nutritionist',
+    chat_default_partner:'your Professional',
     chat_default_patient_name:'Patient',
     chat_doc_default:'Document.pdf',
     chat_pdf_unavailable:'(link unavailable)',
@@ -279,7 +303,7 @@ const i18n = {
     announcement_message_label:'Message',
     announcement_message_ph:'Write the announcement...',
     announcement_send_btn:'Send Announcement',
-    announcement_popup_title:'Message from your Nutritionist',
+    announcement_popup_title:'Message from your Professional',
     announcement_popup_ok:'Got it',
     announcement_empty_error:'Write a message.',
     announcement_no_patients_error:'No linked patients.',
@@ -333,6 +357,30 @@ const i18n = {
     admin_th_plan: 'Plan',
     admin_th_since: 'Since',
     admin_th_action: 'Action',
+    // Subscription panel
+    sub_admin_title: 'Administrator Access',
+    sub_admin_desc: 'Your access is permanent and granted by system role. Subscriptions and billing do not apply to your account.',
+    sub_admin_badge: '♾️ Lifetime Access',
+    sub_active_plan: 'Current Plan',
+    sub_active_badge: '✅ Active',
+    sub_active_renewal: 'Next renewal:',
+    sub_active_desc: 'Your premium access is active. You can manage or cancel your recurring subscription at any time below.',
+    sub_cancel_btn: 'Cancel Subscription',
+    sub_approved_title: 'Documentation Approved!',
+    sub_approved_desc: 'Your professional credentials have been verified. Complete the payment to unlock your panel.',
+    sub_approved_tier_label: 'Unlocked Plan:',
+    sub_pay_btn: 'Pay Now – Activate Plan',
+    sub_pay_note: 'Monthly billing. Supports Pix, bank slip and credit card.',
+    sub_free_plan: 'Current Plan',
+    sub_free_badge: 'Free',
+    sub_free_desc: 'Upgrade now to unlock unlimited AI camera, full water and sugar diaries, personalized meal plans and professional patient management features.',
+    sub_upgrade_btn: 'View Plans & Upgrade',
+    sub_error_no_auth: 'User not authenticated in NutrIA.',
+    sub_error_load: 'Error loading data:',
+    sub_loading: 'Loading subscription data...',
+    // Patient search
+    patients_search_ph: 'Search by name or email...',
+    patients_no_results: 'No patients found.',
   },
   es: {
     nav_tools:'Herramientas', nav_search:'Buscar', nav_diary:'Diario', nav_goal:'Meta & Calc.',
@@ -506,6 +554,30 @@ const i18n = {
     admin_th_plan: 'Plan',
     admin_th_since: 'Desde',
     admin_th_action: 'Acción',
+    // Subscription panel
+    sub_admin_title: 'Acceso Administrador',
+    sub_admin_desc: 'Tu acceso es permanente y otorgado por rol del sistema. Las suscripciones y cobros no aplican a tu cuenta.',
+    sub_admin_badge: '♾️ Acceso Vitalicio',
+    sub_active_plan: 'Plan Actual',
+    sub_active_badge: '✅ Activo',
+    sub_active_renewal: 'Próxima renovación:',
+    sub_active_desc: 'Tu acceso premium está activo. Puedes gestionar o cancelar tu suscripción recurrente en cualquier momento.',
+    sub_cancel_btn: 'Cancelar Suscripción',
+    sub_approved_title: '¡Documentación Aprobada!',
+    sub_approved_desc: 'Tus credenciales profesionales han sido verificadas. Completa el pago para desbloquear tu panel.',
+    sub_approved_tier_label: 'Plan Desbloqueado:',
+    sub_pay_btn: 'Pagar Ahora – Activar Plan',
+    sub_pay_note: 'Cobro mensual. Compatible con Pix, boleto y tarjeta de crédito.',
+    sub_free_plan: 'Plan Actual',
+    sub_free_badge: 'Gratuito',
+    sub_free_desc: 'Mejora ahora para desbloquear cámara IA ilimitada, diarios completos, planes alimentarios personalizados y recursos profesionales.',
+    sub_upgrade_btn: 'Ver Planes y Mejorar',
+    sub_error_no_auth: 'Usuario no autenticado en NutrIA.',
+    sub_error_load: 'Error al cargar datos:',
+    sub_loading: 'Cargando datos de suscripción...',
+    // Patient search
+    patients_search_ph: 'Buscar por nombre o correo...',
+    patients_no_results: 'No se encontraron pacientes.',
   },
   de: {
     nav_tools:'Werkzeuge', nav_search:'Suche', nav_diary:'Tagebuch', nav_goal:'Ziel & Rechner',
@@ -679,6 +751,30 @@ const i18n = {
     admin_th_plan: 'Plan',
     admin_th_since: 'Seit',
     admin_th_action: 'Aktion',
+    // Subscription panel
+    sub_admin_title: 'Administrator-Zugang',
+    sub_admin_desc: 'Dein Zugang ist dauerhaft und per Systemrolle vergeben. Abonnements und Zahlungen gelten nicht für dein Konto.',
+    sub_admin_badge: '♾️ Lebenslanger Zugang',
+    sub_active_plan: 'Aktueller Plan',
+    sub_active_badge: '✅ Aktiv',
+    sub_active_renewal: 'Nächste Verlängerung:',
+    sub_active_desc: 'Dein Premium-Zugang ist aktiv. Du kannst dein Abonnement jederzeit verwalten oder kündigen.',
+    sub_cancel_btn: 'Abonnement kündigen',
+    sub_approved_title: 'Dokumentation genehmigt!',
+    sub_approved_desc: 'Deine beruflichen Qualifikationen wurden überprüft. Schließe die Zahlung ab, um dein Panel freizuschalten.',
+    sub_approved_tier_label: 'Freigeschalteter Plan:',
+    sub_pay_btn: 'Jetzt bezahlen – Plan aktivieren',
+    sub_pay_note: 'Monatliche Abrechnung. Unterstützt Pix, Bankeinzug und Kreditkarte.',
+    sub_free_plan: 'Aktueller Plan',
+    sub_free_badge: 'Kostenlos',
+    sub_free_desc: 'Upgrade jetzt um unbegrenzte KI-Kamera, vollständige Tagebücher, personalisierte Ernährungspläne und Patientenverwaltung freizuschalten.',
+    sub_upgrade_btn: 'Pläne ansehen & Upgrade',
+    sub_error_no_auth: 'Benutzer nicht in NutrIA angemeldet.',
+    sub_error_load: 'Fehler beim Laden der Daten:',
+    sub_loading: 'Abonnementdaten werden geladen...',
+    // Patient search
+    patients_search_ph: 'Nach Name oder E-Mail suchen...',
+    patients_no_results: 'Keine Patienten gefunden.',
   }
 };
 
@@ -764,8 +860,15 @@ function setLanguage(lang) {
 function initTheme() {
   const saved = localStorage.getItem('cv_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
-  document.getElementById('themeBtn').innerHTML = saved === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
-  setTimeout(updateLogos, 50);
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) {
+    themeBtn.innerHTML = saved === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
+  }
+  const lpThemeBtn = document.getElementById('lpThemeBtn');
+  if (lpThemeBtn) {
+    lpThemeBtn.innerHTML = saved === 'dark' ? '☀️' : '🌙';
+  }
+  if (typeof updateLogos === 'function') setTimeout(updateLogos, 50);
 }
 
 function toggleTheme() {
@@ -773,8 +876,15 @@ function toggleTheme() {
   const next = cur === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('cv_theme', next);
-  document.getElementById('themeBtn').innerHTML = next === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
-  updateLogos();
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) {
+    themeBtn.innerHTML = next === 'dark' ? '<i class="fa-solid fa-sun ic-sun"></i>' : '<i class="fa-solid fa-moon ic-moon"></i>';
+  }
+  const lpThemeBtn = document.getElementById('lpThemeBtn');
+  if (lpThemeBtn) {
+    lpThemeBtn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+  }
+  if (typeof updateLogos === 'function') updateLogos();
 }
 initTheme();
 
@@ -809,10 +919,35 @@ const panelTitles = {
   search: () => t('search_title'), diary: () => t('nav_diary'),
   goal: () => t('nav_goal'), camera: () => t('camera_title'),
   compare: () => t('compare_title'), recipes: () => t('recipes_title'),
+  professionals: () => currentLang === 'en' ? 'Professionals' : 'Profissionais',
   prof: () => t('patients_title'), admin: () => currentLang === 'en' ? 'Admin' : 'Admin',
   profile: () => t('profile_title'),
-  water: () => currentLang === 'en' ? 'Water' : 'Água'
+  water: () => currentLang === 'en' ? 'Water' : 'Água',
+  subscription: () => currentLang === 'en' ? 'Subscription' : 'Minha Assinatura'
 };
+
+function canAccessPanel(name) {
+  if (!name || !document.getElementById('panel-' + name)) return false;
+  if (!currentProfile) return name === 'home';
+
+  if (isStandardFree() && ['diary', 'camera', 'recipes'].includes(name)) return false;
+  if (name === 'prof' && !isProfessional() && !isAdmin()) return false;
+  if (name === 'admin' && !isAdmin()) return false;
+  if (name === 'chat' && !(isProfessionalGold() || isPatientGold())) return false;
+
+  if (isPatient()) {
+    const hasNutri = !!currentProfile?.nutritionist_id;
+    if (name === 'subscription' && hasNutri) return false;
+    if (name === 'goal') return false;
+    if (name === 'dietaia' || name === 'aiRecipe') return false;
+  }
+
+  return true;
+}
+
+function getAccessiblePanelOrHome(name) {
+  return canAccessPanel(name) ? name : 'home';
+}
 
 function showPanel(name, navEl) {
   // Paywall check para usuários free
@@ -823,14 +958,28 @@ function showPanel(name, navEl) {
   // Paywall para painel profissional
   if (name === 'prof' && !isProfessional() && !isAdmin()) return;
 
+  // Restrições de paciente: sem assinatura, sem calculadora/meta
+  if (isPatient()) {
+    const hasNutri = !!currentProfile?.nutritionist_id;
+    if (name === 'subscription' && hasNutri) { showToast('<i class="fa-solid fa-lock"></i> Assinatura não disponível para pacientes vinculados.', 'error'); return; }
+    if (name === 'goal') { showToast('<i class="fa-solid fa-lock"></i> Calculadora não disponível para pacientes.', 'error'); return; }
+    if (name === 'dietaia' || name === 'aiRecipe') { showToast('<i class="fa-solid fa-lock"></i> IA não disponível para pacientes.', 'error'); return; }
+  }
+
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+  localStorage.setItem('nutria_last_panel', name);
 
   const panel = document.getElementById('panel-' + name);
   if (panel) panel.classList.add('active');
   if (name === 'home') updateHomePanel();
   if (name === 'goal') fillCalcFromProfile();
   if (name === 'profile') fillProfilePanel();
+  if (name === 'professionals' && typeof window.renderProfessionalsPanel === 'function') {
+    window.renderProfessionalsPanel();
+  }
+  if (name === 'subscription') { if (typeof window.loadSubscriptionDashboard === 'function') window.loadSubscriptionDashboard(); else console.warn('[showPanel] loadSubscriptionDashboard not ready'); }
   if (name === 'prof') {
     if (typeof loadPatients === 'function') loadPatients();
   }
@@ -855,6 +1004,7 @@ function showPanel(name, navEl) {
   // Highlight nav
   const navBtn = navEl || document.getElementById('nav-' + name);
   if (navBtn) navBtn.classList.add('active');
+  setBottomNav(name);
 
   // Close sidebar on mobile
   if (window.innerWidth < 768) closeSidebar();
@@ -891,6 +1041,8 @@ document.addEventListener('click', e => {
 window.escapeHtml = escapeHtml;
 window.i18n = i18n;
 window.t = t;
+window.canAccessPanel = canAccessPanel;
+window.getAccessiblePanelOrHome = getAccessiblePanelOrHome;
 window.applyLanguage = applyLanguage;
 window.setLanguage = setLanguage;
 window.initTheme = initTheme;
@@ -904,4 +1056,463 @@ window.closeSidebar = closeSidebar;
 window.toggleDropdown = toggleDropdown;
 window.closeDropdown = closeDropdown;
 
+// Robust, cache-proof implementation of Subscription Dashboard directly in utils.js
+// Robust, cache-proof implementation of Subscription Dashboard directly in utils.js
+window.loadSubscriptionDashboard = async function() {
+  console.log('[SubDash] loadSubscriptionDashboard called');
+  const container = document.getElementById('subscription-status-card');
+  if (!container) { console.warn('[SubDash] container #subscription-status-card not found'); return; }
 
+  container.innerHTML = `
+    <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+      <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: var(--green-mid); margin-bottom: 0.5rem;"></i>
+      <p style="font-size: 0.9rem; margin: 0;">${t('sub_loading')}</p>
+    </div>`;
+
+  try {
+    const db = window.supabase || window._db || (typeof supabase !== 'undefined' ? supabase : null);
+    if (!db) throw new Error('Supabase client not found');
+
+    const user = window.currentUser || (typeof currentUser !== 'undefined' ? currentUser : null);
+    if (!user) {
+      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">${t('sub_error_no_auth')}</p>`;
+      return;
+    }
+
+    const { data: profile, error } = await db
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) {
+      container.innerHTML = `<p style="color: var(--red-danger); text-align: center; margin: 0;">${t('sub_error_load')} ${error?.message || 'Perfil não encontrado'}</p>`;
+      return;
+    }
+
+    const isActive = profile.subscription_id && profile.subscription_status === 'active';
+    const isPendingPayment = profile.subscription_status === 'approved_pending_payment';
+    const label = typeof window.getPlanLabel === 'function' ? window.getPlanLabel(profile.role, profile.plan) : (profile.plan || 'Gratuito');
+
+    // ── Case 0: Admin ──────────────────────────────────────────────────────────
+    if (profile.role === 'admin' || profile.plan === 'admin') {
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center; text-align: center; padding: 1rem 0;">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ff8c00); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(255,165,0,0.4);">
+            <i class="fa-solid fa-crown" style="font-size: 1.8rem; color: #1a1a1a;"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0 0 0.4rem 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--text-main);">${t('sub_admin_title')}</h3>
+            <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; max-width: 380px;">
+              ${t('sub_admin_desc')}
+            </p>
+          </div>
+          <span style="background: linear-gradient(135deg, #ffd700, #ff8c00); color: #1a1a1a; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.35rem 1rem; border-radius: 50px; font-family: 'Syne', sans-serif; letter-spacing: 0.05em;">
+            ${t('sub_admin_badge')}
+          </span>
+        </div>`;
+      return;
+    }
+
+    // ── Case 1: Active Paid Subscription ──────────────────────────────────────
+    if (isActive) {
+      const isGold = profile.plan === 'gold' || profile.role === 'professional' && profile.plan === 'gold';
+      const badgeColor = isGold ? 'linear-gradient(135deg, #ffd700, #ffa000)' : 'linear-gradient(135deg, var(--green-mid), #1b5e20)';
+      const badgeTextColor = isGold ? '#1a1a1a' : '#ffffff';
+
+      let nextChargeHtml = '';
+      if (profile.subscription_next_charge) {
+        try {
+          const dtStr = new Date(profile.subscription_next_charge).toLocaleDateString(window.currentLang === 'en' ? 'en-US' : 'pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+          nextChargeHtml = `
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-body); padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.9rem; border: 1px solid var(--border); margin-top: 0.5rem;">
+              <span style="color: var(--green-mid);"><i class="fa-regular fa-calendar-check"></i></span>
+              <span style="color: var(--text-muted);">${t('sub_active_renewal')} <strong style="color: var(--text-main);">${dtStr}</strong></span>
+            </div>`;
+        } catch(e) {}
+      }
+
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">${t('sub_active_plan')}</span>
+              <h3 style="margin: 0.2rem 0 0 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--text-main);">${label}</h3>
+            </div>
+            <span style="background: ${badgeColor}; color: ${badgeTextColor}; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 50px; font-family: 'Syne', sans-serif;">
+              ${t('sub_active_badge')}
+            </span>
+          </div>
+
+          ${nextChargeHtml}
+
+          <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <span style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">${t('sub_active_desc')}</span>
+            <button class="btn-primary" style="background: #c62828 !important; border: none; margin-top: 0.5rem; width: auto; align-self: flex-start; padding: 0.65rem 1.25rem; font-size: 0.85rem;" onclick="if(window.cancelSubscription) window.cancelSubscription('${profile.subscription_id}')">
+              <i class="fa-solid fa-circle-xmark" style="color: white !important; margin-right: 0.35rem;"></i> ${t('sub_cancel_btn')}
+            </button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // ── Case 2: Approved, Pending Payment ──────────────────────────────────────
+    if (isPendingPayment) {
+      const approvedTier = profile.professional_approved_tier || 'professional_basic';
+      const approvedLabel = approvedTier === 'professional_gold' ? 'Professional Gold' : 'Professional Basic';
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div style="background: linear-gradient(135deg, var(--green-deep), #1b5e20); color: white; border-radius: var(--radius-md); padding: 1.25rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+            <span style="font-size: 1.5rem; color: var(--yellow-hot);"><i class="fa-solid fa-circle-check"></i></span>
+            <div>
+              <h4 style="margin: 0 0 0.25rem 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem;">${t('sub_approved_title')}</h4>
+              <p style="margin: 0; font-size: 0.83rem; opacity: 0.9; line-height: 1.5;">${t('sub_approved_desc')}</p>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">${t('sub_approved_tier_label')}</span>
+            <strong style="color: var(--green-mid); font-size: 1rem; font-family: 'Syne', sans-serif;">${approvedLabel}</strong>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+            <button class="btn-primary" style="width: auto; align-self: flex-start; font-size: 0.95rem; padding: 0.75rem 1.5rem;" onclick="if(window.requestUpgrade) window.requestUpgrade('${approvedTier}')">
+              <i class="fa-solid fa-credit-card" style="color: white !important; margin-right: 0.4rem;"></i> ${t('sub_pay_btn')}
+            </button>
+            <span style="color: var(--text-muted); font-size: 0.75rem;">${t('sub_pay_note')}</span>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // ── Case 3: Free User ──────────────────────────────────────────────────────
+    container.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+          <div>
+            <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); letter-spacing: 0.05em;">${t('sub_free_plan')}</span>
+            <h3 style="margin: 0.2rem 0 0 0; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--text-main);">${label}</h3>
+          </div>
+          <span style="background: var(--bg-body); color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 50px; border: 1px solid var(--border); font-family: 'Syne', sans-serif;">
+            ${t('sub_free_badge')}
+          </span>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0;">
+          ${t('sub_free_desc')}
+        </p>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1.25rem; margin-top: 0.5rem;">
+          <button class="btn-primary" style="width: auto;" onclick="if(window.openUpgradeModal) window.openUpgradeModal()">
+            <i class="fa-solid fa-star" style="color: white !important; margin-right: 0.35rem;"></i> ${t('sub_upgrade_btn')}
+          </button>
+        </div>
+      </div>`;
+
+  } catch(err) {
+    console.error('[loadSubscriptionDashboard] Error:', err);
+    container.innerHTML = `
+      <div style="color: var(--red-danger); padding: 1rem; border: 1px dashed var(--red-danger); border-radius: var(--radius-sm); font-size: 0.88rem;">
+        <strong>Erro de renderização:</strong> ${err.message}
+      </div>`;
+  }
+};
+
+// ═══════════════════════════════════════
+// Item 8: Auto-upgrade Standard Free → Standard Pro
+// (sem necessidade de aprovação de admin)
+// ═══════════════════════════════════════
+window.autoUpgradeStandardPro = async function() {
+  if (!window.currentUser) { showToast('Você precisa estar logado.', 'error'); return; }
+  if (!window.isStandardFree || !window.isStandardFree()) {
+    showToast('Upgrade disponível apenas para usuários Gratuitos.', 'error');
+    return;
+  }
+
+  showToast('<i class="fa-solid fa-spinner fa-spin"></i> Processando upgrade...', 'info');
+  const db = window.supabase || window._db || (typeof supabase !== 'undefined' ? supabase : null);
+  try {
+    const { error } = await db.from('profiles').update({ plan: 'standard_pro' }).eq('id', window.currentUser.id);
+    if (error) throw error;
+
+    // Atualizar o perfil local
+    if (window.currentProfile) window.currentProfile.plan = 'standard_pro';
+    if (typeof window.setupRoleUI === 'function') window.setupRoleUI();
+    if (typeof window.applyPlanRestrictions === 'function') window.applyPlanRestrictions();
+    if (typeof window.renderSidebarUser === 'function') window.renderSidebarUser();
+    if (typeof window.loadSubscriptionDashboard === 'function') window.loadSubscriptionDashboard();
+
+    showToast('<i class="fa-solid fa-circle-check ic-check"></i> Parabéns! Você agora é Standard Pro!');
+  } catch(err) {
+    console.error('[autoUpgradeStandardPro]', err);
+    showToast('Erro ao fazer upgrade: ' + err.message, 'error');
+  }
+};
+
+// Item 13: requestUpgrade - roteador de upgrade automático vs. com aprovação de admin
+window.requestUpgrade = async function(tier) {
+  // Standard Free → Standard Pro: automático, sem admin
+  if (!tier || tier === 'standard_pro') {
+    return window.autoUpgradeStandardPro();
+  }
+  // Para profissional: requer CRN e aprovação de admin
+  if (tier === 'professional_basic' || tier === 'professional_gold') {
+    if (typeof window.openNutritionistRequest === 'function') {
+      window.openNutritionistRequest(tier);
+    }
+    return;
+  }
+  // Fallback: abre modal de upgrade
+  if (typeof window.openUpgradeModal === 'function') window.openUpgradeModal();
+};
+
+
+// ═══════════════════════════════════════════════════════════════════
+// PDF BRANDING — NutrIA  (used by all PDF generators)
+// ═══════════════════════════════════════════════════════════════════
+
+window.getNutriaPdfStyle = function() {
+  return `
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ── Variables ── */
+  :root {
+    --pdf-primary:   #14B8A6;
+    --pdf-purple:    #5B21B6;
+    --pdf-brown:     #422D18;
+    --pdf-dark:      #1C1C2E;
+    --pdf-bg:        #F8F9FA;
+    --pdf-accent-bg: #EDF6F9;
+    --pdf-border:    #D9E6E4;
+  }
+
+  /* ── Page ── */
+  @media print {
+    body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+  }
+  body {
+    font-family: 'Newsreader', 'Georgia', serif;
+    font-size: 10.5pt;
+    line-height: 1.65;
+    color: var(--pdf-dark);
+    background: #fff;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+
+  /* ── Header block (injected by getNutriaPdfHeader) ── */
+  .pdf-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 3px solid var(--pdf-primary);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  .pdf-logo-wrap svg { display: block; }
+  .pdf-brand-name {
+    font-family: 'Righteous', cursive;
+    font-size: 1.7rem;
+    color: var(--pdf-purple);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .pdf-brand-name span { color: var(--pdf-primary); }
+  .pdf-brand-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.75rem;
+    color: var(--pdf-brown);
+    margin-top: 2px;
+  }
+  .pdf-header-meta {
+    margin-left: auto;
+    text-align: right;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.78rem;
+    color: var(--pdf-brown);
+    line-height: 1.4;
+  }
+
+  /* ── Doc title ── */
+  .pdf-doc-title {
+    font-family: 'Righteous', cursive;
+    font-size: 1.4rem;
+    color: var(--pdf-purple);
+    margin-bottom: 3px;
+  }
+  .pdf-doc-sub {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.82rem;
+    color: var(--pdf-brown);
+    margin-bottom: 20px;
+    opacity: 0.85;
+  }
+
+  /* ── Section headings ── */
+  h2, h3 {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    color: var(--pdf-purple);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 5px;
+    border-bottom: 1.5px solid var(--pdf-accent-bg);
+    margin: 22px 0 10px;
+  }
+  h2 { font-size: 1rem; }
+  h3 { font-size: 0.9rem; }
+
+  /* ── Print button (hidden on print) ── */
+  .btn-print-pdf {
+    display: block;
+    margin: 0 auto 20px;
+    padding: 10px 28px;
+    background: linear-gradient(135deg, var(--pdf-purple), var(--pdf-primary));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ── Info grid (anamnese / profile cards) ── */
+  .pdf-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .pdf-info-card {
+    background: var(--pdf-accent-bg);
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--pdf-border);
+    page-break-inside: avoid;
+  }
+  .pdf-info-label {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    color: var(--pdf-brown);
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    margin-bottom: 2px;
+  }
+  .pdf-info-value {
+    font-family: 'Righteous', cursive;
+    font-size: 1.05rem;
+    color: var(--pdf-dark);
+  }
+
+  /* ── Summary strip (dieta / metas) ── */
+  .summary, .pdf-summary {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, var(--pdf-purple), var(--pdf-primary));
+    color: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+  .summary-item, .pdf-summary-item { flex: 1; min-width: 70px; }
+  .summary-val, .pdf-summary-val {
+    font-family: 'Righteous', cursive;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .summary-lbl, .pdf-summary-lbl {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.7rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  /* ── Meal / day blocks ── */
+  .meal-block, .rec-day-block {
+    background: var(--pdf-accent-bg);
+    border-radius: 11px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--pdf-border);
+    page-break-inside: avoid;
+  }
+  .meal-title, .rec-day-header {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--pdf-purple);
+    margin-bottom: 7px;
+  }
+  .food-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .food-row:last-child { border: none; }
+
+  /* ── AI section ── */
+  .record-ai-section {
+    background: var(--pdf-accent-bg);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-top: 20px;
+    border: 1px solid var(--pdf-border);
+  }
+
+  /* ── Footer ── */
+  .footer-pdf {
+    margin-top: 30px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.72rem;
+    color: var(--pdf-brown);
+    border-top: 1px solid var(--pdf-border);
+    padding-top: 12px;
+    opacity: 0.85;
+  }
+</style>`;
+};
+
+window.getNutriaPdfHeader = function(title, subtitle) {
+  // SVG logo: stylised leaf + bar chart — NutrIA brand mark
+  const logoSvg = `<svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="52" height="52" rx="12" fill="#5B21B6"/>
+    <path d="M13 38 C13 28 22 16 34 14 C34 24 26 36 13 38Z" fill="#14B8A6" opacity="0.9"/>
+    <rect x="15" y="30" width="5" height="9" rx="2" fill="white" opacity="0.85"/>
+    <rect x="23" y="24" width="5" height="15" rx="2" fill="white" opacity="0.85"/>
+    <rect x="31" y="19" width="5" height="20" rx="2" fill="white" opacity="0.85"/>
+  </svg>`;
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+
+  return `
+  <div class="pdf-header avoid-break">
+    <div class="pdf-logo-wrap">${logoSvg}</div>
+    <div>
+      <div class="pdf-brand-name">Nutr<span>IA</span></div>
+      <div class="pdf-brand-sub">Plataforma de Nutrição Inteligente</div>
+    </div>
+    <div class="pdf-header-meta">
+      <div>${dateStr}</div>
+      <div>${timeStr}</div>
+    </div>
+  </div>
+  <button class="btn-print-pdf no-print" onclick="window.print()">🖨️ Salvar como PDF / Imprimir</button>
+  ${title ? `<div class="pdf-doc-title">${title}</div>` : ''}
+  ${subtitle ? `<div class="pdf-doc-sub">${subtitle}</div>` : ''}`;
+};
