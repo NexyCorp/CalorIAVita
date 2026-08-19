@@ -581,6 +581,10 @@
       <button class="nav-item" id="nav-compare" onclick="showPanel('compare',this)">
         <span class="nav-icon"><i class="fa-solid fa-scale-balanced ic-compare"></i></span><span data-i18n="nav_compare">Comparar</span>
       </button>
+      <button class="nav-item" id="nav-inbox" onclick="showPanel('inbox',this)">
+        <span class="nav-icon"><i class="fa-solid fa-inbox"></i></span><span>Inbox</span>
+        <span class="nav-badge" id="inboxBadge" style="display:none;background:var(--accent-orange);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:10px;margin-left:auto;"></span>
+      </button>
       <button class="nav-item" id="nav-recipes" onclick="showPanel('recipes',this)">
         <span class="nav-icon"><i class="fa-solid fa-utensils ic-recipes"></i></span><span data-i18n="nav_recipes">Receitas</span>
       </button>
@@ -624,6 +628,10 @@
       <span id="topbarKcalText">0 / 2000 kcal</span>
       <div class="topbar-kcal-bar"><div class="topbar-kcal-fill" id="topbarKcalFill" style="width:0%"></div></div>
     </div>
+    <button class="btn-theme" id="inboxTopbarBtn" onclick="showPanel('inbox', document.getElementById('nav-inbox'))" title="Inbox de notificações" style="position:relative;">
+      <i class="fa-solid fa-bell"></i>
+      <span id="inboxTopbarBadge" class="inbox-topbar-badge" style="display:none;"></span>
+    </button>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()" title="Alternar tema"><i class="fa-solid fa-moon ic-moon"></i></button>
     <div style="position:relative;">
       <button class="user-avatar-btn" id="userAvatarBtn" onclick="toggleDropdown()">
@@ -1644,6 +1652,42 @@
           <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; margin: 0; padding: 2rem 0;">
             <i class="fa-solid fa-spinner fa-spin" style="margin-right: 0.5rem; color: var(--green-mid);"></i> Carregando informações da sua assinatura...
           </p>
+        </div>
+      </div>
+    <!-- ══ INBOX PANEL ══ -->
+    <div class="panel" id="panel-inbox">
+      <div class="inbox-container">
+        <!-- Inbox Header -->
+        <div class="inbox-header">
+          <div class="inbox-header-title">
+            <i class="fa-solid fa-inbox inbox-title-icon"></i>
+            <h2>Inbox de Notificações</h2>
+          </div>
+          <p class="inbox-header-subtitle">Acompanhe alertas, respostas e atualizações da plataforma NutrIA</p>
+        </div>
+
+        <!-- Inbox Tabs Bar -->
+        <div class="inbox-tabs">
+          <button class="inbox-tab-btn active" data-filter="all" onclick="window.setInboxFilter('all')">
+            <i class="fa-solid fa-layer-group"></i> Todas
+          </button>
+          <button class="inbox-tab-btn" data-filter="unread" onclick="window.setInboxFilter('unread')">
+            <i class="fa-solid fa-envelope"></i> Não lidas
+          </button>
+          <button class="inbox-tab-btn" data-filter="pending" onclick="window.setInboxFilter('pending')">
+            <i class="fa-solid fa-clock-rotate-left"></i> Pendentes
+          </button>
+          <button class="inbox-tab-btn" data-filter="archived" onclick="window.setInboxFilter('archived')">
+            <i class="fa-solid fa-box-archive"></i> Arquivadas
+          </button>
+        </div>
+
+        <!-- Notification List Container -->
+        <div id="inboxListContainer" class="inbox-list-container">
+          <div class="inbox-empty">
+            <i class="fa-solid fa-spinner fa-spin empty-icon"></i>
+            <p>Carregando notificações...</p>
+          </div>
         </div>
       </div>
     </div>

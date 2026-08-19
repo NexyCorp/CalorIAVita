@@ -14,5 +14,10 @@ import './js/admin.js';
 import './js/account.js';
 import './js/patches.js';
 import './js/landing.js';
+import { initInbox } from './js/inbox.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  initInbox();
+});
 
 console.log('[NutrIA] Entrada principal carregada e módulos ES importados com sucesso!');
