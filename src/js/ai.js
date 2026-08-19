@@ -9,8 +9,12 @@ const GROQ_KEYS = [
 ].filter(k => k && k.length > 0);
 // Automatically filters out empty placeholders
 const FALLBACK_GROQ_KEYS = [
-  // Removido por segurança: Chaves devem vir sempre das variáveis de ambiente VITE_*
-];
+  import.meta.env.VITE_GROQ_API_FALLBACK_KEY_1,
+  import.meta.env.VITE_GROQ_API_FALLBACK_KEY_2,
+  import.meta.env.VITE_GROQ_API_FALLBACK_KEY_3,
+  import.meta.env.VITE_GROQ_API_FALLBACK_KEY_4,
+  import.meta.env.VITE_GROQ_API_FALLBACK_KEY_5 
+].filter(key => key && key.trim().length > 0);
 
 // Chave HuggingFace para análise de imagens (CameraIA)
 // Obtenha em: https://huggingface.co/settings/tokens
