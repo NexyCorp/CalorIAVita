@@ -21,10 +21,10 @@ const HF_VISION_MODEL = 'meta-llama/Llama-3.2-11B-Vision-Instruct';
 const HF_VISION_URL = `https://api-inference.huggingface.co/models/${HF_VISION_MODEL}/v1/chat/completions`;
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL        = 'llama-3.3-70b-versatile';      // texto geral
-const GROQ_MODEL_FAST   = 'llama-3.1-8b-instant';         // fallback leve
-const GROQ_MODEL_VISION    = 'llama-3.2-11b-vision-preview'; // visão principal
-const GROQ_MODEL_VISION_FB = 'llama-3.2-90b-vision-preview'; // visão fallback
+const GROQ_MODEL        = 'openai/gpt-oss-120b';      // texto geral
+const GROQ_MODEL_FAST   = 'openai/gpt-oss-20b';         // fallback leve
+const GROQ_MODEL_VISION    = 'qwen/qwen3.6-27b'; // visão principal
+const GROQ_MODEL_VISION_FB = 'qwen/qwen3.6-27b'; // fallback visão
 
 
 let currentGroqKeyIndex = 0;
