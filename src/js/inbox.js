@@ -1,6 +1,6 @@
 /**
- * Módulo: Sistema de Inbox de Notificação — NutrIA
- * Gerencia notificações, alertas, arquivamento e checklist de tarefas.
+ * Módulo: Sistema de Inbox de Notificação Flutuante (Popover) — NutrIA
+ * Caixinha de notificações suspensa acoplada ao sino da Topbar.
  */
 
 let notificationsState = [
@@ -53,6 +53,7 @@ export function initInbox() {
   loadInboxFromStorage();
   renderInboxUI();
   updateInboxBadge();
+  setupClickOutside();
 }
 
 function loadInboxFromStorage() {
@@ -75,17 +76,43 @@ function saveInboxToStorage() {
 }
 
 export function updateInboxBadge() {
-  const badgeEl = document.getElementById('inboxBadge');
+  const topbarBadgeEl = document.getElementById('inboxTopbarBadge');
+  const popoverCountEl = document.getElementById('inboxPopoverCount');
   const unreadCount = notificationsState.filter(n => !n.read && !n.archived).length;
   
-  if (badgeEl) {
-    if (unreadCount > 0) {
-      badgeEl.textContent = unreadCount > 99 ? '99+' : unreadCount;
-      badgeEl.style.display = 'inline-flex';
-    } else {
-      badgeEl.style.display = 'none';
-    }
+  if (topbarBadgeEl) {
+    topbarBadgeEl.style.display = unreadCount > 0 ? 'block' : 'none';
   }
+
+  if (popoverCountEl) {
+    popoverCountEl.textContent = unreadCount;
+    popoverCountEl.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+  }
+}
+
+export function toggleInboxPopover(e) {
+  if (e) e.stopPropagation();
+  const popover = document.getElementById('inboxPopover');
+  if (!popover) return;
+
+  const isVisible = popover.style.display === 'block';
+  popover.style.display = isVisible ? 'none' : 'block';
+
+  if (!isVisible) {
+    renderInboxUI();
+  }
+}
+
+function setupClickOutside() {
+  document.addEventListener('click', (e) => {
+    const popover = document.getElementById('inboxPopover');
+    const btn = document.getElementById('inboxTopbarBtn');
+    if (popover && popover.style.display === 'block') {
+      if (!popover.contains(e.target) && !btn.contains(e.target)) {
+        popover.style.display = 'none';
+      }
+    }
+  });
 }
 
 export function renderInboxUI() {
@@ -103,7 +130,7 @@ export function renderInboxUI() {
     container.innerHTML = `
       <div class="inbox-empty">
         <i class="fa-solid fa-inbox empty-icon"></i>
-        <p>Nenhuma mensagem ou notificação nesta aba.</p>
+        <p>Nenhuma notificação encontrada.</p>
       </div>
     `;
     return;
@@ -174,7 +201,7 @@ export function renderInboxUI() {
 
 window.setInboxFilter = function(filter) {
   activeFilter = filter;
-  document.querySelectorAll('.inbox-tab-btn').forEach(btn => {
+  document.querySelectorAll('.inbox-popover-tabs .inbox-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.filter === filter);
   });
   renderInboxUI();
@@ -250,3 +277,4 @@ function escapeHtml(str) {
 window.initInbox = initInbox;
 window.renderInboxUI = renderInboxUI;
 window.updateInboxBadge = updateInboxBadge;
+window.toggleInboxPopover = toggleInboxPopover;

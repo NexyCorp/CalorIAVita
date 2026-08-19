@@ -2963,7 +2963,7 @@ i.fa-hourglass-half { color: #ffb74d; }
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   SISTEMA DE INBOX DE NOTIFICAÇÃO (NUTRIA)
+   SISTEMA DE INBOX DE NOTIFICAÇÃO (POPOVER DROPDOWN)
    ══════════════════════════════════════════════════════════════════ */
 .inbox-topbar-badge {
   position: absolute;
@@ -2976,181 +2976,139 @@ i.fa-hourglass-half { color: #ffb74d; }
   border: 2px solid var(--bg-card, #ffffff);
 }
 
-.inbox-container {
-  max-width: 800px;
-  margin: 0 auto;
+.inbox-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 380px;
+  max-width: 90vw;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border, rgba(0,0,0,0.1));
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  overflow: hidden;
+  animation: popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.inbox-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1rem;
+[data-theme="dark"] .inbox-popover {
+  background: #14081f;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
-.inbox-header-title {
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.inbox-popover-header {
+  padding: 0.9rem 1.1rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border, rgba(0,0,0,0.08));
+  background: rgba(0, 0, 0, 0.02);
 }
 
-.inbox-title-icon {
-  font-size: 1.75rem;
-  color: var(--teal-care, #14b8a6);
-}
-
-.inbox-header-title h2 {
-  font-family: var(--font-title);
-  font-weight: 800;
-  font-size: 1.6rem;
-  margin: 0;
-  color: var(--text-main);
-}
-
-.inbox-header-subtitle {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin: 0.35rem 0 0 0;
-}
-
-.inbox-tabs {
+.inbox-popover-title {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.inbox-tab-btn {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 0.55rem 1.1rem;
-  border-radius: 20px;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.inbox-tab-btn:hover {
-  background: var(--bg-hover, rgba(0,0,0,0.04));
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1rem;
   color: var(--text-main);
 }
 
-.inbox-tab-btn.active {
-  background: var(--teal-care, #14b8a6);
-  color: #ffffff;
-  border-color: var(--teal-care, #14b8a6);
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+.inbox-popover-icon {
+  color: var(--teal-care, #14b8a6);
 }
 
-.inbox-list-container {
+.inbox-count-badge {
+  background: var(--teal-care, #14b8a6);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.15rem 0.55rem;
+  border-radius: 50px;
+}
+
+.inbox-popover-tabs {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.5rem 0.8rem;
+  border-bottom: 1px solid var(--border, rgba(0,0,0,0.08));
+  background: var(--bg-card);
+  overflow-x: auto;
+}
+
+.inbox-popover-tabs .inbox-tab-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  border-radius: 12px;
+}
+
+.inbox-popover-body {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.7rem;
 }
 
-.inbox-empty {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--text-muted);
-  background: var(--bg-card);
-  border-radius: var(--radius-md, 12px);
-  border: 1px dashed var(--border);
+.inbox-popover-body::-webkit-scrollbar {
+  width: 5px;
 }
-
-.inbox-empty .empty-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.75rem;
-  opacity: 0.5;
-  color: var(--teal-care, #14b8a6);
+.inbox-popover-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
 }
 
 .inbox-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md, 12px);
-  padding: 1.25rem;
+  background: var(--bg-hover, rgba(0, 0, 0, 0.02));
+  border: 1px solid var(--border, rgba(0,0,0,0.08));
+  border-radius: 10px;
+  padding: 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.inbox-card.unread {
-  border-left: 4px solid var(--teal-care, #14b8a6);
-  background: var(--bg-card);
-}
-
-.inbox-card.read {
-  opacity: 0.85;
-}
-
-.inbox-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.inbox-card-title-group {
-  display: flex;
-  align-items: center;
   gap: 0.5rem;
 }
 
-.status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.status-indicator.unread {
-  background: var(--teal-care, #14b8a6);
+.inbox-card.unread {
+  border-left: 3px solid var(--teal-care, #14b8a6);
+  background: var(--bg-card);
 }
 
 .inbox-card-title {
-  font-family: var(--font-title);
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-main);
-}
-
-.inbox-time {
-  font-size: 0.78rem;
-  color: var(--text-muted);
+  font-size: 0.92rem;
 }
 
 .inbox-description {
-  margin: 0;
-  font-size: 0.92rem;
-  color: var(--text-main);
-  line-height: 1.5;
-}
-
-.inbox-labels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  font-size: 0.82rem;
 }
 
 .inbox-tag {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-main);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.45rem;
 }
+
+.inbox-checklist-block {
+  padding: 0.6rem;
+  border-radius: 6px;
+}
+
+.checklist-header {
+  font-size: 0.75rem;
+}
+
+.checklist-item {
+  font-size: 0.78rem;
+}
+
 
 .tag-backend { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 .tag-frontend { background: rgba(16, 185, 129, 0.15); color: #10b981; }
